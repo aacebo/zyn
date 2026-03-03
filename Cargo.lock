@@ -46,6 +46,7 @@ dependencies = [
  "syn",
  "zyn-core",
  "zyn-derive",
+ "zyn-ext",
 ]
 
 [[package]]
@@ -65,4 +66,11 @@ dependencies = [
  "quote",
  "syn",
  "zyn-core",
+]
+
+[[package]]
+name = "zyn-ext"
+version = "0.0.0"
+dependencies = [
+ "syn",
 ]

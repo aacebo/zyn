@@ -18,7 +18,9 @@ categories = ["development-tools::procedural-macro-helpers", "rust-patterns", "n
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "2" }
+
 zyn-core = { path = "./crates/core", version = "0.0.0" }
+zyn-ext = { path = "./crates/ext", version = "0.0.0" }
 zyn-derive = { path = "./crates/derive", version = "0.0.0" }
 
 # ----------- Package ----------- #
@@ -42,9 +44,11 @@ doctest = false
 [features]
 default = ["derive"]
 derive = ["zyn-derive"]
+ext = ["zyn-ext"]
 
 [dependencies]
 zyn-core = { workspace = true }
+zyn-ext = { workspace = true, optional = true }
 zyn-derive = { workspace = true, optional = true }
 
 [dev-dependencies]

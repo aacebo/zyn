@@ -3,6 +3,11 @@ pub use zyn_core::*;
 #[cfg(feature = "derive")]
 pub use zyn_derive::*;
 
+#[cfg(feature = "ext")]
+pub mod ext {
+    pub use zyn_ext::*;
+}
+
 /// Common imports for working with zyn templates.
 ///
 /// ```ignore
