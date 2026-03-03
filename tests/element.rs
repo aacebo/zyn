@@ -58,3 +58,46 @@ fn custom_name_override() -> syn::Result<()> {
     assert_eq!(result.to_string(), expected.to_string());
     Ok(())
 }
+
+mod namespaced {
+    use super::*;
+
+    pub mod components {
+        #[zyn::element]
+        pub fn field_decl(
+            name: proc_macro2::Ident,
+            ty: proc_macro2::Ident,
+        ) -> syn::Result<proc_macro2::TokenStream> {
+            Ok(zyn::zyn!({{ name }}: {{ ty }},))
+        }
+    }
+
+    #[test]
+    fn namespaced_element() -> syn::Result<()> {
+        let result: TokenStream = zyn::zyn!(
+            @components::field_decl {
+                name: quote::format_ident!("age"),
+                ty: quote::format_ident!("u32"),
+            }
+        );
+        let expected = quote!(age: u32,);
+        assert_eq!(result.to_string(), expected.to_string());
+        Ok(())
+    }
+}
+
+#[test]
+fn element_inside_for_loop() -> syn::Result<()> {
+    let names = vec![quote::format_ident!("foo"), quote::format_ident!("bar")];
+    let result: TokenStream = zyn::zyn!(
+        @for (name of names) {
+            @greeting { name: name.clone() }
+        }
+    );
+    let expected = quote!(
+        fn foo() {}
+        fn bar() {}
+    );
+    assert_eq!(result.to_string(), expected.to_string());
+    Ok(())
+}

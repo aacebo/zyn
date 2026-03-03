@@ -92,6 +92,83 @@ mod control_flow {
         );
         assert_eq!(result.to_string(), expected.to_string());
     }
+
+    #[test]
+    fn else_if_chain() {
+        let val = 2;
+        let result: TokenStream = zyn::zyn!(
+            @if (val == 1) { struct One; }
+            @else if (val == 2) { struct Two; }
+            @else { struct Other; }
+        );
+        let expected = quote!(
+            struct Two;
+        );
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn for_empty_iterable() {
+        let items: Vec<proc_macro2::Ident> = vec![];
+        let result: TokenStream = zyn::zyn!(@for (item of items) { {{ item }} });
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn match_multiple_arms() {
+        let kind = "enum";
+        let result: TokenStream = zyn::zyn!(
+            @match (kind) {
+                "struct" => { struct Foo; }
+                "enum" => { enum Bar {} }
+                "union" => { union Baz {} }
+                _ => { type Other = (); }
+            }
+        );
+        let expected = quote!(
+            enum Bar {}
+        );
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn nested_if_inside_for() {
+        let items = vec![
+            (quote::format_ident!("a"), true),
+            (quote::format_ident!("b"), false),
+        ];
+        let result: TokenStream = zyn::zyn!(
+            @for (item of items) {
+                @if (item.1) {
+                    fn {{ item.0 }}() {}
+                }
+            }
+        );
+        let expected = quote!(
+            fn a() {}
+        );
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+}
+
+mod interpolation_advanced {
+    use super::*;
+
+    struct Field {
+        name: proc_macro2::Ident,
+        ty: proc_macro2::Ident,
+    }
+
+    #[test]
+    fn field_access() {
+        let field = Field {
+            name: quote::format_ident!("age"),
+            ty: quote::format_ident!("u32"),
+        };
+        let result: TokenStream = zyn::zyn!({{ field.name }}: {{ field.ty }});
+        let expected = quote!(age: u32);
+        assert_eq!(result.to_string(), expected.to_string());
+    }
 }
 
 mod groups {

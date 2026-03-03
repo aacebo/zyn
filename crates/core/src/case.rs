@@ -25,18 +25,27 @@ macro_rules! pascal {
         )
     };
     ($ts:expr => token_stream) => {{
+        let __tokens: Vec<proc_macro2::TokenTree> = $ts.clone().into_iter().collect();
         let mut __out = proc_macro2::TokenStream::new();
 
-        for __tt in $ts.clone() {
+        for (i, __tt) in __tokens.iter().enumerate() {
             match __tt {
                 proc_macro2::TokenTree::Ident(__ident) => {
-                    quote::ToTokens::to_tokens(
-                        &$crate::pascal!(__ident => ident),
-                        &mut __out,
-                    );
+                    let __is_last_ident = !__tokens[i + 1..]
+                        .iter()
+                        .any(|t| matches!(t, proc_macro2::TokenTree::Ident(_)));
+
+                    if __is_last_ident {
+                        quote::ToTokens::to_tokens(
+                            &$crate::pascal!(__ident => ident),
+                            &mut __out,
+                        );
+                    } else {
+                        quote::ToTokens::to_tokens(__ident, &mut __out);
+                    }
                 }
                 __other => {
-                    quote::ToTokens::to_tokens(&__other, &mut __out);
+                    quote::ToTokens::to_tokens(__other, &mut __out);
                 }
             }
         }
