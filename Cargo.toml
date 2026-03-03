@@ -33,7 +33,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [features]
-default = []
+default = ["derive"]
 derive = ["zyn-derive"]
 
 [dependencies]
