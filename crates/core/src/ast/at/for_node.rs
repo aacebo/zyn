@@ -44,7 +44,6 @@ impl Parse for ForNode {
         }
 
         let iter: TokenStream = params.parse()?;
-
         let body_content;
         syn::braced!(body_content in input);
         let body = body_content.parse::<Element>()?;
