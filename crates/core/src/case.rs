@@ -1,9 +1,13 @@
 /// Converts a string to PascalCase.
+///
+/// Handles snake_case, camelCase, PascalCase, and SCREAMING_SNAKE_CASE inputs.
+/// First normalizes to snake_case to detect word boundaries, then capitalizes each word.
 pub fn to_pascal(s: &str) -> String {
+    let snake = to_snake(s);
     let mut out = String::new();
     let mut capitalize = true;
 
-    for c in s.chars() {
+    for c in snake.chars() {
         if c == '_' {
             capitalize = true;
         } else if capitalize {

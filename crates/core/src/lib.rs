@@ -114,30 +114,7 @@ impl Pipe for Snake {
     type Output = proc_macro2::Ident;
 
     fn pipe(&self, input: String) -> proc_macro2::Ident {
-        let mut out = String::new();
-        let chars: Vec<char> = input.chars().collect();
-
-        for (i, &c) in chars.iter().enumerate() {
-            if c.is_uppercase() {
-                let prev_lower = i > 0 && chars[i - 1].is_lowercase();
-                let next_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-                let prev_upper = i > 0 && chars[i - 1].is_uppercase();
-
-                if prev_lower || (next_lower && prev_upper) {
-                    out.push('_');
-                }
-
-                out.extend(c.to_lowercase());
-            } else if c == '_' {
-                if !out.is_empty() && !out.ends_with('_') {
-                    out.push('_');
-                }
-            } else {
-                out.push(c);
-            }
-        }
-
-        proc_macro2::Ident::new(&out, proc_macro2::Span::call_site())
+        proc_macro2::Ident::new(&case::to_snake(&input), proc_macro2::Span::call_site())
     }
 }
 
@@ -151,16 +128,7 @@ impl Pipe for Camel {
     type Output = proc_macro2::Ident;
 
     fn pipe(&self, input: String) -> proc_macro2::Ident {
-        let pascal = Pascal.pipe(input);
-        let s = pascal.to_string();
-        let mut chars = s.chars();
-
-        let result = match chars.next() {
-            None => String::new(),
-            Some(c) => c.to_lowercase().collect::<String>() + chars.as_str(),
-        };
-
-        proc_macro2::Ident::new(&result, proc_macro2::Span::call_site())
+        proc_macro2::Ident::new(&case::to_camel(&input), proc_macro2::Span::call_site())
     }
 }
 
@@ -174,38 +142,7 @@ impl Pipe for Pascal {
     type Output = proc_macro2::Ident;
 
     fn pipe(&self, input: String) -> proc_macro2::Ident {
-        let mut out = String::new();
-        let mut capitalize = true;
-
-        for c in input.chars() {
-            if c == '_' {
-                capitalize = true;
-            } else if c.is_uppercase() {
-                if !out.is_empty()
-                    && !out
-                        .chars()
-                        .last()
-                        .map(|p| p.is_uppercase())
-                        .unwrap_or(false)
-                {
-                    capitalize = true;
-                }
-
-                if capitalize {
-                    out.extend(c.to_uppercase());
-                    capitalize = false;
-                } else {
-                    out.push(c);
-                }
-            } else if capitalize {
-                out.extend(c.to_uppercase());
-                capitalize = false;
-            } else {
-                out.push(c);
-            }
-        }
-
-        proc_macro2::Ident::new(&out, proc_macro2::Span::call_site())
+        proc_macro2::Ident::new(&case::to_pascal(&input), proc_macro2::Span::call_site())
     }
 }
 
@@ -222,9 +159,7 @@ impl Pipe for Kebab {
     type Output = syn::LitStr;
 
     fn pipe(&self, input: String) -> syn::LitStr {
-        let snake = Snake.pipe(input);
-        let kebab = snake.to_string().replace('_', "-");
-        syn::LitStr::new(&kebab, proc_macro2::Span::call_site())
+        syn::LitStr::new(&case::to_kebab(&input), proc_macro2::Span::call_site())
     }
 }
 
@@ -238,10 +173,6 @@ impl Pipe for Screaming {
     type Output = proc_macro2::Ident;
 
     fn pipe(&self, input: String) -> proc_macro2::Ident {
-        let snake = Snake.pipe(input);
-        proc_macro2::Ident::new(
-            &snake.to_string().to_uppercase(),
-            proc_macro2::Span::call_site(),
-        )
+        proc_macro2::Ident::new(&case::to_screaming(&input), proc_macro2::Span::call_site())
     }
 }
