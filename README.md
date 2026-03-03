@@ -104,7 +104,7 @@ zyn! {
 ```rust
 zyn! {
     @if (!valid) {
-        @throw("expected a struct")
+        @throw "expected a struct"
     }
 }
 ```

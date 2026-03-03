@@ -36,3 +36,21 @@ mod interp {
         assert_eq!(result.to_string(), expected.to_string());
     }
 }
+
+mod throw {
+    use super::*;
+
+    #[test]
+    fn generates_compile_error() {
+        let element: Element = syn::parse_str("@throw \"bad input\"").unwrap();
+        let result = element.to_token_stream();
+        let expected = quote! {
+            {
+                let mut __zyn_ts_0 = ::proc_macro2::TokenStream::new();
+                ::core::compile_error!("bad input");
+                __zyn_ts_0
+            }
+        };
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+}

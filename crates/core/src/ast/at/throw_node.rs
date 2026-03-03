@@ -2,6 +2,7 @@ use proc_macro2::Ident;
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
 
+use quote::ToTokens;
 use quote::quote;
 
 use syn::parse::Parse;
@@ -22,13 +23,11 @@ impl ThrowNode {
 
 impl Parse for ThrowNode {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let msg_content;
-        syn::parenthesized!(msg_content in input);
-        let message: TokenStream = msg_content.parse()?;
+        let message: syn::LitStr = input.parse()?;
 
         Ok(Self {
-            span: Span::call_site(),
-            message,
+            span: message.span(),
+            message: message.into_token_stream(),
         })
     }
 }
