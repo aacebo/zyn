@@ -1,0 +1,23 @@
+[book]
+title = "Zyn"
+authors = ["Alex Acebo"]
+language = "en"
+
+[rust]
+edition = "2024"
+
+[output.html]
+default-theme = "ayu"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/aacebo/zyn"
+git-repository-icon = "fab-github"
+additional-css = ["theme/zyn.css"]
+additional-js = ["theme/zyn-highlight.js"]
+admonitions = true
+smart-punctuation = true
+definition-lists = true
+sidebar-header-nav = true
+
+[output.html.playground]
+editable = false
+runnable = false

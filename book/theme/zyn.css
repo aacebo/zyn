@@ -1,0 +1,72 @@
+.ayu pre {
+    background-color: #23241f;
+    border-radius: 8px;
+    border: 1px solid #3E3D32;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    padding: 1em;
+    margin: 1.2em 0;
+}
+
+.ayu pre code {
+    background-color: transparent;
+    color: #F8F8F2;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+}
+
+.ayu code {
+    background-color: #23241f;
+    color: #A6E22E;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    border: 1px solid #3E3D3240;
+}
+
+.ayu .blockquote-tag {
+    background-color: #1a1b16;
+    border-radius: 0 4px 4px 0;
+    border: none;
+    border-left: 4px solid #3E3D32;
+    padding: 0.75em 1em;
+}
+
+.ayu .blockquote-tag-note {
+    border-left-color: #66D9EF;
+}
+
+.ayu .blockquote-tag-note .blockquote-tag-title {
+    color: #66D9EF;
+}
+
+.ayu .blockquote-tag-tip {
+    border-left-color: #A6E22E;
+}
+
+.ayu .blockquote-tag-tip .blockquote-tag-title {
+    color: #A6E22E;
+}
+
+.ayu .blockquote-tag-important {
+    border-left-color: #AE81FF;
+}
+
+.ayu .blockquote-tag-important .blockquote-tag-title {
+    color: #AE81FF;
+}
+
+.ayu .blockquote-tag-warning {
+    border-left-color: #E6DB74;
+}
+
+.ayu .blockquote-tag-warning .blockquote-tag-title {
+    color: #E6DB74;
+}
+
+.ayu .blockquote-tag-caution {
+    border-left-color: #F92672;
+}
+
+.ayu .blockquote-tag-caution .blockquote-tag-title {
+    color: #F92672;
+}

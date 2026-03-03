@@ -1,0 +1,92 @@
+/*
+ * Monokai Sublime highlight.js theme
+ * Based on Monokai Sublime by noformnocontent (https://nn.mit-license.org/)
+ */
+
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    color: #F8F8F2;
+    background: #23241f;
+}
+
+.hljs-comment,
+.hljs-quote {
+    color: #75715E;
+    font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-addition {
+    color: #F92672;
+}
+
+.hljs-number,
+.hljs-string,
+.hljs-doctag,
+.hljs-regexp {
+    color: #E6DB74;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-built_in,
+.hljs-name {
+    color: #A6E22E;
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-class .hljs-title,
+.hljs-type,
+.hljs-tag {
+    color: #66D9EF;
+}
+
+.hljs-attribute {
+    color: #A6E22E;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-subst,
+.hljs-meta {
+    color: #FD971F;
+}
+
+.hljs-deletion {
+    color: #F92672;
+}
+
+.hljs-selector-id,
+.hljs-selector-class {
+    color: #AE81FF;
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: bold;
+}
+
+.hljs-params {
+    color: #FD971F;
+}
+
+.hljs-template-tag {
+    color: #F92672;
+}
+
+.hljs-template-variable {
+    color: #FD971F;
+}
+
+.hljs-punctuation {
+    color: #F8F8F2;
+}
