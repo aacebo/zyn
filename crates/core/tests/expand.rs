@@ -1,5 +1,5 @@
 use quote::quote;
-use zyn::ast::Element;
+use zyn_core::ast::Element;
 
 mod tokens {
     use super::*;
@@ -11,7 +11,7 @@ mod tokens {
         let expected = quote! {
             {
                 let mut __zyn_ts_0 = ::proc_macro2::TokenStream::new();
-                ::quote::quote!(struct Foo ;).to_tokens(&mut __zyn_ts_0);
+                __zyn_ts_0.extend(::quote::quote!(struct Foo ;));
                 __zyn_ts_0
             }
         };

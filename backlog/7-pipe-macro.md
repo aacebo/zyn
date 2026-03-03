@@ -11,7 +11,7 @@ Provide a `#[zyn::pipe]` attribute macro that transforms a function into a struc
 ## Files to Modify
 
 - `crates/derive/src/lib.rs` — add `#[proc_macro_attribute] pub fn pipe`
-- `src/lib.rs` — re-export `zyn_derive::pipe`
+- `src/lib.rs` — re-export `zyn_derive::pipe` (root crate uses `pub use zyn_core::*` so only derive re-export needed)
 
 ## Design
 
@@ -30,9 +30,9 @@ fn prefix(input: String, pre: &str) -> proc_macro2::Ident {
 ### Generated output
 
 ```rust
-struct prefix;
+struct Prefix;
 
-impl ::zyn::Pipe for prefix {
+impl ::zyn::Pipe for Prefix {
     type Input = String;
     type Output = proc_macro2::Ident;
 
@@ -50,7 +50,7 @@ impl ::zyn::Pipe for prefix {
 
 ### Transformation rules
 
-1. Function name → unit struct name (pipes are typically lowercase like `snake`, `upper`)
+1. Function name → unit struct name (PascalCase, e.g. `Prefix`, `Snake`, `Upper`)
 2. First parameter → `Pipe::Input` type, passed as the pipe input
 3. Additional parameters → pipe args (from `:arg` syntax in template), passed at expansion time
 4. Return type → `Pipe::Output` (must implement `ToTokens`)
@@ -58,13 +58,13 @@ impl ::zyn::Pipe for prefix {
 
 ### Pipe args
 
-For pipes with arguments like `{{ name | prefix:"my" }}`, the additional function parameters beyond the first are the pipe args. The expander passes them to the constructed pipe or directly to the generated code:
+For pipes with arguments like `{{ name | Prefix:"my" }}`, the additional function parameters beyond the first are the pipe args. The expander passes them to the constructed pipe or directly to the generated code:
 
 ```rust
-// {{ name | prefix:"my" }}
+// {{ name | Prefix:"my" }}
 {
     let __zyn_val = (#name).to_string();
-    let __zyn_val = ::zyn::Pipe::pipe(&prefix, __zyn_val, "my");
+    let __zyn_val = ::zyn::Pipe::pipe(&Prefix, __zyn_val, "my");
     ::quote::ToTokens::to_tokens(&__zyn_val, &mut __zyn_ts);
 }
 ```
@@ -76,10 +76,10 @@ Note: if the `Pipe` trait needs to support args, the trait signature may need ad
 Instead of generating a `Pipe` trait impl, `#[pipe]` could simply validate the function signature and leave it as a function. The expander would call `pipe_name(input, args...)` directly:
 
 ```rust
-// {{ name | prefix:"my" }}
+// {{ name | Prefix:"my" }}
 {
     let __zyn_val = (#name).to_string();
-    let __zyn_val = prefix(__zyn_val, "my");
+    let __zyn_val = Prefix(__zyn_val, "my");
     ::quote::ToTokens::to_tokens(&__zyn_val, &mut __zyn_ts);
 }
 ```
@@ -96,6 +96,6 @@ This is simpler and avoids complexity around trait generics with variable args. 
 - `cargo build --workspace` compiles
 - `cargo test --workspace` passes
 - `cargo clippy --workspace --all-features -- -D warnings` passes
-- Custom pipes defined with `#[pipe]` work in `{{ expr | pipe_name }}` syntax
+- Custom pipes defined with `#[pipe]` work in `{{ expr | PipeName }}` syntax
 - Pipe args from `:arg` syntax are passed to additional parameters
 - Error messages point at the correct span for invalid input

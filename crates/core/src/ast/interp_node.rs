@@ -69,33 +69,19 @@ impl Expand for InterpNode {
         }
 
         let mut steps = vec![quote! { let __zyn_val = (#expr).to_string(); }];
-        let mut prev_custom = false;
 
-        for pipe in &self.pipes {
-            if prev_custom && !pipe.is_custom() {
+        for (i, pipe) in self.pipes.iter().enumerate() {
+            if i > 0 {
                 steps.push(quote! { let __zyn_val = __zyn_val.to_string(); });
             }
 
             steps.push(pipe.expand(output, idents));
-            prev_custom = pipe.is_custom();
         }
-
-        let emit = if self.pipes.last().map(|p| p.is_custom()).unwrap_or(false) {
-            quote! { ::quote::ToTokens::to_tokens(&__zyn_val, &mut #output); }
-        } else {
-            quote! {
-                let __zyn_ident = ::proc_macro2::Ident::new(
-                    &__zyn_val,
-                    ::proc_macro2::Span::call_site(),
-                );
-                ::quote::ToTokens::to_tokens(&__zyn_ident, &mut #output);
-            }
-        };
 
         quote! {
             {
                 #(#steps)*
-                #emit
+                ::quote::ToTokens::to_tokens(&__zyn_val, &mut #output);
             }
         }
     }

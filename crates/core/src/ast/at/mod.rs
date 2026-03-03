@@ -15,6 +15,7 @@ use proc_macro2::Span;
 use proc_macro2::TokenStream;
 
 use syn::Token;
+use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
 
@@ -144,7 +145,7 @@ impl Expand for AtNode {
 impl Parse for AtNode {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let at_span = input.parse::<Token![@]>()?.span;
-        let ident: syn::Ident = input.parse()?;
+        let ident: syn::Ident = input.call(syn::Ident::parse_any)?;
         let name = ident.to_string();
 
         match name.as_str() {

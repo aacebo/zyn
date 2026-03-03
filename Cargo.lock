@@ -43,8 +43,17 @@ version = "0.0.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "zyn-core",
  "zyn-derive",
+]
+
+[[package]]
+name = "zyn-core"
+version = "0.0.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -54,4 +63,5 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+ "zyn-core",
 ]

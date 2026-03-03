@@ -5,14 +5,14 @@
 ## Structure
 
 ```
-src/
-  lib.rs                  Expand trait, Render trait, Pipe trait
+crates/core/src/
+  lib.rs                  Expand trait, Render trait, Pipe trait, built-in pipe structs
   ident.rs                ident::Iter (infinite Iterator<Item = Ident>)
   ast/
     mod.rs                Node enum (4 variants), Element struct, Parse/Expand impls
     tokens_node.rs        TokensNode + Expand
     interp_node.rs        InterpNode + Parse + Expand
-    pipe_node.rs          PipeNode + Parse + Expand
+    pipe_node.rs          PipeNode struct + Parse + Expand
     group_node.rs         GroupNode + Parse + Expand
     at/
       mod.rs              AtNode enum (5 variants), Parse + Expand dispatch
@@ -23,10 +23,13 @@ src/
       element_node.rs     ElementNode + Parse + Expand + parse_with_ident()
 
 crates/derive/src/
-  lib.rs                  (empty — proc macro entry points go here later)
+  lib.rs                  #[proc_macro] pub fn zyn
+
+src/
+  lib.rs                  Re-exports from zyn-core and zyn-derive
 ```
 
-## Traits (in `src/lib.rs`)
+## Traits (in `crates/core/src/lib.rs`)
 
 ```rust
 pub trait Expand {
@@ -44,7 +47,22 @@ pub trait Pipe {
 }
 ```
 
-## Ident Iterator (`src/ident.rs`)
+## Built-in Pipes (in `crates/core/src/lib.rs`)
+
+PascalCase unit structs implementing `Pipe`, each with `Input = String` and `Output = proc_macro2::Ident`:
+
+| Struct | Behavior |
+|--------|----------|
+| `Upper` | `input.to_uppercase()` |
+| `Lower` | `input.to_lowercase()` |
+| `Snake` | snake_case conversion |
+| `Camel` | camelCase conversion (delegates to `Pascal` + lowercase first char) |
+| `Pascal` | PascalCase conversion |
+| `Screaming` | SCREAMING_CASE conversion (delegates to `Snake` + uppercase) |
+
+Users bring pipes into scope: `use zyn::Upper;` — same for built-in and custom pipes.
+
+## Ident Iterator (`crates/core/src/ident.rs`)
 
 `ident::Iter` — struct with counter, implements `Iterator<Item = Ident>`. Yields `__zyn_ts_0`, `__zyn_ts_1`, etc. infinitely. Used by `Expand` impls for unique variable names.
 
@@ -73,7 +91,19 @@ pub enum AtNode {
 }
 ```
 
-`Parse for AtNode` consumes `@` + ident, dispatches to the appropriate variant parser.
+`Parse for AtNode` consumes `@` + ident (via `Ident::parse_any` for keywords), dispatches to the appropriate variant parser.
+
+## PipeNode (`ast/pipe_node.rs`)
+
+```rust
+pub struct PipeNode {
+    pub span: Span,
+    pub name: syn::Ident,
+    pub args: Vec<TokenStream>,
+}
+```
+
+Single struct for all pipes (no built-in vs custom distinction). Expansion generates uniform `::zyn::Pipe::pipe(&(#name), __zyn_val)` for every pipe.
 
 ## Element (root container)
 

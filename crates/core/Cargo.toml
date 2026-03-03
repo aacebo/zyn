@@ -1,6 +1,6 @@
 [package]
-name = "zyn-derive"
-description = "derive macros for the zyn crate"
+name = "zyn-core"
+description = "core ast and other type/helper implementations for zyn"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,11 +11,7 @@ repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
-[lib]
-proc-macro = true
-
 [dependencies]
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true, features = ["full", "extra-traits"] }
-zyn-core = { workspace = true }

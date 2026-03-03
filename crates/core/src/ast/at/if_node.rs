@@ -5,6 +5,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use syn::Token;
+use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
 
@@ -41,16 +42,10 @@ impl Parse for IfNode {
 
         while is_at_else(input) {
             input.parse::<Token![@]>()?;
-            input.parse::<syn::Ident>()?;
+            input.call(syn::Ident::parse_any)?;
 
-            if input.peek(syn::Ident)
-                && input
-                    .fork()
-                    .parse::<syn::Ident>()
-                    .map(|i| i == "if")
-                    .unwrap_or(false)
-            {
-                input.parse::<syn::Ident>()?;
+            if is_keyword_if(input) {
+                input.call(syn::Ident::parse_any)?;
 
                 let cond_content;
                 syn::parenthesized!(cond_content in input);
@@ -108,8 +103,17 @@ fn is_at_else(input: ParseStream) -> bool {
     let fork = input.fork();
     let _ = fork.parse::<Token![@]>();
 
-    match fork.parse::<syn::Ident>() {
+    match fork.call(syn::Ident::parse_any) {
         Ok(ident) => ident == "else",
+        Err(_) => false,
+    }
+}
+
+fn is_keyword_if(input: ParseStream) -> bool {
+    let fork = input.fork();
+
+    match fork.call(syn::Ident::parse_any) {
+        Ok(ident) => ident == "if",
         Err(_) => false,
     }
 }

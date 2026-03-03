@@ -11,7 +11,7 @@ Provide a `#[zyn::element]` attribute macro that transforms a function into a el
 ## Files to Modify
 
 - `crates/derive/src/lib.rs` — add `#[proc_macro_attribute] pub fn element`
-- `src/lib.rs` — re-export `zyn_derive::element`
+- `src/lib.rs` — re-export `zyn_derive::element` (root crate uses `pub use zyn_core::*` so only derive re-export needed)
 
 ## Design
 

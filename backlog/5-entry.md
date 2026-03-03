@@ -1,78 +1,54 @@
-# Phase 5: Entry Point + Tests
+# Phase 5: Entry Point + Tests ✅
 
-## Scope
+## Status: Complete
 
-Wire everything together: define the `#[proc_macro] pub fn zyn` entry point, finalize `lib.rs`, and write integration tests.
+## Three-crate architecture
 
-## Files to Modify
+- **`zyn-core`** (`crates/core`) — AST, parsing, expansion, `Expand`/`Render`/`Pipe` traits, built-in pipe structs, `ident` module
+- **`zyn-derive`** (`crates/derive`) — `#[proc_macro] pub fn zyn` entry point only, depends on `zyn-core`
+- **`zyn`** (root) — re-export facade (`pub use zyn_core::*` + `pub use zyn_derive::zyn`)
 
-- `crates/derive/src/lib.rs` — add `#[proc_macro] pub fn zyn(input: TokenStream) -> TokenStream`
-- `crates/derive/src/lib.rs` — expose `pub fn expand(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream`
+`zyn-derive` does NOT depend on `zyn`. Generated code uses `::zyn::` paths resolved at the user's call site.
 
-## Files to Create
-
-- `crates/derive/tests/zyn.rs` — integration tests (per CLAUDE.md: proc macro tests go in `tests/` directory)
-
-## Entry Point
+## Entry Point (`crates/derive/src/lib.rs`)
 
 ```rust
 #[proc_macro]
-pub fn zyn(input: TokenStream) -> TokenStream {
+pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     expand(input.into()).into()
 }
-```
 
-`expand` parses the input, expands the AST, and wraps in the top-level block:
-
-```rust
-pub fn expand(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    match parse(input) {
-        Ok(element) => {
-            let expanded = expand_element(&template, &mut 0);
-            quote! {
-                {
-                    let mut __zyn_ts = ::proc_macro2::TokenStream::new();
-                    #expanded
-                    __zyn_ts
-                }
-            }
-        }
+fn expand(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    match syn::parse2::<zyn_core::ast::Element>(input) {
+        Ok(element) => element.to_token_stream(),
         Err(e) => e.to_compile_error(),
     }
 }
 ```
 
-## Tests
-
-Integration tests that invoke `zyn!` and verify the produced `TokenStream`:
-
-- Passthrough: plain tokens emit unchanged
-- Interpolation: `{{ name }}` interpolates a variable
-- Interpolation with field access: `{{ item.name }}` works
-- Interpolation with pipes: `{{ name | upper }}`
-- `@if`/`@else if`/`@else`: conditional code generation
-- `@for`: loop over iterator, emit per-item tokens
-- `@match`: pattern matching with multiple arms and wildcard
-- `@throw`: produces `compile_error!`
-- `@Element { prop: value }`: constructs struct, calls `Render::render()`, splices result
-- `@Element { props } { children }`: element with children template
-- `@path::Element { props }`: element with module path
-- Nested directives: `@if` inside `@for`
-- Nested elements: `@Element` inside `@for`
-- Groups: `{{ expr }}` inside parentheses, brackets, braces
-
-## Re-export from main crate
-
-Update `src/lib.rs` (root zyn crate) to re-export:
+## Re-export (`src/lib.rs`)
 
 ```rust
+pub use zyn_core::*;
+
 #[cfg(feature = "derive")]
 pub use zyn_derive::zyn;
 ```
 
-## Acceptance Criteria
+## Tests
 
-- `cargo build --workspace` compiles
-- `cargo test --workspace` passes all integration tests
-- `cargo clippy --workspace --all-features -- -D warnings` passes
-- `cargo fmt --check` passes
+Integration tests in `tests/zyn.rs` (17 tests) covering:
+
+- Passthrough (plain tokens, multiple tokens)
+- Interpolation (`{{ name }}`)
+- Pipes (`{{ name | Upper }}`, `{{ name | Snake }}`, chained)
+- `@if`/`@else` conditionals
+- `@for` loops
+- `@match` pattern matching
+- Groups (parenthesized, bracketed)
+
+AST-level tests in `crates/core/tests/`:
+
+- `expand.rs` (2 tests) — token passthrough, interpolation expansion
+- `pipes.rs` (8 tests) — per-pipe expansion output, chaining, custom dispatch
+- `case_conversion.rs` (18 tests) — all pipe case conversions via `Pipe::pipe()`
