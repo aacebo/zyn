@@ -15,7 +15,9 @@ keywords = ["macro", "framework", "proc", "rust"]
 categories = ["development-tools::procedural-macro-helpers", "rust-patterns", "no-std"]
 
 [workspace.dependencies]
-zyn-derive = { path = "./crates/derive", version = "0.0.0" }
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2" }
 
 # ----------- Package ----------- #
 
@@ -37,4 +39,8 @@ default = ["derive"]
 derive = ["zyn-derive"]
 
 [dependencies]
-zyn-derive = { workspace = true, optional = true }
+zyn-derive = { path = "./crates/derive", version = "0.0.0", optional = true }
+
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
