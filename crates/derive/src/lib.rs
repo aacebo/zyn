@@ -1,4 +1,5 @@
 mod element;
+mod pipe;
 
 #[proc_macro]
 pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -11,6 +12,14 @@ pub fn element(
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     element::expand(input.into()).into()
+}
+
+#[proc_macro_attribute]
+pub fn pipe(
+    _args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    pipe::expand(input.into()).into()
 }
 
 fn expand(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {

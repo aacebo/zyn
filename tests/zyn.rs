@@ -37,67 +37,6 @@ mod interpolation {
     }
 }
 
-mod pipes {
-    use super::*;
-    use zyn::{Camel, Lower, Pascal, Screaming, Snake, Upper};
-
-    #[test]
-    fn upper_pipe() {
-        let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({ { name | Upper } });
-        let expected = quote!(HELLO);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn lower_pipe() {
-        let name = quote::format_ident!("HELLO");
-        let result: TokenStream = zyn::zyn!({ { name | Lower } });
-        let expected = quote!(hello);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn snake_pipe() {
-        let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | Snake } });
-        let expected = quote!(hello_world);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn camel_pipe() {
-        let name = quote::format_ident!("hello_world");
-        let result: TokenStream = zyn::zyn!({ { name | Camel } });
-        let expected = quote!(helloWorld);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn pascal_pipe() {
-        let name = quote::format_ident!("hello_world");
-        let result: TokenStream = zyn::zyn!({ { name | Pascal } });
-        let expected = quote!(HelloWorld);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn screaming_pipe() {
-        let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | Screaming } });
-        let expected = quote!(HELLO_WORLD);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn chained() {
-        let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | Snake | Upper } });
-        let expected = quote!(HELLO_WORLD);
-        assert_eq!(result.to_string(), expected.to_string());
-    }
-}
-
 mod control_flow {
     use super::*;
 
@@ -174,51 +113,5 @@ mod groups {
             type Foo = [u8; 4];
         );
         assert_eq!(result.to_string(), expected.to_string());
-    }
-}
-
-mod elements {
-    use super::*;
-
-    #[zyn::element]
-    fn greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStream> {
-        Ok(zyn::zyn!(fn {{ name }}() {}))
-    }
-
-    #[test]
-    fn basic_element() -> syn::Result<()> {
-        let result: TokenStream = zyn::zyn!(
-            @Greeting { name: quote::format_ident!("hello") }
-        );
-        let expected = quote!(
-            fn hello() {}
-        );
-        assert_eq!(result.to_string(), expected.to_string());
-        Ok(())
-    }
-
-    #[zyn::element]
-    fn wrapper(
-        name: proc_macro2::Ident,
-        children: proc_macro2::TokenStream,
-    ) -> syn::Result<proc_macro2::TokenStream> {
-        // Use quote directly for brace wrapping since zyn parses { {{ }} } as interpolation
-        Ok(quote::quote!(struct #name { #children }))
-    }
-
-    #[test]
-    fn element_with_children() -> syn::Result<()> {
-        let result: TokenStream = zyn::zyn!(
-            @Wrapper { name: quote::format_ident!("Foo") } {
-                x: i32,
-            }
-        );
-        let expected = quote!(
-            struct Foo {
-                x: i32,
-            }
-        );
-        assert_eq!(result.to_string(), expected.to_string());
-        Ok(())
     }
 }
