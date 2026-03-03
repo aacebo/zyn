@@ -102,26 +102,28 @@ fn parse_props_and_children(
     span: Span,
     name: TokenStream,
 ) -> syn::Result<ElementNode> {
-    let props_content;
-    syn::parenthesized!(props_content in input);
-
     let mut props = Vec::new();
 
-    while !props_content.is_empty() {
-        let prop_name: syn::Ident = props_content.parse()?;
-        props_content.parse::<Token![=]>()?;
+    if input.peek(syn::token::Paren) {
+        let props_content;
+        syn::parenthesized!(props_content in input);
 
-        let mut value = TokenStream::new();
+        while !props_content.is_empty() {
+            let prop_name: syn::Ident = props_content.parse()?;
+            props_content.parse::<Token![=]>()?;
 
-        while !props_content.is_empty() && !props_content.peek(Token![,]) {
-            let tt: TokenTree = props_content.parse()?;
-            tt.to_tokens(&mut value);
-        }
+            let mut value = TokenStream::new();
 
-        props.push((prop_name, value));
+            while !props_content.is_empty() && !props_content.peek(Token![,]) {
+                let tt: TokenTree = props_content.parse()?;
+                tt.to_tokens(&mut value);
+            }
 
-        if props_content.peek(Token![,]) {
-            props_content.parse::<Token![,]>()?;
+            props.push((prop_name, value));
+
+            if props_content.peek(Token![,]) {
+                props_content.parse::<Token![,]>()?;
+            }
         }
     }
 

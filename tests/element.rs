@@ -86,6 +86,54 @@ mod namespaced {
     }
 }
 
+#[zyn::element]
+fn divider() -> syn::Result<proc_macro2::TokenStream> {
+    Ok(zyn::zyn!(
+        const DIVIDER: &str = "---";
+    ))
+}
+
+#[test]
+fn zero_param_no_parens() -> syn::Result<()> {
+    let result: TokenStream = zyn::zyn!(@divider);
+    let expected = quote!(
+        const DIVIDER: &str = "---";
+    );
+    assert_eq!(result.to_string(), expected.to_string());
+    Ok(())
+}
+
+#[test]
+fn zero_param_with_parens() -> syn::Result<()> {
+    let result: TokenStream = zyn::zyn!(@divider());
+    let expected = quote!(
+        const DIVIDER: &str = "---";
+    );
+    assert_eq!(result.to_string(), expected.to_string());
+    Ok(())
+}
+
+#[zyn::element]
+fn container(children: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
+    Ok(quote::quote!(mod container { #children }))
+}
+
+#[test]
+fn children_without_parens() -> syn::Result<()> {
+    let result: TokenStream = zyn::zyn!(
+        @container {
+            struct Inner;
+        }
+    );
+    let expected = quote!(
+        mod container {
+            struct Inner;
+        }
+    );
+    assert_eq!(result.to_string(), expected.to_string());
+    Ok(())
+}
+
 #[test]
 fn element_inside_for_loop() -> syn::Result<()> {
     let names = vec![quote::format_ident!("foo"), quote::format_ident!("bar")];

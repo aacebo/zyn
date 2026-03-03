@@ -162,7 +162,20 @@ zyn! {
 // output: pub age: u32,
 ```
 
-Elements support children:
+Elements can have zero parameters. Parentheses are optional when there are no props:
+
+```rust
+#[zyn::element]
+fn divider() -> syn::Result<proc_macro2::TokenStream> {
+    Ok(zyn::zyn!(const DIVIDER: &str = "---";))
+}
+
+// All equivalent:
+zyn! { @divider }
+zyn! { @divider() }
+```
+
+Elements support children via a `children` parameter:
 
 ```rust
 #[zyn::element]
@@ -174,6 +187,21 @@ zyn! {
     @wrapper(vis = quote::quote!(pub)) {
         name: String,
         age: u32,
+    }
+}
+```
+
+Children-only elements can omit parens entirely:
+
+```rust
+#[zyn::element]
+fn container(children: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
+    Ok(quote::quote!(mod inner { #children }))
+}
+
+zyn! {
+    @container {
+        struct Foo;
     }
 }
 ```

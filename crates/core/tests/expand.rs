@@ -93,12 +93,11 @@ mod syntax_errors {
     }
 
     #[test]
-    fn for_missing_of_keyword() {
-        // "in" is a Rust keyword, so syn rejects it before the "of" check
+    fn for_in_keyword_hint() {
         let msg = parse_err("@for (item in items) { }");
         assert!(
-            msg.contains("expected identifier"),
-            "expected 'expected identifier', got: {msg}"
+            msg.contains("use `of` instead"),
+            "expected hint about `of`, got: {msg}"
         );
     }
 
@@ -113,9 +112,15 @@ mod syntax_errors {
     }
 
     #[test]
-    fn element_missing_props() {
+    fn element_no_parens() {
         let result = syn::parse_str::<Element>("@my_element");
-        assert!(result.is_err(), "@element without props should fail");
+        assert!(result.is_ok(), "@element without parens should succeed");
+    }
+
+    #[test]
+    fn element_empty_parens() {
+        let result = syn::parse_str::<Element>("@my_element()");
+        assert!(result.is_ok(), "@element with empty parens should succeed");
     }
 
     #[test]

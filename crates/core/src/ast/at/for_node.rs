@@ -4,6 +4,7 @@ use proc_macro2::TokenStream;
 
 use quote::quote;
 
+use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
 
@@ -28,10 +29,16 @@ impl Parse for ForNode {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let params;
         syn::parenthesized!(params in input);
-
         let binding: syn::Ident = params.parse()?;
+        let of_kw: syn::Ident = params.call(syn::Ident::parse_any)?;
 
-        let of_kw: syn::Ident = params.parse()?;
+        if of_kw == "in" {
+            return Err(syn::Error::new_spanned(
+                of_kw,
+                "expected `of` (`in` is a Rust keyword, use `of` instead)",
+            ));
+        }
+
         if of_kw != "of" {
             return Err(syn::Error::new_spanned(of_kw, "expected `of`"));
         }

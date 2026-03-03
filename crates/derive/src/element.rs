@@ -35,15 +35,6 @@ fn expand_element(item: ItemFn, custom_name: Option<syn::LitStr>) -> TokenStream
         .to_compile_error();
     }
 
-    // Validate at least one parameter
-    if item.sig.inputs.is_empty() {
-        return syn::Error::new(
-            item.sig.ident.span(),
-            "element must have at least one parameter",
-        )
-        .to_compile_error();
-    }
-
     // Convert snake_case function name to PascalCase struct name
     let struct_name = pascal!(item.sig.ident => ident);
 
