@@ -13,6 +13,7 @@ use syn::parse::ParseStream;
 use super::super::Element;
 
 use crate::Expand;
+use crate::pascal;
 
 pub struct ElementNode {
     pub span: Span,
@@ -39,49 +40,13 @@ impl ElementNode {
             segment.to_tokens(&mut name);
         }
 
-        let props_content;
-        syn::braced!(props_content in input);
-
-        let mut props = Vec::new();
-
-        while !props_content.is_empty() {
-            let prop_name: syn::Ident = props_content.parse()?;
-            props_content.parse::<Token![:]>()?;
-
-            let mut value = TokenStream::new();
-
-            while !props_content.is_empty() && !props_content.peek(Token![,]) {
-                let tt: TokenTree = props_content.parse()?;
-                tt.to_tokens(&mut value);
-            }
-
-            props.push((prop_name, value));
-
-            if props_content.peek(Token![,]) {
-                props_content.parse::<Token![,]>()?;
-            }
-        }
-
-        let children = if input.peek(syn::token::Brace) {
-            let children_content;
-            syn::braced!(children_content in input);
-            Some(Box::new(children_content.parse::<Element>()?))
-        } else {
-            None
-        };
-
-        Ok(Self {
-            span,
-            name,
-            props,
-            children,
-        })
+        parse_props_and_children(input, span, name)
     }
 }
 
 impl Expand for ElementNode {
     fn expand(&self, output: &Ident, idents: &mut crate::ident::Iter) -> TokenStream {
-        let name = &self.name;
+        let name = pascal!(self.name => token_stream);
         let prop_names: Vec<&syn::Ident> = self.props.iter().map(|(n, _)| n).collect();
         let prop_values: Vec<&TokenStream> = self.props.iter().map(|(_, v)| v).collect();
 
@@ -128,42 +93,50 @@ impl Parse for ElementNode {
             segment.to_tokens(&mut name);
         }
 
-        let props_content;
-        syn::braced!(props_content in input);
+        parse_props_and_children(input, span, name)
+    }
+}
 
-        let mut props = Vec::new();
+fn parse_props_and_children(
+    input: ParseStream,
+    span: Span,
+    name: TokenStream,
+) -> syn::Result<ElementNode> {
+    let props_content;
+    syn::braced!(props_content in input);
 
-        while !props_content.is_empty() {
-            let prop_name: syn::Ident = props_content.parse()?;
-            props_content.parse::<Token![:]>()?;
+    let mut props = Vec::new();
 
-            let mut value = TokenStream::new();
+    while !props_content.is_empty() {
+        let prop_name: syn::Ident = props_content.parse()?;
+        props_content.parse::<Token![:]>()?;
 
-            while !props_content.is_empty() && !props_content.peek(Token![,]) {
-                let tt: TokenTree = props_content.parse()?;
-                tt.to_tokens(&mut value);
-            }
+        let mut value = TokenStream::new();
 
-            props.push((prop_name, value));
-
-            if props_content.peek(Token![,]) {
-                props_content.parse::<Token![,]>()?;
-            }
+        while !props_content.is_empty() && !props_content.peek(Token![,]) {
+            let tt: TokenTree = props_content.parse()?;
+            tt.to_tokens(&mut value);
         }
 
-        let children = if input.peek(syn::token::Brace) {
-            let children_content;
-            syn::braced!(children_content in input);
-            Some(Box::new(children_content.parse::<Element>()?))
-        } else {
-            None
-        };
+        props.push((prop_name, value));
 
-        Ok(Self {
-            span,
-            name,
-            props,
-            children,
-        })
+        if props_content.peek(Token![,]) {
+            props_content.parse::<Token![,]>()?;
+        }
     }
+
+    let children = if input.peek(syn::token::Brace) {
+        let children_content;
+        syn::braced!(children_content in input);
+        Some(Box::new(children_content.parse::<Element>()?))
+    } else {
+        None
+    };
+
+    Ok(ElementNode {
+        span,
+        name,
+        props,
+        children,
+    })
 }

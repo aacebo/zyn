@@ -6,7 +6,7 @@ mod upper {
 
     #[test]
     fn expands_correctly() {
-        let element: Element = syn::parse_str("{{ name | Upper }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | upper }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -28,7 +28,7 @@ mod lower {
 
     #[test]
     fn expands_correctly() {
-        let element: Element = syn::parse_str("{{ name | Lower }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | lower }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -50,7 +50,7 @@ mod snake {
 
     #[test]
     fn expands_correctly() {
-        let element: Element = syn::parse_str("{{ name | Snake }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | snake }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -72,7 +72,7 @@ mod camel {
 
     #[test]
     fn expands_correctly() {
-        let element: Element = syn::parse_str("{{ name | Camel }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | camel }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -94,7 +94,7 @@ mod pascal {
 
     #[test]
     fn expands_correctly() {
-        let element: Element = syn::parse_str("{{ name | Pascal }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | pascal }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -116,7 +116,7 @@ mod screaming {
 
     #[test]
     fn expands_correctly() {
-        let element: Element = syn::parse_str("{{ name | Screaming }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | screaming }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -138,7 +138,7 @@ mod chained {
 
     #[test]
     fn snake_then_upper() {
-        let element: Element = syn::parse_str("{{ name | Snake | Upper }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | snake | upper }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {
@@ -162,7 +162,7 @@ mod custom {
 
     #[test]
     fn dispatches_via_trait() {
-        let element: Element = syn::parse_str("{{ name | MyPipe }}").unwrap();
+        let element: Element = syn::parse_str("{{ name | my_pipe }}").unwrap();
         let result = element.to_token_stream();
         let expected = quote! {
             {

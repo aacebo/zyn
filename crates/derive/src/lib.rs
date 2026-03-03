@@ -8,18 +8,18 @@ pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 #[proc_macro_attribute]
 pub fn element(
-    _args: proc_macro::TokenStream,
+    args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    element::expand(input.into()).into()
+    element::expand(args.into(), input.into()).into()
 }
 
 #[proc_macro_attribute]
 pub fn pipe(
-    _args: proc_macro::TokenStream,
+    args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    pipe::expand(input.into()).into()
+    pipe::expand(args.into(), input.into()).into()
 }
 
 fn expand(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {

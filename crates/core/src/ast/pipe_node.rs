@@ -11,6 +11,7 @@ use syn::parse::Parse;
 use syn::parse::ParseStream;
 
 use crate::Expand;
+use crate::pascal;
 
 pub struct PipeNode {
     pub span: Span,
@@ -50,7 +51,7 @@ impl Parse for PipeNode {
 
 impl Expand for PipeNode {
     fn expand(&self, _output: &Ident, _idents: &mut crate::ident::Iter) -> TokenStream {
-        let name = &self.name;
+        let name = pascal!(self.name => ident);
         quote! { let __zyn_val = ::zyn::Pipe::pipe(&(#name), __zyn_val); }
     }
 }

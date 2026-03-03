@@ -9,7 +9,7 @@ fn greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStream> {
 #[test]
 fn basic_element() -> syn::Result<()> {
     let result: TokenStream = zyn::zyn!(
-        @Greeting { name: quote::format_ident!("hello") }
+        @greeting { name: quote::format_ident!("hello") }
     );
     let expected = quote!(
         fn hello() {}
@@ -29,7 +29,7 @@ fn wrapper(
 #[test]
 fn element_with_children() -> syn::Result<()> {
     let result: TokenStream = zyn::zyn!(
-        @Wrapper { name: quote::format_ident!("Foo") } {
+        @wrapper { name: quote::format_ident!("Foo") } {
             x: i32,
         }
     );
@@ -37,6 +37,23 @@ fn element_with_children() -> syn::Result<()> {
         struct Foo {
             x: i32,
         }
+    );
+    assert_eq!(result.to_string(), expected.to_string());
+    Ok(())
+}
+
+#[zyn::element("say_hello")]
+fn get_greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStream> {
+    Ok(zyn::zyn!(fn {{ name }}() {}))
+}
+
+#[test]
+fn custom_name_override() -> syn::Result<()> {
+    let result: TokenStream = zyn::zyn!(
+        @say_hello { name: quote::format_ident!("world") }
+    );
+    let expected = quote!(
+        fn world() {}
     );
     assert_eq!(result.to_string(), expected.to_string());
     Ok(())

@@ -4,15 +4,25 @@ use syn::FnArg;
 use syn::ItemFn;
 use syn::ReturnType;
 use syn::spanned::Spanned;
+use zyn_core::pascal;
 
-pub fn expand(input: TokenStream) -> TokenStream {
+pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
+    let custom_name: Option<syn::LitStr> = if args.is_empty() {
+        None
+    } else {
+        match syn::parse2(args) {
+            Ok(lit) => Some(lit),
+            Err(e) => return e.to_compile_error(),
+        }
+    };
+
     match syn::parse2::<ItemFn>(input) {
-        Ok(item) => expand_pipe(item),
+        Ok(item) => expand_pipe(item, custom_name),
         Err(e) => e.to_compile_error(),
     }
 }
 
-fn expand_pipe(item: ItemFn) -> TokenStream {
+fn expand_pipe(item: ItemFn, custom_name: Option<syn::LitStr>) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
 
@@ -35,7 +45,7 @@ fn expand_pipe(item: ItemFn) -> TokenStream {
     }
 
     // Convert snake_case function name to PascalCase struct name
-    let struct_name = to_pascal_case_ident(&item.sig.ident);
+    let struct_name = pascal!(item.sig.ident => ident);
 
     // Extract first parameter as pipe input
     let first_arg = &item.sig.inputs[0];
@@ -63,6 +73,12 @@ fn expand_pipe(item: ItemFn) -> TokenStream {
         ReturnType::Default => unreachable!(),
     };
 
+    // Generate alias if custom name provided
+    let alias = custom_name.map(|lit| {
+        let alias_name = syn::Ident::new(&pascal!(&lit.value()), lit.span());
+        quote! { use #struct_name as #alias_name; }
+    });
+
     quote! {
         #vis struct #struct_name;
 
@@ -73,24 +89,7 @@ fn expand_pipe(item: ItemFn) -> TokenStream {
             fn pipe(&self, #input_name: #input_type) -> #ret_type
                 #body
         }
+
+        #alias
     }
-}
-
-fn to_pascal_case_ident(ident: &syn::Ident) -> syn::Ident {
-    let s = ident.to_string();
-    let mut out = String::new();
-    let mut capitalize = true;
-
-    for c in s.chars() {
-        if c == '_' {
-            capitalize = true;
-        } else if capitalize {
-            out.extend(c.to_uppercase());
-            capitalize = false;
-        } else {
-            out.push(c);
-        }
-    }
-
-    syn::Ident::new(&out, ident.span())
 }

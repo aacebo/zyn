@@ -1,4 +1,5 @@
 pub mod ast;
+pub mod case;
 pub mod ident;
 
 pub trait Expand {
