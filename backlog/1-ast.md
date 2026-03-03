@@ -12,7 +12,7 @@ src/
     mod.rs                Node enum (4 variants), Element struct, Parse/Expand impls
     tokens_node.rs        TokensNode + Expand
     interp_node.rs        InterpNode + Parse + Expand
-    pipe_node.rs          PipeNode + Parse
+    pipe_node.rs          PipeNode + Parse + Expand
     group_node.rs         GroupNode + Parse + Expand
     at/
       mod.rs              AtNode enum (5 variants), Parse + Expand dispatch
