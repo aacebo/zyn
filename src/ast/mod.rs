@@ -115,6 +115,57 @@ impl From<GroupNode> for Node {
     }
 }
 
+impl Node {
+    pub fn parse_brace(input: ParseStream) -> syn::Result<Self> {
+        let content;
+        let brace = syn::braced!(content in input);
+        let span = brace.span.join();
+
+        let fork = content.fork();
+        let is_interp = if fork.peek(syn::token::Brace) {
+            let inner;
+            syn::braced!(inner in fork);
+            fork.is_empty()
+        } else {
+            false
+        };
+
+        if is_interp {
+            let inner;
+            syn::braced!(inner in content);
+
+            let mut expr = TokenStream::new();
+            let mut pipes = Vec::new();
+
+            while !inner.is_empty() {
+                if inner.peek(Token![|]) {
+                    inner.parse::<Token![|]>()?;
+                    pipes.push(inner.parse::<PipeNode>()?);
+                } else if pipes.is_empty() {
+                    let tt: TokenTree = inner.parse()?;
+                    tt.to_tokens(&mut expr);
+                } else {
+                    break;
+                }
+            }
+
+            if expr.is_empty() {
+                return Err(syn::Error::new(span, "empty interpolation"));
+            }
+
+            Ok(InterpNode { span, expr, pipes }.into())
+        } else {
+            let body = content.parse::<Element>()?;
+            Ok(GroupNode {
+                span,
+                delimiter: proc_macro2::Delimiter::Brace,
+                body: Box::new(body),
+            }
+            .into())
+        }
+    }
+}
+
 impl Expand for Node {
     fn expand(&self, output: &Ident, idents: &mut ident::Iter) -> TokenStream {
         match self {
@@ -178,7 +229,7 @@ impl Parse for Element {
                 nodes.push(input.parse::<AtNode>()?.into());
             } else if input.peek(syn::token::Brace) {
                 flush(&mut pending, &mut nodes);
-                nodes.push(parse_brace(input)?);
+                nodes.push(Node::parse_brace(input)?);
             } else if input.peek(syn::token::Paren) || input.peek(syn::token::Bracket) {
                 flush(&mut pending, &mut nodes);
                 nodes.push(input.parse::<GroupNode>()?.into());
@@ -214,53 +265,4 @@ fn flush(pending: &mut TokenStream, nodes: &mut Vec<Node>) {
     );
 
     *pending = TokenStream::new();
-}
-
-fn parse_brace(input: ParseStream) -> syn::Result<Node> {
-    let content;
-    let brace = syn::braced!(content in input);
-    let span = brace.span.join();
-
-    let fork = content.fork();
-    let is_interp = if fork.peek(syn::token::Brace) {
-        let inner;
-        syn::braced!(inner in fork);
-        fork.is_empty()
-    } else {
-        false
-    };
-
-    if is_interp {
-        let inner;
-        syn::braced!(inner in content);
-
-        let mut expr = TokenStream::new();
-        let mut pipes = Vec::new();
-
-        while !inner.is_empty() {
-            if inner.peek(Token![|]) {
-                inner.parse::<Token![|]>()?;
-                pipes.push(inner.parse::<PipeNode>()?);
-            } else if pipes.is_empty() {
-                let tt: TokenTree = inner.parse()?;
-                tt.to_tokens(&mut expr);
-            } else {
-                break;
-            }
-        }
-
-        if expr.is_empty() {
-            return Err(syn::Error::new(span, "empty interpolation"));
-        }
-
-        Ok(InterpNode { span, expr, pipes }.into())
-    } else {
-        let body = content.parse::<Element>()?;
-        Ok(GroupNode {
-            span,
-            delimiter: proc_macro2::Delimiter::Brace,
-            body: Box::new(body),
-        }
-        .into())
-    }
 }

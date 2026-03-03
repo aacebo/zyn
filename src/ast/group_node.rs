@@ -46,16 +46,6 @@ impl Parse for GroupNode {
                 delimiter: Delimiter::Bracket,
                 body: Box::new(body),
             })
-        } else if input.peek(syn::token::Brace) {
-            let content;
-            let brace = syn::braced!(content in input);
-            let body = content.parse::<Element>()?;
-
-            Ok(Self {
-                span: brace.span.join(),
-                delimiter: Delimiter::Brace,
-                body: Box::new(body),
-            })
         } else {
             Err(input.error("expected a delimited group"))
         }
