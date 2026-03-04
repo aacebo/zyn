@@ -1,4 +1,3 @@
-use proc_macro2::TokenStream;
 use quote::quote;
 
 #[zyn::element]
@@ -8,7 +7,7 @@ fn greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStream> {
 
 #[test]
 fn basic_element() -> syn::Result<()> {
-    let result: TokenStream = zyn::zyn!(
+    let result = zyn::zyn!(
         @greeting(name = quote::format_ident!("hello"))
     );
     let expected = quote!(
@@ -28,7 +27,7 @@ fn wrapper(
 
 #[test]
 fn element_with_children() -> syn::Result<()> {
-    let result: TokenStream = zyn::zyn!(
+    let result = zyn::zyn!(
         @wrapper(name = quote::format_ident!("Foo")) {
             x: i32,
         }
@@ -49,7 +48,7 @@ fn get_greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStrea
 
 #[test]
 fn custom_name_override() -> syn::Result<()> {
-    let result: TokenStream = zyn::zyn!(
+    let result = zyn::zyn!(
         @say_hello(name = quote::format_ident!("world"))
     );
     let expected = quote!(
@@ -74,7 +73,7 @@ mod namespaced {
 
     #[test]
     fn namespaced_element() -> syn::Result<()> {
-        let result: TokenStream = zyn::zyn!(
+        let result = zyn::zyn!(
             @components::field_decl(
                 name = quote::format_ident!("age"),
                 ty = quote::format_ident!("u32"),
@@ -95,7 +94,7 @@ fn divider() -> syn::Result<proc_macro2::TokenStream> {
 
 #[test]
 fn zero_param_no_parens() -> syn::Result<()> {
-    let result: TokenStream = zyn::zyn!(@divider);
+    let result = zyn::zyn!(@divider);
     let expected = quote!(
         const DIVIDER: &str = "---";
     );
@@ -105,7 +104,7 @@ fn zero_param_no_parens() -> syn::Result<()> {
 
 #[test]
 fn zero_param_with_parens() -> syn::Result<()> {
-    let result: TokenStream = zyn::zyn!(@divider());
+    let result = zyn::zyn!(@divider());
     let expected = quote!(
         const DIVIDER: &str = "---";
     );
@@ -120,7 +119,7 @@ fn container(children: proc_macro2::TokenStream) -> syn::Result<proc_macro2::Tok
 
 #[test]
 fn children_without_parens() -> syn::Result<()> {
-    let result: TokenStream = zyn::zyn!(
+    let result = zyn::zyn!(
         @container {
             struct Inner;
         }
@@ -137,7 +136,7 @@ fn children_without_parens() -> syn::Result<()> {
 #[test]
 fn element_inside_for_loop() -> syn::Result<()> {
     let names = vec![quote::format_ident!("foo"), quote::format_ident!("bar")];
-    let result: TokenStream = zyn::zyn!(
+    let result = zyn::zyn!(
         @for (name of names) {
             @greeting(name = name.clone())
         }

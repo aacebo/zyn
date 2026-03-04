@@ -1,7 +1,11 @@
 # Introduction
 
 <p align="center">
-  <img src="../assets/banner.svg" alt="zyn" />
+    <img
+        src="https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/banner.svg"
+        style="border-radius:4px"
+        alt="zyn"
+    />
 </p>
 
 Zyn is a template engine for Rust procedural macros. It lets you write `quote!`-like code with control flow, interpolation pipes, and composable elements.

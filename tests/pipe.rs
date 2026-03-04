@@ -1,4 +1,3 @@
-use proc_macro2::TokenStream;
 use quote::quote;
 
 mod builtin {
@@ -7,7 +6,7 @@ mod builtin {
     #[test]
     fn upper() {
         let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({ { name | upper } });
+        let result = zyn::zyn!({ { name | upper } });
         let expected = quote!(HELLO);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -15,7 +14,7 @@ mod builtin {
     #[test]
     fn lower() {
         let name = quote::format_ident!("HELLO");
-        let result: TokenStream = zyn::zyn!({ { name | lower } });
+        let result = zyn::zyn!({ { name | lower } });
         let expected = quote!(hello);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -23,7 +22,7 @@ mod builtin {
     #[test]
     fn snake() {
         let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | snake } });
+        let result = zyn::zyn!({ { name | snake } });
         let expected = quote!(hello_world);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -31,7 +30,7 @@ mod builtin {
     #[test]
     fn camel() {
         let name = quote::format_ident!("hello_world");
-        let result: TokenStream = zyn::zyn!({ { name | camel } });
+        let result = zyn::zyn!({ { name | camel } });
         let expected = quote!(helloWorld);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -39,7 +38,7 @@ mod builtin {
     #[test]
     fn pascal() {
         let name = quote::format_ident!("hello_world");
-        let result: TokenStream = zyn::zyn!({ { name | pascal } });
+        let result = zyn::zyn!({ { name | pascal } });
         let expected = quote!(HelloWorld);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -47,7 +46,7 @@ mod builtin {
     #[test]
     fn screaming() {
         let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | screaming } });
+        let result = zyn::zyn!({ { name | screaming } });
         let expected = quote!(HELLO_WORLD);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -55,7 +54,7 @@ mod builtin {
     #[test]
     fn chained() {
         let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | snake | upper } });
+        let result = zyn::zyn!({ { name | snake | upper } });
         let expected = quote!(HELLO_WORLD);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -63,7 +62,7 @@ mod builtin {
     #[test]
     fn kebab() {
         let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({ { name | kebab } });
+        let result = zyn::zyn!({ { name | kebab } });
         assert_eq!(result.to_string(), "\"hello-world\"");
     }
 }
@@ -82,7 +81,7 @@ mod custom {
     #[test]
     fn custom_pipe() {
         let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({ { name | shout } });
+        let result = zyn::zyn!({ { name | shout } });
         let expected = quote!(HELLO_BANG);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -98,7 +97,7 @@ mod custom {
     #[test]
     fn custom_name_override() {
         let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({ { name | yell } });
+        let result = zyn::zyn!({ { name | yell } });
         let expected = quote!(HELLO__LOUD);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -110,7 +109,7 @@ mod ident_pipe {
     #[test]
     fn prefix_pattern() {
         let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({{ name | ident:"get_{}" }});
+        let result = zyn::zyn!({{ name | ident:"get_{}" }});
         let expected = quote!(get_hello);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -118,7 +117,7 @@ mod ident_pipe {
     #[test]
     fn suffix_pattern() {
         let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({{ name | ident:"{}_impl" }});
+        let result = zyn::zyn!({{ name | ident:"{}_impl" }});
         let expected = quote!(hello_impl);
         assert_eq!(result.to_string(), expected.to_string());
     }
@@ -126,26 +125,24 @@ mod ident_pipe {
     #[test]
     fn chained_with_case() {
         let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({{ name | snake | ident:"get_{}" }});
+        let result = zyn::zyn!({{ name | snake | ident:"get_{}" }});
         let expected = quote!(get_hello_world);
         assert_eq!(result.to_string(), expected.to_string());
     }
 }
 
 mod fmt_pipe {
-    use super::*;
-
     #[test]
     fn string_format() {
         let name = quote::format_ident!("hello");
-        let result: TokenStream = zyn::zyn!({{ name | fmt:"get_{}" }});
+        let result = zyn::zyn!({{ name | fmt:"get_{}" }});
         assert_eq!(result.to_string(), "\"get_hello\"");
     }
 
     #[test]
     fn chained_with_case() {
         let name = quote::format_ident!("HelloWorld");
-        let result: TokenStream = zyn::zyn!({{ name | snake | fmt:"{}-component" }});
+        let result = zyn::zyn!({{ name | snake | fmt:"{}-component" }});
         assert_eq!(result.to_string(), "\"hello_world-component\"");
     }
 }
