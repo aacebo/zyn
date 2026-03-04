@@ -1,33 +1,45 @@
 # zyn
 
-A template engine for Rust procedural macros. Write `quote!`-like code with control flow, interpolation pipes, and composable elements.
+A template engine for Rust procedural macros. Write code-generation templates with control flow, interpolation pipes, and composable elements.
 
 <a href="https://aacebo.github.io/zyn" target="_blank">
     <img src="https://img.shields.io/badge/📖 Getting Started-blue?style=for-the-badge" />
 </a>
 
-## Install
+## Why?
 
-```toml
-[dependencies]
-zyn = "0.0.0"
+Rust's proc macro ecosystem asks you to juggle `quote!`, `syn`, and `proc_macro2` by hand. A simple derive macro that generates getters for each field turns into nested `.iter().map().collect()` chains wrapped in `quote!` blocks — hard to read, hard to refactor, and easy to get wrong.
+
+zyn replaces that with a template language that reads like the code it generates:
+
+```rust
+zyn! {
+    @for (field in fields.iter()) {
+        pub fn {{ field.ident | ident:"get_{}" }}(&self) -> &{{ field.ty }} {
+            &self.{{ field.ident }}
+        }
+    }
+}
 ```
+
+- **Control flow lives inline** — `@if`, `@for`, `@match` replace the `if/else` + `quote!` + collect pattern
+- **Pipes replace string manipulation** — `{{ name | snake }}` instead of importing a case-conversion crate and calling `format_ident!`
+- **Elements replace helper functions** — `@field_decl(...)` instead of manual `fn render_field(...) -> TokenStream`
+- **Diagnostics are first-class** — `@throw`, `@warn`, `@note`, `@help` with nested context, powered by `proc_macro::Diagnostic` on nightly
+
+No runtime cost. No new dependencies for your users. Everything expands at compile time into the same `TokenStream`-building code you'd write by hand.
 
 ## Quick Start
 
 ```rust
 use zyn::prelude::*;
 
-// Generate a greeting function with a configurable name
-let name = quote::format_ident!("hello_world");
-let is_pub = true;
-let output = zyn! {
-    @if (is_pub) { pub }
-    fn {{ name | snake }}() {
+zyn! {
+    @if (input.vis == zyn::syn::Visibility::Public(..)) { pub }
+    fn {{ input.ident | snake }}() {
         println!("hello!");
     }
-};
-
+}
 // output: pub fn hello_world() { println!("hello!"); }
 ```
 
@@ -35,228 +47,161 @@ let output = zyn! {
 
 ### Interpolation
 
-Insert any expression that implements `ToTokens`:
-
-```rust
-zyn! { fn {{ name }}() -> {{ ret_type }} {} }
-```
-
-Supports field access, method calls, and any Rust expression:
+Insert any expression — field access, method calls, anything that implements `ToTokens`:
 
 ```rust
 zyn! {
-    {{ item.field.name }}: {{ item.field.ty }},
-    {{ names.len() }}
+    fn {{ input.ident }}() -> {{ field.ty }} {}
+    {{ input.ident | str }}
+    {{ fields.len() }}
 }
 ```
 
 ### Pipes
 
-Transform interpolated values with pipes. Reference them in snake_case — they resolve to PascalCase structs automatically:
+Transform values inline:
 
 ```rust
 zyn! {
-    fn {{ name | snake }}() {}      // HelloWorld -> hello_world
-    const {{ name | screaming }}: &str = ""; // HelloWorld -> HELLO_WORLD
-    {{ name | upper }}              // hello -> HELLO
-    {{ name | lower }}              // HELLO -> hello
-    {{ name | camel }}              // hello_world -> helloWorld
-    {{ name | pascal }}             // hello_world -> HelloWorld
-    {{ name | kebab }}              // HelloWorld -> "hello-world" (string literal)
-}
-```
-
-Chain pipes:
-
-```rust
-zyn! { {{ name | snake | upper }} }  // HelloWorld -> HELLO_WORLD
-```
-
-#### Format pipes
-
-Pipes can take arguments via `:` syntax. The `ident` and `fmt` pipes use a `{}` placeholder:
-
-```rust
-zyn! {
-    fn {{ name | ident:"get_{}" }}() {}     // hello -> fn get_hello() {}
-    fn {{ name | ident:"{}_impl" }}() {}    // hello -> fn hello_impl() {}
-    const NAME: &str = {{ name | fmt:"{}" }};  // hello -> const NAME: &str = "hello";
+    fn {{ name | snake }}() {}                 // HelloWorld -> hello_world
+    const {{ name | screaming }}: &str = "";   // HelloWorld -> HELLO_WORLD
+    {{ name | upper }}                         // hello -> HELLO
+    {{ name | lower }}                         // HELLO -> hello
+    {{ name | camel }}                         // hello_world -> helloWorld
+    {{ name | pascal }}                        // hello_world -> HelloWorld
+    {{ name | kebab }}                         // HelloWorld -> "hello-world"
+    {{ name | str }}                           // hello -> "hello"
+    {{ name | trim }}                          // __foo -> foo
+    {{ name | plural }}                        // User -> Users
+    {{ name | singular }}                      // users -> user
+    {{ name | snake | upper }}                 // HelloWorld -> HELLO_WORLD
+    fn {{ name | ident:"get_{}" }}() {}        // hello -> get_hello
+    const X: &str = {{ name | fmt:"{}!" }};    // hello -> "hello!"
 }
 ```
 
 ### Control Flow
 
-#### Conditionals
-
 ```rust
 zyn! {
-    @if (is_async) {
-        async fn {{ name }}() {}
-    } @else if (is_unsafe) {
-        unsafe fn {{ name }}() {}
-    } @else {
-        fn {{ name }}() {}
+    @if (input.is_pub) { pub }
+    @else if (input.is_crate) { pub(crate) }
+
+    struct {{ input.ident }} {
+        @for (field in fields.iter()) {
+            {{ field.ident }}: {{ field.ty }},
+        }
     }
-}
-```
 
-Conditions support field access and method calls:
-
-```rust
-zyn! {
-    @if (opts.is_pub) { pub }
-    @if (items.is_empty()) { @throw "no items" }
-}
-```
-
-#### Loops
-
-```rust
-zyn! {
-    @for (name in ["x", "y", "z"].map(|s| quote::format_ident!("{}", s))) {
-        pub {{ name }}: f64,
-    }
-}
-// output: pub x: f64, pub y: f64, pub z: f64,
-```
-
-#### Pattern Matching
-
-```rust
-zyn! {
-    @match (kind) {
-        Kind::Struct => { struct {{ name }} {} }
-        Kind::Enum => { enum {{ name }} {} }
+    @match (input.kind) {
+        Kind::Struct => { impl {{ input.ident }} {} }
         _ => {}
     }
+
+    @for (fields.len()) {
+        ,
+    }
 }
 ```
 
-#### Compile Errors and Warnings
+### Diagnostics
 
 ```rust
 zyn! {
-    @if (!valid) {
-        @throw "expected a struct"
+    @if (fields.is_empty()) {
+        @throw "expected at least one field" {
+            @note "empty structs are not supported"
+            @help "add a field to the struct"
+        }
     }
-    @if (deprecated) {
-        @warn "this usage is deprecated"
+    @if (input.is_legacy) {
+        @warn "this derive is deprecated"
     }
 }
 ```
 
 ### Elements
 
-Reusable template components. Define with `#[element]`, invoke with `@`:
+Reusable template components:
 
 ```rust
 #[zyn::element]
-fn field_decl(vis: syn::Visibility, name: syn::Ident, ty: syn::Type) -> proc_macro2::TokenStream {
-    zyn::zyn! {
-        {{ vis }} {{ name }}: {{ ty }},
+fn field_decl(
+    vis: zyn::syn::Visibility,
+    name: zyn::syn::Ident,
+    ty: zyn::syn::Type,
+) -> zyn::proc_macro2::TokenStream {
+    zyn::zyn! { {{ vis }} {{ name }}: {{ ty }}, }
+}
+
+zyn! {
+    struct {{ input.ident }} {
+        @for (field in fields.iter()) {
+            @field_decl(
+                vis = field.vis.clone(),
+                name = field.ident.clone().unwrap(),
+                ty = field.ty.clone(),
+            )
+        }
     }
 }
-
-// Generates struct FieldDecl, referenced as @field_decl in templates:
-zyn! {
-    @field_decl(
-        vis = syn::parse_quote!(pub),
-        name = quote::format_ident!("age"),
-        ty = syn::parse_quote!(u32),
-    )
-}
-// output: pub age: u32,
+// output: struct User { pub name: String, pub age: u32, }
 ```
 
-Elements can have zero parameters. Parentheses are optional when there are no props:
+Children:
 
 ```rust
 #[zyn::element]
-fn divider() -> proc_macro2::TokenStream {
+fn wrapper(
+    vis: zyn::syn::Visibility,
+    children: zyn::proc_macro2::TokenStream,
+) -> zyn::proc_macro2::TokenStream {
+    zyn::zyn! { {{ vis }} struct Foo { {{ children }} } }
+}
+
+zyn! {
+    @wrapper(vis = input.vis.clone()) {
+        name: String,
+    }
+}
+```
+
+Zero parameters:
+
+```rust
+#[zyn::element]
+fn divider() -> zyn::proc_macro2::TokenStream {
     zyn::zyn!(const DIVIDER: &str = "---";)
 }
 
-// All equivalent:
 zyn! { @divider }
-zyn! { @divider() }
-```
-
-Elements support children via a `children` parameter:
-
-```rust
-#[zyn::element]
-fn wrapper(vis: syn::Visibility, children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    quote::quote!(#vis struct Foo { #children })
-}
-
-zyn! {
-    @wrapper(vis = quote::quote!(pub)) {
-        name: String,
-        age: u32,
-    }
-}
-```
-
-Children-only elements can omit parens entirely:
-
-```rust
-#[zyn::element]
-fn container(children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    quote::quote!(mod inner { #children })
-}
-
-zyn! {
-    @container {
-        struct Foo;
-    }
-}
 ```
 
 ### Custom Pipes
 
-Define with `#[pipe]`:
-
 ```rust
 #[zyn::pipe]
-fn prefix(input: String) -> proc_macro2::Ident {
-    proc_macro2::Ident::new(
+fn prefix(input: String) -> zyn::proc_macro2::Ident {
+    zyn::proc_macro2::Ident::new(
         &format!("pfx_{}", input),
-        proc_macro2::Span::call_site(),
+        zyn::proc_macro2::Span::call_site(),
     )
 }
 
-// Generates struct Prefix, used as {{ name | prefix }}:
 zyn! { {{ name | prefix }} }
+// hello -> pfx_hello
 ```
 
-### Custom Names
+### Case Conversion
 
-Override the template name for elements and pipes:
-
-```rust
-#[zyn::element("my_component")]
-fn internal_impl(...) -> ... { ... }
-
-// Referenced as @my_component in templates (resolves to MyComponent struct)
-```
-
-## Case Conversion Utilities
-
-The `case` module and macros are available for use outside templates:
+Available outside templates via the `case` module:
 
 ```rust
-use zyn::case;
-
-case::to_snake("HelloWorld")     // "hello_world"
-case::to_pascal("hello_world")   // "HelloWorld"
-case::to_camel("hello_world")    // "helloWorld"
-case::to_screaming("HelloWorld") // "HELLO_WORLD"
-case::to_kebab("HelloWorld")     // "hello-world"
-
-// As macros (also work on syn::Ident):
-zyn::pascal!("hello_world")           // "HelloWorld"
-zyn::pascal!(ident => ident)          // syn::Ident in PascalCase
-zyn::snake!(ident => ident)           // syn::Ident in snake_case
+zyn::case::to_snake("HelloWorld")     // "hello_world"
+zyn::case::to_pascal("hello_world")   // "HelloWorld"
+zyn::case::to_camel("hello_world")    // "helloWorld"
+zyn::case::to_screaming("HelloWorld") // "HELLO_WORLD"
+zyn::case::to_kebab("HelloWorld")     // "hello-world"
 ```
 
 ## License
