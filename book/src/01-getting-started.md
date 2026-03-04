@@ -23,7 +23,7 @@ Import the prelude and use the `zyn!` macro:
 ```rust
 use zyn::prelude::*;
 
-let name = quote::format_ident!("my_struct");
+let name = &input.ident;
 let output: proc_macro2::TokenStream = zyn! {
     pub struct {{ name }} {
         id: u64,

@@ -29,14 +29,44 @@ impl Parse for ForNode {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let params;
         syn::parenthesized!(params in input);
-        let binding: syn::Ident = params.parse()?;
-        let in_kw: syn::Ident = params.call(syn::Ident::parse_any)?;
 
-        if in_kw != "in" {
-            return Err(syn::Error::new_spanned(in_kw, "expected `in`"));
+        let fork = params.fork();
+        let is_classic = if fork.call(syn::Ident::parse_any).is_ok() {
+            let Ok(kw) = fork.call(syn::Ident::parse_any) else {
+                return Self::parse_classic(&params, input);
+            };
+            kw != "in"
+        } else {
+            true
+        };
+
+        if is_classic {
+            return Self::parse_classic(&params, input);
         }
 
+        let binding: syn::Ident = params.call(syn::Ident::parse_any)?;
+        let _in_kw: syn::Ident = params.call(syn::Ident::parse_any)?;
         let iter: TokenStream = params.parse()?;
+
+        let body_content;
+        syn::braced!(body_content in input);
+        let body = body_content.parse::<Element>()?;
+
+        Ok(Self {
+            span: Span::call_site(),
+            binding,
+            iter,
+            body: Box::new(body),
+        })
+    }
+}
+
+impl ForNode {
+    fn parse_classic(params: ParseStream, input: ParseStream) -> syn::Result<Self> {
+        let count: TokenStream = params.parse()?;
+        let binding = syn::Ident::new("_", Span::call_site());
+        let iter: TokenStream = quote! { 0..#count };
+
         let body_content;
         syn::braced!(body_content in input);
         let body = body_content.parse::<Element>()?;

@@ -8,6 +8,8 @@ zyn! {
         @greeting(name = name.clone())
     }
 }
+// output (given names = [alice, bob]):
+//   expands @greeting once for alice, once for bob
 ```
 
 ## Generating Per-Field Code
@@ -44,6 +46,9 @@ zyn! {
         }
     }
 }
+// output (given fields = [pub name: String, #[skip] age: u32, pub email: String]):
+//   pub name: String,
+//   pub email: String,
 ```
 
 ## Multiple Elements Per Iteration

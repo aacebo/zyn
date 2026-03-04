@@ -34,3 +34,4 @@
   - [Expansion Model](./09-reference/expansion.md)
   - [Trait Reference](./09-reference/traits.md)
   - [Error Reference](./09-reference/errors.md)
+  - [Migration from quote/syn](./09-reference/migration.md)

@@ -45,6 +45,8 @@ ElseClause  = '@' 'else' 'if' '(' Expr ')' '{' Element '}'
             | '@' 'else' '{' Element '}'
 
 ForBody     = '(' ident 'in' Expr ')' '{' Element '}'
+            | '(' Expr ')' '{' Element '}'
+            (* classic form: @for (count) { body } expands to for _ in 0..count *)
 
 MatchBody   = '(' Expr ')' '{' MatchArm* '}'
 MatchArm    = Pattern '=>' '{' Element '}' ','?

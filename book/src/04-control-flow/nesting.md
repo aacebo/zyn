@@ -14,6 +14,9 @@ zyn! {
         }
     }
 }
+// output (given items = [(foo, true), (bar, false), (baz, true)]):
+//   fn foo() {}
+//   fn baz() {}
 ```
 
 ## `@for` + `@match`
@@ -51,6 +54,11 @@ zyn! {
         }
     }
 }
+// output (given name = User, fields = [age: u32, email: String]):
+//   impl User {
+//       pub age: u32,
+//       pub email: String,
+//   }
 ```
 
 ## Three Levels Deep

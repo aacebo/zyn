@@ -1,6 +1,68 @@
 use zyn::quote::quote;
 
 #[test]
+fn for_classic_literal() {
+    let result = zyn::zyn!(@for (3) { x, });
+    let expected = quote!(x, x, x,);
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[test]
+fn for_classic_variable() {
+    let count = 2;
+    let result = zyn::zyn!(@for (count) { z, });
+    let expected = quote!(z, z,);
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[test]
+fn for_classic_method_call() {
+    let items = vec![1, 2, 3, 4];
+    let result = zyn::zyn!(@for (items.len()) { w, });
+    let expected = quote!(w, w, w, w,);
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[test]
+fn for_classic_zero() {
+    let result = zyn::zyn!(@for (0) { x, });
+    assert!(result.is_empty());
+}
+
+#[test]
+fn for_range_with_wildcard() {
+    let items = vec![11, 22, 33];
+    let result = zyn::zyn!(@for (i in 0..items.len()) { {{ i }}, });
+    let expected = quote!(0usize, 1usize, 2usize,);
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[test]
+fn for_range_with_binding() {
+    let result = zyn::zyn!(@for (i in 0..3usize) { {{ i }}, });
+    let expected = quote!(0usize, 1usize, 2usize,);
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[test]
+fn for_range_empty() {
+    let result = zyn::zyn!(@for (_ in 0..0) { x, });
+    assert!(result.is_empty());
+}
+
+#[test]
+fn for_range_with_interpolation() {
+    let names = ["a", "b", "c"];
+    let result = zyn::zyn!(
+        @for (i in 0..names.len()) {
+            {{ zyn::quote::format_ident!("{}", names[i]) }},
+        }
+    );
+    let expected = quote!(a, b, c,);
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[test]
 fn if_true() {
     let flag = true;
     let result = zyn::zyn!(@if (flag) { struct Foo; });

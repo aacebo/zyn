@@ -5,9 +5,9 @@ Reference an element by its snake_case name prefixed with `@`. Props are passed 
 ```rust,zyn
 zyn! {
     @field_decl(
-        vis = syn::parse_quote!(pub),
-        name = quote::format_ident!("age"),
-        ty = syn::parse_quote!(u32),
+        vis = field.vis.clone(),
+        name = field.ident.clone().unwrap(),
+        ty = field.ty.clone(),
     )
 }
 // output: pub age: u32,
@@ -18,12 +18,14 @@ zyn! {
 Each prop maps to one field on the generated struct. Pass as many as the element defines:
 
 ```rust,zyn
+let body = zyn::zyn! { self.{{ field.ident }}.clone() };
+
 zyn! {
     @method_decl(
-        vis = syn::parse_quote!(pub),
-        name = quote::format_ident!("get_name"),
-        ret = syn::parse_quote!(String),
-        body = quote::quote! { self.name.clone() },
+        vis = field.vis.clone(),
+        name = field.ident.clone().unwrap(),
+        ret = field.ty.clone(),
+        body = body,
     )
 }
 ```
@@ -44,6 +46,9 @@ zyn! {
         )
     }
 }
+// output (given fields = [pub name: String, pub age: u32]):
+//   pub name: String,
+//   pub age: u32,
 ```
 
 ## Trailing Comma
@@ -53,7 +58,7 @@ Trailing commas in prop lists are allowed:
 ```rust,zyn
 zyn! {
     @greeting(
-        name = quote::format_ident!("hello"),  // trailing comma ok
+        name = input.ident.clone(),  // trailing comma ok
     )
 }
 ```
@@ -64,8 +69,16 @@ Elements are just structs — invoke them as many times as needed:
 
 ```rust,zyn
 zyn! {
-    @field_decl(vis = syn::parse_quote!(pub), name = quote::format_ident!("id"),   ty = syn::parse_quote!(u64))
-    @field_decl(vis = syn::parse_quote!(pub), name = quote::format_ident!("name"), ty = syn::parse_quote!(String))
-    @field_decl(vis = syn::parse_quote!(),    name = quote::format_ident!("data"), ty = syn::parse_quote!(Vec<u8>))
+    @for (field in fields.iter()) {
+        @field_decl(
+            vis = field.vis.clone(),
+            name = field.ident.clone().unwrap(),
+            ty = field.ty.clone(),
+        )
+    }
 }
+// output:
+//   pub id: u64,
+//   pub name: String,
+//   data: Vec<u8>,
 ```

@@ -35,16 +35,16 @@ The function name (snake_case) becomes the template directive name. The struct n
 
 Elements are always infallible. Diagnostics (errors, warnings, notes, helps) are expressed using [`@throw`, `@warn`, `@note`, `@help`](./diagnostics.md) inside the template body.
 
-## Using `quote!` Directly
+## Using `zyn!` for Element Bodies
 
-Elements can use `quote!` alongside or instead of `zyn!`:
+Element bodies use `zyn!` for template rendering:
 
 ```rust,zyn
 #[zyn::element]
 fn wrapper(name: proc_macro2::Ident, children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    quote::quote! {
-        pub mod #name {
-            #children
+    zyn::zyn! {
+        pub mod {{ name }} {
+            {{ children }}
         }
     }
 }

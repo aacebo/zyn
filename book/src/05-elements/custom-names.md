@@ -8,7 +8,7 @@ fn internal_greeting(name: proc_macro2::Ident) -> proc_macro2::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 
-zyn! { @say_hello(name = quote::format_ident!("world")) }
+zyn! { @say_hello(name = input.ident.clone()) }
 ```
 
 The generated struct is still named `SayHello` (PascalCase of the custom name).

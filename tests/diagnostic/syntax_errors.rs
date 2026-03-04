@@ -50,12 +50,6 @@ fn else_without_if() {
 }
 
 #[test]
-fn for_wrong_in_keyword() {
-    let msg = parse_err("@for (item from items) { }");
-    assert!(msg.contains("expected `in`"), "got: {msg}");
-}
-
-#[test]
 fn element_no_parens() {
     assert!(zyn::syn::parse_str::<Element>("@my_element").is_ok());
 }

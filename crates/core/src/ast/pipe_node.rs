@@ -59,6 +59,10 @@ const BUILTIN_PIPES: &[&str] = &[
     "screaming",
     "ident",
     "fmt",
+    "str",
+    "trim",
+    "plural",
+    "singular",
 ];
 
 impl Expand for PipeNode {

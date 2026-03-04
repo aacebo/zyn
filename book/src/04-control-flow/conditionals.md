@@ -34,7 +34,7 @@ A common pattern is toggling `pub` based on a flag:
 
 ```rust,zyn
 let is_pub = true;
-let name = quote::format_ident!("my_fn");
+let name = &input.ident;
 
 zyn! {
     @if (is_pub) { pub } fn {{ name }}() {}
@@ -74,4 +74,6 @@ zyn! {
         pub {{ field.name }}: {{ field.ty }},
     }
 }
+// output (given is_optional = true, name = age, ty = u32):
+//   pub age: Option<u32>,
 ```

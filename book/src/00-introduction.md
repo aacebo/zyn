@@ -15,7 +15,7 @@ Rust's `quote!` macro is great for generating code, but it lacks conditionals, l
 ```rust,zyn
 use zyn::prelude::*;
 
-let name = quote::format_ident!("hello_world");
+let name = &input.ident;
 let is_pub = true;
 
 let output: proc_macro2::TokenStream = zyn! {

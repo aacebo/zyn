@@ -5,15 +5,15 @@ Elements defined in submodules are referenced with `::` path syntax:
 ```rust,zyn
 mod components {
     #[zyn::element]
-    pub fn field_decl(name: proc_macro2::Ident, ty: proc_macro2::Ident) -> proc_macro2::TokenStream {
+    pub fn field_decl(name: proc_macro2::Ident, ty: syn::Type) -> proc_macro2::TokenStream {
         zyn::zyn!({{ name }}: {{ ty }},)
     }
 }
 
 zyn! {
     @components::field_decl(
-        name = quote::format_ident!("age"),
-        ty = quote::format_ident!("u32"),
+        name = field.ident.clone().unwrap(),
+        ty = field.ty.clone(),
     )
 }
 ```
@@ -63,14 +63,21 @@ mod fields {
 ```
 
 ```rust,zyn
+let name = &input.ident;
+
 zyn! {
     pub struct {{ name }} {
-        @fields::required(name = quote::format_ident!("id"), ty = syn::parse_quote!(u64))
-        @fields::optional(name = quote::format_ident!("label"), ty = syn::parse_quote!(String))
+        @for (field in fields.iter()) {
+            @if (field.is_optional) {
+                @fields::optional(name = field.ident.clone().unwrap(), ty = field.ty.clone())
+            } @else {
+                @fields::required(name = field.ident.clone().unwrap(), ty = field.ty.clone())
+            }
+        }
     }
 
-    @impls::display(name = quote::format_ident!("MyStruct"))
-    @impls::debug(name = quote::format_ident!("MyStruct"))
+    @impls::display(name = name.clone())
+    @impls::debug(name = name.clone())
 }
 ```
 

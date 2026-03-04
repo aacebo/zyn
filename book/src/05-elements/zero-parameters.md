@@ -26,7 +26,7 @@ fn derive_common() -> proc_macro2::TokenStream {
 
 #[zyn::element]
 fn serde_attrs() -> proc_macro2::TokenStream {
-    quote::quote! {
+    zyn::zyn! {
         #[derive(serde::Serialize, serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
     }
@@ -52,7 +52,7 @@ Zero-parameter elements can still accept children — omit the parens entirely:
 ```rust,zyn
 #[zyn::element]
 fn section(children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    quote::quote! { pub mod section { #children } }
+    zyn::zyn! { pub mod section { {{ children }} } }
 }
 
 zyn! {

@@ -6,6 +6,7 @@ Pipes transform interpolated values. Add them after a `|`:
 zyn! {
     fn {{ name | snake }}() {}
 }
+// output: fn hello_world() {}
 ```
 
 Pipe names are written in snake_case in templates — they resolve to PascalCase structs automatically.
@@ -21,9 +22,13 @@ Pipe names are written in snake_case in templates — they resolve to PascalCase
 | `pascal` | `hello_world` | `HelloWorld` | `{{ name \| pascal }}` |
 | `screaming` | `HelloWorld` | `HELLO_WORLD` | `{{ name \| screaming }}` |
 | `kebab` | `HelloWorld` | `"hello-world"` | `{{ name \| kebab }}` |
+| `str` | `hello` | `"hello"` | `{{ name \| str }}` |
+| `trim` | `__foo__` | `foo` | `{{ name \| trim }}` |
+| `plural` | `User` | `Users` | `{{ name \| plural }}` |
+| `singular` | `users` | `user` | `{{ name \| singular }}` |
 
 > [!warning]
-> `kebab` returns a **string literal**, not an identifier, because hyphens are not valid in Rust identifiers.
+> `kebab` and `str` return **string literals**, not identifiers, because their output may contain characters invalid in Rust identifiers.
 
 ## Chaining
 

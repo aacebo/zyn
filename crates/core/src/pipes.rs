@@ -135,3 +135,58 @@ impl Pipe for Fmt {
         syn::LitStr::new(&formatted, proc_macro2::Span::call_site())
     }
 }
+
+pub struct Str;
+
+impl Pipe for Str {
+    type Input = String;
+    type Output = syn::LitStr;
+
+    fn pipe(&self, input: String) -> syn::LitStr {
+        syn::LitStr::new(&input, proc_macro2::Span::call_site())
+    }
+}
+
+pub struct Trim;
+
+impl Pipe for Trim {
+    type Input = String;
+    type Output = proc_macro2::Ident;
+
+    fn pipe(&self, input: String) -> proc_macro2::Ident {
+        let trimmed = input.trim_matches('_');
+        proc_macro2::Ident::new(trimmed, proc_macro2::Span::call_site())
+    }
+}
+
+pub struct Plural;
+
+impl Pipe for Plural {
+    type Input = String;
+    type Output = proc_macro2::Ident;
+
+    fn pipe(&self, input: String) -> proc_macro2::Ident {
+        let result = if input.ends_with('s') {
+            format!("{}es", input)
+        } else {
+            format!("{}s", input)
+        };
+        proc_macro2::Ident::new(&result, proc_macro2::Span::call_site())
+    }
+}
+
+pub struct Singular;
+
+impl Pipe for Singular {
+    type Input = String;
+    type Output = proc_macro2::Ident;
+
+    fn pipe(&self, input: String) -> proc_macro2::Ident {
+        let result = if input.ends_with('s') && !input.ends_with("ss") {
+            &input[..input.len() - 1]
+        } else {
+            &input
+        };
+        proc_macro2::Ident::new(result, proc_macro2::Span::call_site())
+    }
+}

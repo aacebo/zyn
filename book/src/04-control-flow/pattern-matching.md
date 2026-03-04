@@ -10,6 +10,7 @@ zyn! {
         _ => {}
     }
 }
+// output (given kind = Kind::Struct, name = User): struct User {}
 ```
 
 ## Expression Subjects
@@ -30,6 +31,11 @@ zyn! {
         }
     }
 }
+// output (given value.len() = 2, name = Point, fields = [x: f64, y: f64]):
+//   struct Point {
+//       pub x: f64,
+//       pub y: f64,
+//   }
 ```
 
 ## String Patterns
@@ -45,6 +51,8 @@ zyn! {
         _ => { @throw "unsupported repr" }
     }
 }
+// output (given repr = "u8", name = Flags):
+//   impl From<Flags> for u8 { fn from(v: Flags) -> u8 { v.0 } }
 ```
 
 ## Multiple Patterns per Arm

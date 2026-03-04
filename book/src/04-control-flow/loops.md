@@ -16,8 +16,10 @@ zyn! {
 The iterator expression can be any Rust expression, including method chains and closures:
 
 ```rust,zyn
+let field_names = fields.iter().map(|f| f.ident.clone().unwrap());
+
 zyn! {
-    @for (name in ["x", "y", "z"].map(|s| quote::format_ident!("{}", s))) {
+    @for (name in field_names) {
         pub {{ name }}: f64,
     }
 }
@@ -37,6 +39,11 @@ zyn! {
         }
     }
 }
+// output (given ident = User, fields = [name: String, age: u32]):
+//   impl User {
+//       pub fn name(&self) -> &String { &self.name }
+//       pub fn age(&self) -> &u32 { &self.age }
+//   }
 ```
 
 ## Using `.enumerate()`
@@ -49,6 +56,10 @@ zyn! {
         const {{ variant.ident | screaming }}: usize = {{ i }};
     }
 }
+// output (given variants = [Red, Green, Blue]):
+//   const RED: usize = 0;
+//   const GREEN: usize = 1;
+//   const BLUE: usize = 2;
 ```
 
 ## Filtering
@@ -61,6 +72,44 @@ zyn! {
         {{ field.ident }}: {{ field.ty }},
     }
 }
+// output (given fields = [pub name: String, age: u32, pub email: String]):
+//   name: String,
+//   email: String,
+```
+
+## Count-based Loops
+
+`@for` also accepts a count expression without a binding — the body is repeated N times:
+
+```rust,zyn
+zyn! {
+    @for (3) { x, }
+}
+// output: x, x, x,
+```
+
+Any expression that evaluates to a range-compatible value works:
+
+```rust,zyn
+zyn! {
+    @for (fields.len()) {
+        ,
+    }
+}
+// output (given fields.len() = 3): , , ,
+```
+
+For indexed access, use the standard range form with a binding:
+
+```rust,zyn
+zyn! {
+    @for (i in 0..fields.len()) {
+        {{ fields[i].ident }}: {{ fields[i].ty }},
+    }
+}
+// output (given fields = [name: String, age: u32]):
+//   name: String,
+//   age: u32,
 ```
 
 ## Empty Iterators

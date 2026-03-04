@@ -12,7 +12,7 @@
       begin: /\|/,
       end: /(?=\}\})/,
       contains: [
-        { className: 'built_in',       begin: /\b(?:upper|lower|snake|camel|pascal|kebab|screaming|ident|fmt)\b/ },
+        { className: 'built_in',       begin: /\b(?:upper|lower|snake|camel|pascal|kebab|screaming|ident|fmt|str|trim|plural|singular)\b/ },
         { className: 'title.function', begin: /\b[a-z_][a-z0-9_]*\b/ },
         PIPE_ARG,
       ]
