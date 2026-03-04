@@ -3,12 +3,14 @@ mod for_node;
 mod if_node;
 mod match_node;
 mod throw_node;
+mod warn_node;
 
 pub use element_node::ElementNode;
 pub use for_node::ForNode;
 pub use if_node::IfNode;
 pub use match_node::MatchNode;
 pub use throw_node::ThrowNode;
+pub use warn_node::WarnNode;
 
 use proc_macro2::Ident;
 use proc_macro2::Span;
@@ -26,6 +28,7 @@ pub enum AtNode {
     For(ForNode),
     Match(MatchNode),
     Throw(ThrowNode),
+    Warn(WarnNode),
     Element(ElementNode),
 }
 
@@ -44,6 +47,10 @@ impl AtNode {
 
     pub fn is_throw(&self) -> bool {
         matches!(self, Self::Throw(_))
+    }
+
+    pub fn is_warn(&self) -> bool {
+        matches!(self, Self::Warn(_))
     }
 
     pub fn is_element(&self) -> bool {
@@ -80,6 +87,13 @@ impl AtNode {
         }
     }
 
+    pub fn as_warn(&self) -> &WarnNode {
+        match self {
+            Self::Warn(v) => v,
+            _ => panic!("called as_warn on non-Warn node"),
+        }
+    }
+
     pub fn as_element(&self) -> &ElementNode {
         match self {
             Self::Element(v) => v,
@@ -95,6 +109,7 @@ impl AtNode {
             Self::For(v) => v.span(),
             Self::Match(v) => v.span(),
             Self::Throw(v) => v.span(),
+            Self::Warn(v) => v.span(),
             Self::Element(v) => v.span(),
         }
     }
@@ -124,6 +139,12 @@ impl From<ThrowNode> for AtNode {
     }
 }
 
+impl From<WarnNode> for AtNode {
+    fn from(v: WarnNode) -> Self {
+        Self::Warn(v)
+    }
+}
+
 impl From<ElementNode> for AtNode {
     fn from(v: ElementNode) -> Self {
         Self::Element(v)
@@ -137,6 +158,7 @@ impl Expand for AtNode {
             Self::For(v) => v.expand(output, idents),
             Self::Match(v) => v.expand(output, idents),
             Self::Throw(v) => v.expand(output, idents),
+            Self::Warn(v) => v.expand(output, idents),
             Self::Element(v) => v.expand(output, idents),
         }
     }
@@ -166,6 +188,11 @@ impl Parse for AtNode {
             }
             "throw" => {
                 let mut v = input.parse::<ThrowNode>()?;
+                v.span = at_span;
+                Ok(v.into())
+            }
+            "warn" => {
+                let mut v = input.parse::<WarnNode>()?;
                 v.span = at_span;
                 Ok(v.into())
             }

@@ -220,8 +220,8 @@ fn render_struct(name: &syn::Ident, fields: &[Field]) -> proc_macro2::TokenStrea
 
 ```rust
 #[zyn::element]
-fn field_decl(vis: syn::Visibility, name: syn::Ident, ty: syn::Type) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(zyn::zyn! { {{ vis }} {{ name }}: {{ ty }}, })
+fn field_decl(vis: syn::Visibility, name: syn::Ident, ty: syn::Type) -> proc_macro2::TokenStream {
+    zyn::zyn! { {{ vis }} {{ name }}: {{ ty }}, }
 }
 
 zyn! {

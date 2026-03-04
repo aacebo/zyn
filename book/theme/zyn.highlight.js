@@ -30,7 +30,7 @@
 
     const DIRECTIVE = {
       className: 'keyword',
-      begin: /@(?:else(?:[ \t]+if)?|if|for|match|throw)\b/
+      begin: /@(?:else(?:[ \t]+if)?|if|for|match|throw|warn)\b/
     };
 
     const CUSTOM_ELEMENT = {
@@ -62,7 +62,7 @@
       aliases: ['zyn'],
       keywords: {
         ...rustKeywords,
-        keyword: [(rustKeywords.keyword || ''), 'throw'].join(' ').trim(),
+        keyword: [(rustKeywords.keyword || ''), 'throw warn'].join(' ').trim(),
       },
       contains: [
         DIRECTIVE,

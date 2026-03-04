@@ -55,6 +55,24 @@ mod throw {
     }
 }
 
+mod warn {
+    use super::*;
+
+    #[test]
+    fn generates_deprecated_item() {
+        let element: Element = syn::parse_str("@warn \"use new_api instead\"").unwrap();
+        let result = element.to_token_stream().to_string();
+        assert!(
+            result.contains("deprecated"),
+            "expected deprecated-item trick, got: {result}"
+        );
+        assert!(
+            result.contains("use new_api instead"),
+            "expected warning message, got: {result}"
+        );
+    }
+}
+
 mod syntax_errors {
     use zyn_core::ast::Element;
 

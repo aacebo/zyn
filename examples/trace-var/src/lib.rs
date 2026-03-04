@@ -15,8 +15,8 @@ use zyn::syn::parse_macro_input;
 use folder::TraceVarFolder;
 
 #[zyn::element]
-fn assign_trace(left: Expr, op: TokenStream2, right: Expr) -> zyn::syn::Result<TokenStream2> {
-    Ok(zyn::zyn!({
+fn assign_trace(left: Expr, op: TokenStream2, right: Expr) -> TokenStream2 {
+    zyn::zyn!({
         {
             { left }
         }
@@ -30,12 +30,12 @@ fn assign_trace(left: Expr, op: TokenStream2, right: Expr) -> zyn::syn::Result<T
             ::std::concat!(::std::stringify!({ { left } }), " = {:?}"),
             { { left } },
         );
-    }))
+    })
 }
 
 #[zyn::element]
-fn let_trace(pat: Pat, init: Expr, ident: Ident) -> zyn::syn::Result<TokenStream2> {
-    Ok(zyn::zyn!(
+fn let_trace(pat: Pat, init: Expr, ident: Ident) -> TokenStream2 {
+    zyn::zyn!(
         let {{ pat }} = {
             #[allow(unused_mut)]
             let {{ pat }} = {{ init }};
@@ -45,7 +45,7 @@ fn let_trace(pat: Pat, init: Expr, ident: Ident) -> zyn::syn::Result<TokenStream
             );
             {{ ident }}
         };
-    ))
+    )
 }
 
 #[proc_macro_attribute]

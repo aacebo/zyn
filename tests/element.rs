@@ -1,12 +1,12 @@
 use quote::quote;
 
 #[zyn::element]
-fn greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(zyn::zyn!(fn {{ name }}() {}))
+fn greeting(name: proc_macro2::Ident) -> proc_macro2::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
 }
 
 #[test]
-fn basic_element() -> syn::Result<()> {
+fn basic_element() {
     let result = zyn::zyn!(
         @greeting(name = quote::format_ident!("hello"))
     );
@@ -14,19 +14,18 @@ fn basic_element() -> syn::Result<()> {
         fn hello() {}
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }
 
 #[zyn::element]
 fn wrapper(
     name: proc_macro2::Ident,
     children: proc_macro2::TokenStream,
-) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(quote::quote!(struct #name { #children }))
+) -> proc_macro2::TokenStream {
+    quote::quote!(struct #name { #children })
 }
 
 #[test]
-fn element_with_children() -> syn::Result<()> {
+fn element_with_children() {
     let result = zyn::zyn!(
         @wrapper(name = quote::format_ident!("Foo")) {
             x: i32,
@@ -38,16 +37,15 @@ fn element_with_children() -> syn::Result<()> {
         }
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }
 
 #[zyn::element("say_hello")]
-fn get_greeting(name: proc_macro2::Ident) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(zyn::zyn!(fn {{ name }}() {}))
+fn get_greeting(name: proc_macro2::Ident) -> proc_macro2::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
 }
 
 #[test]
-fn custom_name_override() -> syn::Result<()> {
+fn custom_name_override() {
     let result = zyn::zyn!(
         @say_hello(name = quote::format_ident!("world"))
     );
@@ -55,7 +53,6 @@ fn custom_name_override() -> syn::Result<()> {
         fn world() {}
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }
 
 mod namespaced {
@@ -66,13 +63,13 @@ mod namespaced {
         pub fn field_decl(
             name: proc_macro2::Ident,
             ty: proc_macro2::Ident,
-        ) -> syn::Result<proc_macro2::TokenStream> {
-            Ok(zyn::zyn!({{ name }}: {{ ty }},))
+        ) -> proc_macro2::TokenStream {
+            zyn::zyn!({{ name }}: {{ ty }},)
         }
     }
 
     #[test]
-    fn namespaced_element() -> syn::Result<()> {
+    fn namespaced_element() {
         let result = zyn::zyn!(
             @components::field_decl(
                 name = quote::format_ident!("age"),
@@ -81,44 +78,41 @@ mod namespaced {
         );
         let expected = quote!(age: u32,);
         assert_eq!(result.to_string(), expected.to_string());
-        Ok(())
     }
 }
 
 #[zyn::element]
-fn divider() -> syn::Result<proc_macro2::TokenStream> {
-    Ok(zyn::zyn!(
+fn divider() -> proc_macro2::TokenStream {
+    zyn::zyn!(
         const DIVIDER: &str = "---";
-    ))
+    )
 }
 
 #[test]
-fn zero_param_no_parens() -> syn::Result<()> {
+fn zero_param_no_parens() {
     let result = zyn::zyn!(@divider);
     let expected = quote!(
         const DIVIDER: &str = "---";
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }
 
 #[test]
-fn zero_param_with_parens() -> syn::Result<()> {
+fn zero_param_with_parens() {
     let result = zyn::zyn!(@divider());
     let expected = quote!(
         const DIVIDER: &str = "---";
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }
 
 #[zyn::element]
-fn container(children: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(quote::quote!(mod container { #children }))
+fn container(children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    quote::quote!(mod container { #children })
 }
 
 #[test]
-fn children_without_parens() -> syn::Result<()> {
+fn children_without_parens() {
     let result = zyn::zyn!(
         @container {
             struct Inner;
@@ -130,11 +124,10 @@ fn children_without_parens() -> syn::Result<()> {
         }
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }
 
 #[test]
-fn element_inside_for_loop() -> syn::Result<()> {
+fn element_inside_for_loop() {
     let names = vec![quote::format_ident!("foo"), quote::format_ident!("bar")];
     let result = zyn::zyn!(
         @for (name in names) {
@@ -146,5 +139,4 @@ fn element_inside_for_loop() -> syn::Result<()> {
         fn bar() {}
     );
     assert_eq!(result.to_string(), expected.to_string());
-    Ok(())
 }

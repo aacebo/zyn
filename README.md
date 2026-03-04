@@ -128,12 +128,15 @@ zyn! {
 }
 ```
 
-#### Compile Errors
+#### Compile Errors and Warnings
 
 ```rust
 zyn! {
     @if (!valid) {
         @throw "expected a struct"
+    }
+    @if (deprecated) {
+        @warn "this usage is deprecated"
     }
 }
 ```
@@ -144,10 +147,10 @@ Reusable template components. Define with `#[element]`, invoke with `@`:
 
 ```rust
 #[zyn::element]
-fn field_decl(vis: syn::Visibility, name: syn::Ident, ty: syn::Type) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(zyn::zyn! {
+fn field_decl(vis: syn::Visibility, name: syn::Ident, ty: syn::Type) -> proc_macro2::TokenStream {
+    zyn::zyn! {
         {{ vis }} {{ name }}: {{ ty }},
-    })
+    }
 }
 
 // Generates struct FieldDecl, referenced as @field_decl in templates:
@@ -165,8 +168,8 @@ Elements can have zero parameters. Parentheses are optional when there are no pr
 
 ```rust
 #[zyn::element]
-fn divider() -> syn::Result<proc_macro2::TokenStream> {
-    Ok(zyn::zyn!(const DIVIDER: &str = "---";))
+fn divider() -> proc_macro2::TokenStream {
+    zyn::zyn!(const DIVIDER: &str = "---";)
 }
 
 // All equivalent:
@@ -178,8 +181,8 @@ Elements support children via a `children` parameter:
 
 ```rust
 #[zyn::element]
-fn wrapper(vis: syn::Visibility, children: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(quote::quote!(#vis struct Foo { #children }))
+fn wrapper(vis: syn::Visibility, children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    quote::quote!(#vis struct Foo { #children })
 }
 
 zyn! {
@@ -194,8 +197,8 @@ Children-only elements can omit parens entirely:
 
 ```rust
 #[zyn::element]
-fn container(children: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
-    Ok(quote::quote!(mod inner { #children }))
+fn container(children: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    quote::quote!(mod inner { #children })
 }
 
 zyn! {

@@ -58,19 +58,25 @@ impl Expand for ElementNode {
                 {
                     let mut #inner = ::zyn::proc_macro2::TokenStream::new();
                     #children_expanded
-                    let __zyn_rendered = ::zyn::Render::render(&#name {
+                    let __zyn_rendered = match ::zyn::Render::render(&#name {
                         #(#prop_names: #prop_values,)*
                         children: #inner,
-                    })?;
+                    }) {
+                        ::core::result::Result::Ok(ts) => ts,
+                        ::core::result::Result::Err(diag) => ::zyn::quote::ToTokens::to_token_stream(&diag),
+                    };
                     ::zyn::quote::ToTokens::to_tokens(&__zyn_rendered, &mut #output);
                 }
             }
         } else {
             quote! {
                 {
-                    let __zyn_rendered = ::zyn::Render::render(&#name {
+                    let __zyn_rendered = match ::zyn::Render::render(&#name {
                         #(#prop_names: #prop_values,)*
-                    })?;
+                    }) {
+                        ::core::result::Result::Ok(ts) => ts,
+                        ::core::result::Result::Err(diag) => ::zyn::quote::ToTokens::to_token_stream(&diag),
+                    };
                     ::zyn::quote::ToTokens::to_tokens(&__zyn_rendered, &mut #output);
                 }
             }

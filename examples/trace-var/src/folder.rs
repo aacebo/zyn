@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use zyn::ItemFn;
 use zyn::Render;
 use zyn::proc_macro2::Ident;
-use zyn::proc_macro2::TokenStream as TokenStream2;
 use zyn::syn::BinOp;
 use zyn::syn::Expr;
 use zyn::syn::ExprAssign;
@@ -137,7 +136,7 @@ impl Fold for TraceVarFolderInner {
 }
 
 impl Render for TraceVarFolder {
-    fn render(&self) -> zyn::syn::Result<TokenStream2> {
+    fn render(&self) -> zyn::Result {
         let mut folder = TraceVarFolderInner {
             vars: self.vars.clone(),
         };
