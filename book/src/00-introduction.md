@@ -8,31 +8,331 @@
     />
 </p>
 
-Zyn is a template engine for Rust procedural macros. It lets you write `quote!`-like code with control flow, interpolation pipes, and composable elements.
-
-Rust's `quote!` macro is great for generating code, but it lacks conditionals, loops, and pattern matching. Zyn fills that gap with a template syntax that feels natural inside proc macros:
+Zyn is a template engine and framework for Rust procedural macros. One crate replaces the patchwork of `syn`, `quote`, case-conversion libraries, diagnostic helpers, and attribute-parsing boilerplate that every proc macro project ends up assembling from scratch.
 
 ```rust,zyn
-use zyn::prelude::*;
-
-let name = &input.ident;
-let is_pub = true;
-
-let output: proc_macro2::TokenStream = zyn! {
-    @if (is_pub) { pub }
-    fn {{ name | snake }}() {
-        println!("hello!");
+zyn! {
+    @for (field in fields.iter()) {
+        pub fn {{ field.ident | ident:"get_{}" }}(&self) -> &{{ field.ty }} {
+            &self.{{ field.ident }}
+        }
     }
+}
+```
+
+---
+
+## Why?
+
+### The problem
+
+Building a proc macro in Rust today means pulling in a handful of loosely related crates and gluing them together yourself. Here's what each pain point looks like — and how zyn solves it.
+
+---
+
+#### 1. `quote!` has no control flow
+
+Every conditional or loop forces you out of the template and back into Rust.
+
+<table>
+<tr><th>❌ Before</th><th>✅ After</th></tr>
+<tr>
+<td>
+
+```rust
+let vis = if is_pub {
+    quote!(pub)
+} else {
+    quote!()
 };
 
-// output: pub fn hello_world() { println!("hello!"); }
+let fields_ts: Vec<_> = fields
+    .iter()
+    .map(|f| {
+        let name = &f.ident;
+        let ty = &f.ty;
+        quote! { #name: #ty, }
+    })
+    .collect();
+
+quote! {
+    #vis struct #ident {
+        #(#fields_ts)*
+    }
+}
 ```
+
+</td>
+<td>
+
+```rust
+zyn! {
+    @if (is_pub) { pub }
+    struct {{ ident }} {
+        @for (field in fields.iter()) {
+            {{ field.ident }}: {{ field.ty }},
+        }
+    }
+}
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+#### 2. Case conversion needs external crates
+
+Renaming an identifier means importing `heck`, calling a conversion function, then wrapping it in `format_ident!`.
+
+<table>
+<tr><th>❌ Before</th><th>✅ After</th></tr>
+<tr>
+<td>
+
+```rust
+use heck::ToSnakeCase;
+
+let getter = format_ident!(
+    "get_{}",
+    name.to_string().to_snake_case()
+);
+```
+
+</td>
+<td>
+
+```rust
+{{ name | snake | ident:"get_{}" }}
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+#### 3. Diagnostics are fragmented
+
+Errors, warnings, notes, and help messages each use a different mechanism — or aren't possible at all.
+
+<table>
+<tr><th>❌ Before</th><th>✅ After</th></tr>
+<tr>
+<td>
+
+```rust
+// errors
+return syn::Error::new_spanned(
+    &input,
+    "expected a struct",
+).to_compile_error().into();
+
+// warnings — needs proc-macro-error crate
+emit_warning!(span, "deprecated");
+
+// notes/help — not possible on stable
+```
+
+</td>
+<td>
+
+```rust
+zyn! {
+    @throw "expected a struct" {
+        @note "only named structs supported"
+        @help "change input to a struct"
+    }
+    @warn "this derive is deprecated"
+}
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+#### 4. Attribute parsing is reinvented every time
+
+Every project writes its own parser for `#[my_attr(skip, rename = "foo")]`.
+
+<table>
+<tr><th>❌ Before</th><th>✅ After</th></tr>
+<tr>
+<td>
+
+```rust
+for attr in &input.attrs {
+    if attr.path().is_ident("my_attr") {
+        let args = attr.parse_args_with(
+            Punctuated::<Meta, Token![,]>
+                ::parse_terminated
+        )?;
+        for meta in &args {
+            match meta {
+                Meta::Path(p)
+                    if p.is_ident("skip") => {}
+                Meta::NameValue(nv)
+                    if nv.path.is_ident("rename") => {}
+                _ => {}
+            }
+        }
+    }
+}
+```
+
+</td>
+<td>
+
+```rust
+use zyn::ext::{AttrExt, AttrsExt};
+
+let args = input.attrs
+    .find_args("my_attr")?;
+
+if args.has("skip") { /* ... */ }
+
+if let Some(rename) = args.get("rename") {
+    /* ... */
+}
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+#### 5. Reusable codegen means manual helper functions
+
+There's no composition model — just functions returning `TokenStream`.
+
+<table>
+<tr><th>❌ Before</th><th>✅ After</th></tr>
+<tr>
+<td>
+
+```rust
+fn render_field(
+    vis: &Visibility,
+    name: &Ident,
+    ty: &Type,
+) -> TokenStream {
+    quote! { #vis #name: #ty, }
+}
+
+let tokens: Vec<_> = fields
+    .iter()
+    .map(|f| render_field(
+        &f.vis,
+        f.ident.as_ref().unwrap(),
+        &f.ty,
+    ))
+    .collect();
+
+quote! { struct #ident { #(#tokens)* } }
+```
+
+</td>
+<td>
+
+```rust
+#[zyn::element]
+fn field_decl(
+    vis: zyn::syn::Visibility,
+    name: zyn::syn::Ident,
+    ty: zyn::syn::Type,
+) -> zyn::proc_macro2::TokenStream {
+    zyn::zyn! { {{ vis }} {{ name }}: {{ ty }}, }
+}
+
+zyn! {
+    struct {{ ident }} {
+        @for (field in fields.iter()) {
+            @field_decl(
+                vis = field.vis.clone(),
+                name = field.ident.clone().unwrap(),
+                ty = field.ty.clone(),
+            )
+        }
+    }
+}
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+#### 6. Five crates doing five things
+
+<table>
+<tr><th>❌ Before</th><th>✅ After</th></tr>
+<tr>
+<td>
+
+```toml
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+heck = "0.5"
+proc-macro-error = "1"
+```
+
+</td>
+<td>
+
+```toml
+[dependencies]
+zyn = "0.1"
+```
+
+</td>
+</tr>
+</table>
+
+### What zyn does differently
+
+Zyn replaces the entire stack with a single `zyn!` template macro and a set of companion tools:
+
+```rust
+// with zyn — flat, readable, self-contained
+zyn! {
+    @for (field in fields.iter()) {
+        pub fn {{ field.ident | ident:"get_{}" }}(&self) -> &{{ field.ty }} {
+            &self.{{ field.ident }}
+        }
+    }
+}
+```
+
+| Concern | Zyn approach |
+|---|---|
+| **Code generation** | `zyn!` template with `{{ }}` interpolation — reads like the code it generates |
+| **Control flow** | `@if`, `@for`, `@match` directives inline — no `.iter().map().collect()` |
+| **Case conversion** | Built-in pipes: `{{ name \| snake }}`, `{{ name \| pascal }}`, `{{ name \| screaming }}` — no extra crate |
+| **Name formatting** | `{{ name \| ident:"get_{}" }}` — one expression, no `let` binding |
+| **Diagnostics** | `@throw`, `@warn`, `@note`, `@help` with nesting — one syntax that uses `proc_macro::Diagnostic` on nightly |
+| **Attribute parsing** | `Arg`, `Args`, `AttrExt`, `AttrsExt` — built-in, no `darling` dependency |
+| **Reusable codegen** | `#[zyn::element]` — composable template components invoked with `@name(props)` |
+| **Value transforms** | `#[zyn::pipe]` — custom pipes that chain with built-ins |
+| **String output** | `{{ name \| str }}` — stringify to a `LitStr` without ceremony |
+
+One dependency. No runtime cost. Everything expands at compile time into the same `TokenStream`-building code you'd write by hand — just without the boilerplate.
+
+---
 
 ## Features
 
-- **Interpolation** — `{{ expr }}` inserts any `ToTokens` value
-- **Pipes** — `{{ name | snake }}` transforms values inline
-- **Control flow** — `@if`, `@for`, `@match`, `@throw`
+- **Interpolation** — `{{ expr }}` inserts any `ToTokens` value, with field access and method calls
+- **Pipes** — `{{ name | snake }}`, `{{ name | ident:"get_{}" }}`, `{{ name | str }}` — 13 built-in pipes plus custom
+- **Control flow** — `@if`, `@for`, `@match` with full nesting
+- **Diagnostics** — `@throw`, `@warn`, `@note`, `@help` with child nesting
 - **Elements** — reusable template components via `#[zyn::element]`
 - **Custom pipes** — define transforms with `#[zyn::pipe]`
-- **Case conversion** — built-in `snake`, `camel`, `pascal`, `screaming`, `kebab` pipes and utilities
+- **Attribute parsing** — `Arg`, `Args`, `AttrExt`, `AttrsExt` for structured attribute handling
+- **Case conversion** — `snake`, `camel`, `pascal`, `screaming`, `kebab`, `upper`, `lower`, `trim`, `plural`, `singular`

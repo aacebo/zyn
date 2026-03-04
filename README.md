@@ -8,9 +8,16 @@ A template engine for Rust procedural macros. Write code-generation templates wi
 
 ## Why?
 
-Rust's proc macro ecosystem asks you to juggle `quote!`, `syn`, and `proc_macro2` by hand. A simple derive macro that generates getters for each field turns into nested `.iter().map().collect()` chains wrapped in `quote!` blocks — hard to read, hard to refactor, and easy to get wrong.
+Building proc macros in Rust means pulling together `syn`, `quote`, `proc_macro2`, a case-conversion crate, `proc-macro-error` for diagnostics, and often hand-rolling the same attribute-parsing and helper-function patterns across every project. The result is verbose, fragmented, and hard to maintain:
 
-zyn replaces that with a template language that reads like the code it generates:
+- **Reimplementing the same helpers everywhere** — every proc macro crate writes its own `extract_fields`, `get_ident_name`, attribute-argument parser, etc.
+- **`quote!` syntax is limited** — no control flow, no pipes, no components. You end up with `let` bindings and value coercion outside the template, then `#(#tokens)*` collection patterns inside it.
+- **Low-level APIs make simple things complex** — generating a getter for each field means `.iter().map(|f| { ... }).collect::<Vec<_>>()` wrapped in `quote!`, with `format_ident!` for name construction.
+- **No consistent diagnostics** — `compile_error!` for errors, the deprecated-item trick for warnings, `proc-macro-error` crate for richer messages — all different approaches, none built-in.
+- **No standard attribute parsing types** — every project re-invents `Args`, `Arg`, and attribute extension traits from scratch.
+- **Fragmented toolchain** — `proc-macro-error`, `proc-macro2-diagnostics`, `darling`, `heck` for case conversion — five crates doing five things that should be one.
+
+zyn replaces all of that with a single framework:
 
 ```rust
 zyn! {
@@ -23,9 +30,11 @@ zyn! {
 ```
 
 - **Control flow lives inline** — `@if`, `@for`, `@match` replace the `if/else` + `quote!` + collect pattern
-- **Pipes replace string manipulation** — `{{ name | snake }}` instead of importing a case-conversion crate and calling `format_ident!`
+- **Pipes replace string manipulation** — `{{ name | snake }}`, `{{ name | ident:"get_{}" }}` — no external crates needed
 - **Elements replace helper functions** — `@field_decl(...)` instead of manual `fn render_field(...) -> TokenStream`
-- **Diagnostics are first-class** — `@throw`, `@warn`, `@note`, `@help` with nested context, powered by `proc_macro::Diagnostic` on nightly
+- **Diagnostics are first-class** — `@throw`, `@warn`, `@note`, `@help` with nested context — one syntax, not three crates
+- **Attribute parsing built in** — `Arg`, `Args`, `AttrExt`, `AttrsExt` — no reinventing the wheel
+- **One dependency** — case conversion, diagnostics, attribute parsing, template expansion — all in one crate
 
 No runtime cost. No new dependencies for your users. Everything expands at compile time into the same `TokenStream`-building code you'd write by hand.
 

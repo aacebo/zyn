@@ -112,6 +112,46 @@ zyn! {
 //   age: u32,
 ```
 
+## Comma-separated Expansion
+
+In `quote!`, repeating a list with separators uses the `#(#items),*` pattern. In zyn, just put the separator inside the loop body:
+
+```rust,zyn
+zyn! {
+    [
+        @for (field in fields.iter()) {
+            {{ field.ident | str }},
+        }
+    ]
+}
+// output (given fields = [name, age, email]):
+//   ["name", "age", "email",]
+```
+
+This works for any separator — commas, pipes, semicolons, `|`, etc. The trailing separator is always emitted; Rust's grammar allows trailing commas in most positions.
+
+For function-style argument lists:
+
+```rust,zyn
+zyn! {
+    fn new(
+        @for (field in fields.iter()) {
+            {{ field.ident }}: {{ field.ty }},
+        }
+    ) -> Self {
+        Self {
+            @for (field in fields.iter()) {
+                {{ field.ident }},
+            }
+        }
+    }
+}
+// output (given fields = [name: String, age: u32]):
+//   fn new(name: String, age: u32,) -> Self {
+//       Self { name, age, }
+//   }
+```
+
 ## Empty Iterators
 
 If the iterator is empty, the body emits nothing and compilation continues normally — there is no error.
