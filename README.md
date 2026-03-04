@@ -2,6 +2,10 @@
 
 A template engine for Rust procedural macros. Write `quote!`-like code with control flow, interpolation pipes, and composable elements.
 
+<a href="https://aacebo.github.io/zyn" target="_blank">
+    <img src="https://img.shields.io/badge/📖 Getting Started-blue?style=for-the-badge" />
+</a>
+
 ## Install
 
 ```toml
