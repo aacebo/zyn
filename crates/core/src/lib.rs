@@ -1,8 +1,10 @@
 pub mod ast;
 pub mod case;
 pub mod ident;
+pub mod input;
 pub mod pipes;
 
+pub use input::*;
 pub use pipes::*;
 
 /// Internal trait for expanding AST nodes into generated code.
