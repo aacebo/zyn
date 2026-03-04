@@ -8,4 +8,4 @@ doctest = false
 proc-macro = true
 
 [dependencies]
-zyn = { path = "../..", features = ["ext", "syn"] }
+zyn = { path = "../..", features = ["ext"] }

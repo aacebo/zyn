@@ -1,6 +1,9 @@
 mod element;
 mod pipe;
 
+use zyn_core::proc_macro2;
+use zyn_core::syn;
+
 #[proc_macro]
 pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     expand(input.into()).into()

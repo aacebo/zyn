@@ -14,6 +14,10 @@ pub use input::*;
 pub use meta::*;
 pub use pipes::*;
 
+pub use proc_macro2;
+pub use quote;
+pub use syn;
+
 pub trait Expand {
     fn expand(
         &self,

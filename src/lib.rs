@@ -3,12 +3,6 @@ pub use zyn_core::*;
 #[cfg(feature = "derive")]
 pub use zyn_derive::*;
 
-pub use proc_macro2;
-pub use quote;
-
-#[cfg(feature = "syn")]
-pub use syn;
-
 pub mod prelude {
     pub use crate::{
         Camel, Fmt, Ident, Kebab, Lower, Pascal, Pipe, Render, Screaming, Snake, Upper,
