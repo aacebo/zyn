@@ -4,27 +4,47 @@ pub mod debug;
 pub mod diagnostic;
 pub mod extract;
 pub mod ident;
-pub mod input;
 pub mod meta;
 pub mod pipes;
+pub mod types;
 
 #[cfg(feature = "ext")]
 pub mod ext;
 
 pub use diagnostic::*;
 pub use extract::*;
-pub use input::*;
 pub use meta::*;
-pub use pipes::*;
+pub use types::Input;
+
+#[macro_export]
+macro_rules! parse {
+    ($s:literal => $ty:ty) => {
+        $crate::__private::syn::parse_str::<$ty>($s)
+    };
+    ($s:literal) => {
+        $crate::__private::syn::parse_str($s)
+    };
+    ($ts:expr => $ty:ty) => {
+        $crate::__private::syn::parse2::<$ty>($ts)
+    };
+    ($ts:expr) => {
+        $crate::__private::syn::parse2($ts)
+    };
+}
+
+#[macro_export]
+macro_rules! parse_input {
+    ($($tt:tt)*) => { $crate::__private::syn::parse_macro_input!($($tt)*) }
+}
 
 pub use proc_macro2::{Span, TokenStream};
 pub use quote::{ToTokens, format_ident};
-pub use syn;
 
 #[doc(hidden)]
 pub mod __private {
     pub use proc_macro2;
     pub use quote;
+    pub use syn;
 }
 
 pub trait Expand {
@@ -36,7 +56,7 @@ pub trait Expand {
 }
 
 pub trait Render {
-    fn render(&self, input: &input::Input) -> proc_macro2::TokenStream;
+    fn render(&self, input: &types::Input) -> proc_macro2::TokenStream;
 }
 
 pub trait Pipe {

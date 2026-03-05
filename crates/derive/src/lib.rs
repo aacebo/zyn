@@ -7,7 +7,6 @@ use zyn_core::__private::proc_macro2;
 use zyn_core::__private::quote::quote;
 use zyn_core::diagnostic::Diagnostic;
 use zyn_core::diagnostic::Level;
-use zyn_core::syn;
 
 #[proc_macro]
 pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -41,7 +40,7 @@ pub fn derive_attribute(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 }
 
 fn expand_template(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    match syn::parse2::<zyn_core::ast::Element>(input) {
+    match zyn_core::parse!(input => zyn_core::ast::Element) {
         Ok(element) => {
             let expanded = element.to_token_stream();
             quote! {
@@ -62,7 +61,7 @@ fn expand_debug(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let mode = parse_mode(&mut tokens);
     let body: proc_macro2::TokenStream = tokens.collect();
 
-    let element = match syn::parse2::<zyn_core::ast::Element>(body) {
+    let element = match zyn_core::parse!(body => zyn_core::ast::Element) {
         Ok(el) => el,
         Err(e) => return e.to_compile_error(),
     };

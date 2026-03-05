@@ -2,7 +2,7 @@ use zyn::__private::quote::quote;
 
 pub mod components {
     #[zyn::element]
-    pub fn field_decl(name: zyn::syn::Ident, ty: zyn::syn::Ident) -> zyn::TokenStream {
+    pub fn field_decl(name: zyn::types::Ident, ty: zyn::types::Ident) -> zyn::TokenStream {
         zyn::zyn!({{ name }}: {{ ty }},)
     }
 }

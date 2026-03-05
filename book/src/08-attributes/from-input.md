@@ -22,13 +22,13 @@ Convert from standard syn types:
 
 ```rust
 // From a derive macro input:
-let input: zyn::Input = syn::parse_macro_input!(ts as syn::DeriveInput).into();
+let input: zyn::Input = zyn::parse_input!(ts as zyn::types::DeriveInput).into();
 
 // From an attribute macro input:
-let input: zyn::Input = syn::parse_macro_input!(ts as syn::Item).into();
+let input: zyn::Input = zyn::parse_input!(ts as zyn::types::Item).into();
 
 // Parse directly:
-let input: zyn::Input = syn::parse2(token_stream)?;
+let input: zyn::Input = zyn::parse!(token_stream)?;
 ```
 
 `Input` implements `Default` (returns an empty sentinel struct), `Parse`, and `ToTokens`.
@@ -67,7 +67,7 @@ Inside `zyn!`, an `input` variable of type `&zyn::Input` is always in scope (def
 ```rust
 #[proc_macro_derive(MyDerive)]
 pub fn my_derive(ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input: zyn::Input = syn::parse_macro_input!(ts as syn::DeriveInput).into();
+    let input: zyn::Input = zyn::parse_input!(ts as zyn::types::DeriveInput).into();
 
     // `input` is now in scope for all elements called inside zyn!
     zyn::zyn! {

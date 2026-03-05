@@ -72,10 +72,10 @@ impl Expand for PipeNode {
 
         if is_builtin {
             if self.args.is_empty() {
-                quote! { let __zyn_val = ::zyn::Pipe::pipe(&(::zyn::#pascal_name), __zyn_val); }
+                quote! { let __zyn_val = ::zyn::Pipe::pipe(&(::zyn::pipes::#pascal_name), __zyn_val); }
             } else {
                 let args = &self.args;
-                quote! { let __zyn_val = ::zyn::Pipe::pipe(&(::zyn::#pascal_name(#(#args),*)), __zyn_val); }
+                quote! { let __zyn_val = ::zyn::Pipe::pipe(&(::zyn::pipes::#pascal_name(#(#args),*)), __zyn_val); }
             }
         } else if self.args.is_empty() {
             quote! { let __zyn_val = ::zyn::Pipe::pipe(&(#pascal_name), __zyn_val); }

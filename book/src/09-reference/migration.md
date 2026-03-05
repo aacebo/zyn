@@ -25,16 +25,15 @@ Common `quote`, `syn`, and `proc_macro2` patterns and their zyn equivalents. Use
 
 ## No Zyn Alternative (use raw APIs)
 
-These patterns have no template-level equivalent and require direct use of `syn` via `zyn::syn`, plus re-exported helpers like `zyn::format_ident` and `zyn::TokenStream`:
+These patterns have no template-level equivalent but are available through zyn's public API:
 
-| Pattern | Why |
+| Pattern | zyn equivalent |
 |---|---|
-| `syn::parse_quote!(pub)` | Constructs typed `syn` AST values — needed for element prop values |
-| `quote::format_ident!("name")` outside a template | Creates `Ident` values to pass INTO templates as input |
-| `syn::parse_macro_input!(input as DeriveInput)` | Proc macro entry point parsing |
-| `syn::fold::Fold` / `syn::visit::Visit` | Full AST visitor traversal — too complex for template syntax |
-| `syn::parse2::<T>(tokens)` | Converting template output back to typed AST for further manipulation |
-| `Span::call_site()` / `Span::mixed_site()` | Explicit span control — templates use call-site spans by default |
-| `TokenStream::extend()` / manual accumulation | Templates handle accumulation automatically via `@for` / `@if` |
+| `syn::parse_macro_input!(input as DeriveInput)` | `zyn::parse_input!(input as DeriveInput)` |
+| `syn::parse_str::<T>("...")` | `zyn::parse!("..." => T)` |
+| `syn::parse2::<T>(tokens)` | `zyn::parse!(tokens => T)` |
+| `quote::format_ident!("name")` | `zyn::format_ident!("name")` |
+| `Span::call_site()` | `zyn::Span::call_site()` |
+| `syn::fold::Fold` / `syn::visit::Visit` | `zyn::types::fold::Fold` |
 
-> In book examples and tests, `quote::format_ident!()` and `syn::parse_quote!()` appear frequently because they construct illustrative input values. In real proc macros, these values typically come from parsed input (`input.ident`, `field.ty`, etc.) rather than being constructed manually.
+> In book examples and tests, `zyn::format_ident!()` appears frequently because it constructs illustrative input values. In real proc macros, these values typically come from parsed input (`input.ident`, `field.ty`, etc.) rather than being constructed manually.

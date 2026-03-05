@@ -4,9 +4,8 @@ pub use zyn_core::*;
 pub use zyn_derive::*;
 
 pub mod prelude {
-    pub use crate::{
-        Camel, Fmt, Ident, Kebab, Lower, Pascal, Pipe, Render, Screaming, Snake, Upper,
-    };
+    pub use crate::pipes::*;
+    pub use crate::{Pipe, Render};
 
     #[cfg(feature = "derive")]
     pub use zyn_derive::*;

@@ -1,23 +1,23 @@
 use zyn_core::__private::proc_macro2::TokenStream;
 use zyn_core::__private::quote::quote;
+use zyn_core::__private::syn;
+use zyn_core::__private::syn::FnArg;
+use zyn_core::__private::syn::ReturnType;
+use zyn_core::__private::syn::spanned::Spanned;
 use zyn_core::pascal;
-use zyn_core::syn;
-use zyn_core::syn::FnArg;
-use zyn_core::syn::ItemFn;
-use zyn_core::syn::ReturnType;
-use zyn_core::syn::spanned::Spanned;
+use zyn_core::types::ItemFn;
 
 pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
-    let custom_name: Option<zyn_core::syn::LitStr> = if args.is_empty() {
+    let custom_name: Option<zyn_core::__private::syn::LitStr> = if args.is_empty() {
         None
     } else {
-        match zyn_core::syn::parse2(args) {
+        match zyn_core::__private::syn::parse2(args) {
             Ok(lit) => Some(lit),
             Err(e) => return e.to_compile_error(),
         }
     };
 
-    match zyn_core::syn::parse2::<ItemFn>(input) {
+    match zyn_core::__private::syn::parse2::<ItemFn>(input) {
         Ok(item) => expand_element(item, custom_name),
         Err(e) => e.to_compile_error(),
     }
@@ -32,12 +32,15 @@ fn has_input_attr(attrs: &[syn::Attribute]) -> bool {
     })
 }
 
-fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> TokenStream {
+fn expand_element(
+    item: ItemFn,
+    custom_name: Option<zyn_core::__private::syn::LitStr>,
+) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
 
     if matches!(item.sig.output, ReturnType::Default) {
-        return zyn_core::syn::Error::new(
+        return zyn_core::__private::syn::Error::new(
             item.sig.ident.span(),
             "element must return proc_macro2::TokenStream",
         )
@@ -55,9 +58,9 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
         match arg {
             FnArg::Typed(pat_type) => {
                 let ident = match pat_type.pat.as_ref() {
-                    zyn_core::syn::Pat::Ident(pat_ident) => &pat_ident.ident,
+                    zyn_core::__private::syn::Pat::Ident(pat_ident) => &pat_ident.ident,
                     _ => {
-                        return zyn_core::syn::Error::new(
+                        return zyn_core::__private::syn::Error::new(
                             pat_type.pat.span(),
                             "element parameters must be simple identifiers",
                         )
@@ -76,14 +79,17 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
                 }
             }
             FnArg::Receiver(r) => {
-                return zyn_core::syn::Error::new(r.span(), "element parameters must be typed")
-                    .to_compile_error();
+                return zyn_core::__private::syn::Error::new(
+                    r.span(),
+                    "element parameters must be typed",
+                )
+                .to_compile_error();
             }
         }
     }
 
     let alias = custom_name.map(|lit| {
-        let alias_name = zyn_core::syn::Ident::new(&pascal!(&lit.value()), lit.span());
+        let alias_name = zyn_core::__private::syn::Ident::new(&pascal!(&lit.value()), lit.span());
         quote! { use #struct_name as #alias_name; }
     });
 
@@ -95,7 +101,7 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
                 let #name = match <#ty as ::zyn::FromInput>::from_input(input) {
                     ::std::result::Result::Ok(v) => v,
                     ::std::result::Result::Err(e) => {
-                        let __err: ::zyn::syn::Error = ::std::convert::Into::into(e);
+                        let __err: ::zyn::__private::syn::Error = ::std::convert::Into::into(e);
                         return __err.to_compile_error();
                     }
                 };

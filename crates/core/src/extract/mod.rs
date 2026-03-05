@@ -2,9 +2,9 @@ use proc_macro2::Span;
 use quote::ToTokens;
 use syn::Lit;
 
-use crate::input::Input;
 use crate::meta::Arg;
 use crate::meta::Args;
+use crate::types::Input;
 
 mod attr;
 mod data;

@@ -1,8 +1,7 @@
 use proc_macro2::Span;
 
-use crate::extract::FromInput;
-
 use super::Input;
+use crate::extract::FromInput;
 
 impl FromInput for syn::DeriveInput {
     type Error = syn::Error;

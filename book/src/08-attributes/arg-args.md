@@ -53,7 +53,7 @@ A parsed, ordered collection of `Arg` values. Parse from an attribute's argument
 use zyn::Args;
 
 // Given: #[my_attr(skip, rename = "foo")]
-let args: Args = syn::parse_str("skip, rename = \"foo\"")?;
+let args: Args = zyn::parse!("skip, rename = \"foo\"")?;
 
 args.has("skip")    // true
 args.get("rename")  // Some(&Arg)

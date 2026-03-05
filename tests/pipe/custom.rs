@@ -1,8 +1,8 @@
 use zyn::__private::quote::quote;
 
 #[zyn::pipe]
-fn shout(input: String) -> zyn::syn::Ident {
-    zyn::syn::Ident::new(
+fn shout(input: String) -> zyn::types::Ident {
+    zyn::types::Ident::new(
         &format!("{}_BANG", input.to_uppercase()),
         zyn::Span::call_site(),
     )
@@ -17,8 +17,8 @@ fn custom_pipe() {
 }
 
 #[zyn::pipe("yell")]
-fn make_loud(input: String) -> zyn::syn::Ident {
-    zyn::syn::Ident::new(
+fn make_loud(input: String) -> zyn::types::Ident {
+    zyn::types::Ident::new(
         &format!("{}__LOUD", input.to_uppercase()),
         zyn::Span::call_site(),
     )

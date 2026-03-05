@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 
 use zyn::Render;
-use zyn::syn::BinOp;
-use zyn::syn::Expr;
-use zyn::syn::ExprAssign;
-use zyn::syn::ExprBinary;
-use zyn::syn::Ident;
-use zyn::syn::ItemFn;
-use zyn::syn::Local;
-use zyn::syn::Pat;
-use zyn::syn::Stmt;
-use zyn::syn::fold;
-use zyn::syn::fold::Fold;
+use zyn::types::BinOp;
+use zyn::types::Expr;
+use zyn::types::ExprAssign;
+use zyn::types::ExprBinary;
+use zyn::types::Ident;
+use zyn::types::ItemFn;
+use zyn::types::Local;
+use zyn::types::Pat;
+use zyn::types::Stmt;
+use zyn::types::fold;
+use zyn::types::fold::Fold;
 
 use crate::AssignTrace;
 use crate::LetTrace;
@@ -59,7 +59,7 @@ impl Fold for TraceVarFolderInner {
                 let left = *left;
                 let op = zyn::zyn!({ { eq_token } });
                 if self.is_traced_expr(&left) {
-                    zyn::syn::parse2(zyn::zyn!(@assign_trace(left = left, op = op, right = right)))
+                    zyn::parse!(zyn::zyn!(@assign_trace(left = left, op = op, right = right)))
                         .unwrap()
                 } else {
                     Expr::Assign(ExprAssign {
@@ -82,8 +82,8 @@ impl Fold for TraceVarFolderInner {
                     let left = *left;
                     let op_ts = zyn::zyn!({ { op } });
                     if self.is_traced_expr(&left) {
-                        zyn::syn::parse2(
-                            zyn::zyn!(@assign_trace(left = left, op = op_ts, right = right)),
+                        zyn::parse!(
+                            zyn::zyn!(@assign_trace(left = left, op = op_ts, right = right))
                         )
                         .unwrap()
                     } else {
@@ -114,7 +114,7 @@ impl Fold for TraceVarFolderInner {
                     Pat::Ident(p) => p.ident.clone(),
                     _ => unreachable!(),
                 };
-                zyn::syn::parse2(zyn::zyn!(@let_trace(pat = pat, init = init_expr, ident = ident)))
+                zyn::parse!(zyn::zyn!(@let_trace(pat = pat, init = init_expr, ident = ident)))
                     .unwrap()
             }
             _ => fold::fold_stmt(self, s),

@@ -131,7 +131,7 @@ fn else_if_chain() {
 
 #[test]
 fn for_empty_iterable() {
-    let items: Vec<zyn::syn::Ident> = vec![];
+    let items: Vec<zyn::types::Ident> = vec![];
     let result = zyn::zyn!(@for (item in items) { {{ item }} });
     assert!(result.is_empty());
 }

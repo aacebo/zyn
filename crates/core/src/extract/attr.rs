@@ -1,4 +1,4 @@
-use crate::input::Input;
+use crate::types::Input;
 
 use super::FromInput;
 

@@ -8,11 +8,11 @@ pub use struct_meta::StructMeta;
 
 use zyn_core::__private::proc_macro2::TokenStream;
 use zyn_core::__private::quote::quote;
-use zyn_core::syn;
+use zyn_core::types::DeriveInput;
 
 use super::emit;
 
-pub fn expand(input: syn::DeriveInput) -> TokenStream {
+pub fn expand(input: DeriveInput) -> TokenStream {
     let struct_meta = match StructMeta::parse(&input.attrs) {
         Ok(m) => m,
         Err(e) => return e.to_compile_error(),

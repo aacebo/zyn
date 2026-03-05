@@ -2,7 +2,7 @@ use zyn_core::ast::Element;
 
 #[test]
 fn generates_compile_error() {
-    let result = zyn::syn::parse_str::<Element>("@throw \"bad input\"")
+    let result = zyn::parse!("@throw \"bad input\"" => Element)
         .unwrap()
         .to_token_stream()
         .to_string();
@@ -18,8 +18,8 @@ fn generates_compile_error() {
 
 #[test]
 fn with_note_and_help() {
-    let result = zyn::syn::parse_str::<Element>(
-        "@throw \"invalid name\" { @note \"must be lowercase\" @help \"try `foo_bar`\" }",
+    let result = zyn::parse!(
+        "@throw \"invalid name\" { @note \"must be lowercase\" @help \"try `foo_bar`\" }" => Element
     )
     .unwrap()
     .to_token_stream()
@@ -32,12 +32,11 @@ fn with_note_and_help() {
 
 #[test]
 fn with_note_only() {
-    let result = zyn::syn::parse_str::<Element>(
-        "@throw \"bad value\" { @note \"expected a positive integer\" }",
-    )
-    .unwrap()
-    .to_token_stream()
-    .to_string();
+    let result =
+        zyn::parse!("@throw \"bad value\" { @note \"expected a positive integer\" }" => Element)
+            .unwrap()
+            .to_token_stream()
+            .to_string();
     assert!(result.contains("compile_error"), "expected compile_error");
     assert!(result.contains("bad value"), "expected primary message");
     assert!(
@@ -49,7 +48,7 @@ fn with_note_only() {
 #[test]
 fn with_help_only() {
     let result =
-        zyn::syn::parse_str::<Element>("@throw \"missing field\" { @help \"add a `name` field\" }")
+        zyn::parse!("@throw \"missing field\" { @help \"add a `name` field\" }" => Element)
             .unwrap()
             .to_token_stream()
             .to_string();

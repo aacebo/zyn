@@ -1,6 +1,5 @@
 use zyn::FromArg;
 use zyn::meta::Args;
-use zyn::syn;
 
 #[derive(zyn::Attribute)]
 #[zyn("my_attr", about = "test attribute")]
@@ -15,7 +14,7 @@ struct MyAttr {
 
 #[test]
 fn attribute_mode_full_extraction() {
-    let args: Args = syn::parse_str("name = \"hello\", count = 3, enabled, tag = \"v1\"").unwrap();
+    let args: Args = zyn::parse!("name = \"hello\", count = 3, enabled, tag = \"v1\"").unwrap();
     let attr = MyAttr::from_args(&args).unwrap();
     assert_eq!(attr.name, "hello");
     assert_eq!(attr.count, 3);
@@ -25,7 +24,7 @@ fn attribute_mode_full_extraction() {
 
 #[test]
 fn attribute_mode_optional_absent() {
-    let args: Args = syn::parse_str("name = \"hi\"").unwrap();
+    let args: Args = zyn::parse!("name = \"hi\"").unwrap();
     let attr = MyAttr::from_args(&args).unwrap();
     assert_eq!(attr.name, "hi");
     assert_eq!(attr.count, 0);
@@ -35,7 +34,7 @@ fn attribute_mode_optional_absent() {
 
 #[test]
 fn attribute_mode_missing_required_is_err() {
-    let args: Args = syn::parse_str("").unwrap();
+    let args: Args = zyn::parse!("").unwrap();
     assert!(MyAttr::from_args(&args).is_err());
 }
 
@@ -47,7 +46,7 @@ struct ArgMode {
 
 #[test]
 fn argument_mode_from_args() {
-    let args: Args = syn::parse_str("a = 42, b = \"hello\"").unwrap();
+    let args: Args = zyn::parse!("a = 42, b = \"hello\"").unwrap();
     let v = ArgMode::from_args(&args).unwrap();
     assert_eq!(v.a, 42);
     assert_eq!(v.b, "hello");
@@ -55,7 +54,7 @@ fn argument_mode_from_args() {
 
 #[test]
 fn argument_mode_from_arg_via_list() {
-    let arg: zyn::meta::Arg = syn::parse_str("inner(a = 7, b = \"world\")").unwrap();
+    let arg: zyn::meta::Arg = zyn::parse!("inner(a = 7, b = \"world\")").unwrap();
     let v = ArgMode::from_arg(&arg).unwrap();
     assert_eq!(v.a, 7);
     assert_eq!(v.b, "world");
@@ -63,7 +62,7 @@ fn argument_mode_from_arg_via_list() {
 
 #[test]
 fn argument_mode_from_arg_non_list_is_err() {
-    let arg: zyn::meta::Arg = syn::parse_str("skip").unwrap();
+    let arg: zyn::meta::Arg = zyn::parse!("skip").unwrap();
     assert!(ArgMode::from_arg(&arg).is_err());
 }
 
@@ -75,7 +74,7 @@ struct Outer {
 
 #[test]
 fn recursive_nesting() {
-    let args: Args = syn::parse_str("inner(a = 5, b = \"nested\")").unwrap();
+    let args: Args = zyn::parse!("inner(a = 5, b = \"nested\")").unwrap();
     let v = Outer::from_args(&args).unwrap();
     assert_eq!(v.inner.a, 5);
     assert_eq!(v.inner.b, "nested");
@@ -92,7 +91,7 @@ struct Positional {
 
 #[test]
 fn positional_args() {
-    let args: Args = syn::parse_str("\"hello\", 42").unwrap();
+    let args: Args = zyn::parse!("\"hello\", 42").unwrap();
     let v = Positional::from_args(&args).unwrap();
     assert_eq!(v.first, "hello");
     assert_eq!(v.second, 42);
@@ -107,7 +106,7 @@ struct Renamed {
 
 #[test]
 fn name_override() {
-    let args: Args = syn::parse_str("my_key = \"found\"").unwrap();
+    let args: Args = zyn::parse!("my_key = \"found\"").unwrap();
     let v = Renamed::from_args(&args).unwrap();
     assert_eq!(v.value, "found");
 }
@@ -123,7 +122,7 @@ struct WithDefault {
 
 #[test]
 fn default_expr_used_when_absent() {
-    let args: Args = syn::parse_str("").unwrap();
+    let args: Args = zyn::parse!("").unwrap();
     let v = WithDefault::from_args(&args).unwrap();
     assert_eq!(v.label, "fallback");
     assert_eq!(v.count, 0);
@@ -131,7 +130,7 @@ fn default_expr_used_when_absent() {
 
 #[test]
 fn default_overridden_when_present() {
-    let args: Args = syn::parse_str("label = \"custom\", count = 9").unwrap();
+    let args: Args = zyn::parse!("label = \"custom\", count = 9").unwrap();
     let v = WithDefault::from_args(&args).unwrap();
     assert_eq!(v.label, "custom");
     assert_eq!(v.count, 9);
@@ -147,7 +146,7 @@ struct WithSkip {
 
 #[test]
 fn skip_field_always_default() {
-    let args: Args = syn::parse_str("name = \"hi\"").unwrap();
+    let args: Args = zyn::parse!("name = \"hi\"").unwrap();
     let v = WithSkip::from_args(&args).unwrap();
     assert_eq!(v.name, "hi");
     assert_eq!(v.internal, 0);

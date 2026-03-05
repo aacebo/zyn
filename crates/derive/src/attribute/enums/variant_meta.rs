@@ -1,5 +1,5 @@
 use zyn_core::__private::proc_macro2::TokenStream;
-use zyn_core::syn;
+use zyn_core::__private::syn;
 
 pub enum VariantKind {
     Unit,
@@ -75,7 +75,7 @@ impl VariantMeta {
                         #field_ident: match args.get(#key) {
                             ::std::option::Option::Some(arg) => <#field_ty as ::zyn::FromArg>::from_arg(arg)?,
                             ::std::option::Option::None => return ::std::result::Result::Err(
-                                ::zyn::syn::Error::new(
+                                ::zyn::__private::syn::Error::new(
                                     ident.span(),
                                     ::std::concat!("missing required field `", #key, "`"),
                                 )

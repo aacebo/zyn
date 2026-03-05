@@ -1,7 +1,20 @@
 mod derive;
-mod item;
+pub(crate) mod item;
 
 use quote::ToTokens;
+
+pub use syn::{
+    Attribute, BinOp, Data, DataEnum, DataStruct, DataUnion, DeriveInput, Expr, ExprAssign,
+    ExprBinary, ExprLit, Field, Fields, FieldsNamed, FieldsUnnamed, GenericParam, Generics, Ident,
+    Item, ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMod,
+    ItemStatic, ItemStruct, ItemTrait, ItemType, ItemUnion, ItemUse, Lit, LitBool, LitChar,
+    LitFloat, LitInt, LitStr, Local, Pat, Path, Signature, Stmt, Token, Type, Variant, Visibility,
+    WhereClause, WherePredicate,
+};
+
+pub use syn::fold;
+pub use syn::parse;
+pub use syn::parse::Parse;
 
 pub enum Input {
     Derive(syn::DeriveInput),

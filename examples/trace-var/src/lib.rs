@@ -6,11 +6,10 @@ use proc_macro::TokenStream;
 use zyn::Args;
 use zyn::Render;
 use zyn::TokenStream as TokenStream2;
-use zyn::syn::Expr;
-use zyn::syn::Ident;
-use zyn::syn::ItemFn;
-use zyn::syn::Pat;
-use zyn::syn::parse_macro_input;
+use zyn::types::Expr;
+use zyn::types::Ident;
+use zyn::types::ItemFn;
+use zyn::types::Pat;
 
 use folder::TraceVarFolder;
 
@@ -50,9 +49,9 @@ fn let_trace(pat: Pat, init: Expr, ident: Ident) -> TokenStream2 {
 
 #[proc_macro_attribute]
 pub fn trace_var(args: TokenStream, input: TokenStream) -> TokenStream {
-    let ext_args = parse_macro_input!(args as Args);
+    let ext_args = zyn::parse_input!(args as Args);
     let vars: HashSet<Ident> = ext_args.iter().filter_map(|a| a.name().cloned()).collect();
-    let input = parse_macro_input!(input as ItemFn);
+    let input = zyn::parse_input!(input as ItemFn);
     TraceVarFolder { input, vars }
         .render(&Default::default())
         .into()

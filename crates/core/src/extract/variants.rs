@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 
-use crate::input::Input;
+use crate::types::Input;
 
 use super::FromInput;
 

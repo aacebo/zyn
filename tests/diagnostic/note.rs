@@ -2,7 +2,7 @@ use zyn_core::ast::Element;
 
 #[test]
 fn does_not_suppress_output() {
-    let result = zyn::syn::parse_str::<Element>("@note \"additional context\" struct Foo;")
+    let result = zyn::parse!("@note \"additional context\" struct Foo;" => Element)
         .unwrap()
         .to_token_stream()
         .to_string();

@@ -4,7 +4,7 @@ mod namespaced;
 use zyn::__private::quote::quote;
 
 #[zyn::element]
-fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
+fn greeting(name: zyn::types::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 
@@ -20,7 +20,7 @@ fn basic_element() {
 }
 
 #[zyn::element]
-fn wrapper(name: zyn::syn::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
+fn wrapper(name: zyn::types::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
     zyn::__private::quote::quote!(struct #name { #children })
 }
 
@@ -40,7 +40,7 @@ fn element_with_children() {
 }
 
 #[zyn::element("say_hello")]
-fn get_greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
+fn get_greeting(name: zyn::types::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 
