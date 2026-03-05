@@ -2,12 +2,12 @@
 
 ## `Input`
 
-`Input` is the unified proc macro input context — it wraps either a `DeriveInput` or `ItemInput` and provides common accessors:
+`Input` is the unified proc macro input context — it wraps either a `syn::DeriveInput` or `syn::Item` and provides common accessors:
 
 ```rust
 pub enum Input {
-    Derive(DeriveInput),
-    Item(ItemInput),
+    Derive(syn::DeriveInput),
+    Item(syn::Item),
 }
 
 impl Input {
@@ -22,10 +22,10 @@ Convert from standard syn types:
 
 ```rust
 // From a derive macro input:
-let input: zyn::Input = syn::parse_macro_input!(ts as zyn::DeriveInput).into();
+let input: zyn::Input = syn::parse_macro_input!(ts as syn::DeriveInput).into();
 
 // From an attribute macro input:
-let input: zyn::Input = syn::parse_macro_input!(ts as zyn::ItemInput).into();
+let input: zyn::Input = syn::parse_macro_input!(ts as syn::Item).into();
 
 // Parse directly:
 let input: zyn::Input = syn::parse2(token_stream)?;
@@ -46,13 +46,17 @@ Implemented by:
 
 | Type | Extracts |
 |---|---|
-| `#[derive(Attribute)]` structs (attribute mode) | Named attribute from `input.attrs()` |
+| `#[derive(Attribute)]` structs | Named attribute from `input.attrs()` |
 | `proc_macro2::Ident` | `input.ident()` |
 | `syn::Generics` | `input.generics()` |
 | `syn::Visibility` | `input.vis()` |
+| `syn::DeriveInput` | Full derive input |
+| `syn::DataStruct` / `DataEnum` / `DataUnion` | Specific derive data variant |
+| `syn::Item` | Full item |
+| `syn::ItemFn` / `ItemStruct` / etc. | Specific item variant |
 | `Fields<T>` | Struct fields |
 | `Variants` | Enum variants |
-| `Data<T: Parse>` | Re-parses full input as `T` |
+| `Data<T>` | Derive data |
 | `Extract<T: FromInput>` | Delegates to `T` |
 | `Attr<T: FromInput>` | Delegates to `T` |
 
@@ -63,8 +67,7 @@ Inside `zyn!`, an `input` variable of type `&zyn::Input` is always in scope (def
 ```rust
 #[proc_macro_derive(MyDerive)]
 pub fn my_derive(ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let derive: zyn::DeriveInput = syn::parse_macro_input!(ts);
-    let input: zyn::Input = derive.into();
+    let input: zyn::Input = syn::parse_macro_input!(ts as syn::DeriveInput).into();
 
     // `input` is now in scope for all elements called inside zyn!
     zyn::zyn! {

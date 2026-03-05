@@ -83,20 +83,12 @@ impl<T: FromData> FromInput for Data<T> {
     type Error = syn::Error;
 
     fn from_input(input: &Input) -> Result<Self, Self::Error> {
-        let raw = match input {
-            Input::Derive(d) => match d {
-                crate::input::DeriveInput::Struct(s) => syn::Data::Struct(s.data.clone()),
-                crate::input::DeriveInput::Enum(e) => syn::Data::Enum(e.data.clone()),
-                crate::input::DeriveInput::Union(u) => syn::Data::Union(u.data.clone()),
-            },
-            Input::Item(_) => {
-                return Err(syn::Error::new(
-                    Span::call_site(),
-                    "Data extractor requires derive input",
-                ));
-            }
-        };
-
-        T::from_data(raw).map(Data)
+        match input {
+            Input::Derive(d) => T::from_data(d.data.clone()).map(Data),
+            _ => Err(syn::Error::new(
+                Span::call_site(),
+                "Data extractor requires derive input",
+            )),
+        }
     }
 }

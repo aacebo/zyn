@@ -142,17 +142,17 @@ fn data_struct() {
 }
 
 #[zyn::element]
-fn derive_struct_element(#[zyn(input)] s: zyn::DeriveStruct) -> zyn::proc_macro2::TokenStream {
-    let name = &s.ident;
+fn derive_input_element(#[zyn(input)] d: zyn::syn::DeriveInput) -> zyn::proc_macro2::TokenStream {
+    let name = &d.ident;
     zyn::zyn!(
         const NAME: &str = { { name | str } };
     )
 }
 
 #[test]
-fn derive_struct() {
+fn derive_input() {
     let input: zyn::Input = syn::parse_str("struct Point { x: f32 }").unwrap();
-    let result = zyn::Render::render(&DeriveStructElement {}, &input);
+    let result = zyn::Render::render(&DeriveInputElement {}, &input);
     let expected = quote!(
         const NAME: &str = "Point";
     );
@@ -160,42 +160,43 @@ fn derive_struct() {
 }
 
 #[zyn::element]
-fn derive_enum_element(#[zyn(input)] e: zyn::DeriveEnum) -> zyn::proc_macro2::TokenStream {
-    let name = &e.ident;
-    let count = e.data.variants.len();
-    zyn::zyn!(const {{ name | screaming }}: usize = {{ count }};)
-}
-
-#[test]
-fn derive_enum() {
-    let input: zyn::Input = syn::parse_str("enum Dir { North, South }").unwrap();
-    let result = zyn::Render::render(&DeriveEnumElement {}, &input);
-    let expected = quote!(
-        const DIR: usize = 2usize;
-    );
-    assert_eq!(result.to_string(), expected.to_string());
-}
-
-#[zyn::element]
-fn derive_union_element(#[zyn(input)] u: zyn::DeriveUnion) -> zyn::proc_macro2::TokenStream {
-    let name = &u.ident;
+fn data_enum_element(#[zyn(input)] e: zyn::syn::DataEnum) -> zyn::proc_macro2::TokenStream {
+    let count = e.variants.len();
     zyn::zyn!(
-        const NAME: &str = { { name | str } };
+        const COUNT: usize = { { count } };
     )
 }
 
 #[test]
-fn derive_union() {
-    let input: zyn::Input = syn::parse_str("union Bits { i: i32, f: f32 }").unwrap();
-    let result = zyn::Render::render(&DeriveUnionElement {}, &input);
+fn data_enum() {
+    let input: zyn::Input = syn::parse_str("enum Dir { North, South }").unwrap();
+    let result = zyn::Render::render(&DataEnumElement {}, &input);
     let expected = quote!(
-        const NAME: &str = "Bits";
+        const COUNT: usize = 2usize;
     );
     assert_eq!(result.to_string(), expected.to_string());
 }
 
 #[zyn::element]
-fn item_fn_element(#[zyn(input)] item: zyn::ItemFn) -> zyn::proc_macro2::TokenStream {
+fn data_union_element(#[zyn(input)] u: zyn::syn::DataUnion) -> zyn::proc_macro2::TokenStream {
+    let count = u.fields.named.len();
+    zyn::zyn!(
+        const COUNT: usize = { { count } };
+    )
+}
+
+#[test]
+fn data_union() {
+    let input: zyn::Input = syn::parse_str("union Bits { i: i32, f: f32 }").unwrap();
+    let result = zyn::Render::render(&DataUnionElement {}, &input);
+    let expected = quote!(
+        const COUNT: usize = 2usize;
+    );
+    assert_eq!(result.to_string(), expected.to_string());
+}
+
+#[zyn::element]
+fn item_fn_element(#[zyn(input)] item: zyn::syn::ItemFn) -> zyn::proc_macro2::TokenStream {
     let name = &item.sig.ident;
     zyn::zyn!(
         const NAME: &str = { { name | str } };
@@ -204,7 +205,7 @@ fn item_fn_element(#[zyn(input)] item: zyn::ItemFn) -> zyn::proc_macro2::TokenSt
 
 #[test]
 fn item_fn() {
-    let input: zyn::Input = syn::parse_str("fn hello_world() {}").unwrap();
+    let input = zyn::Input::Item(syn::parse_str("fn hello_world() {}").unwrap());
     let result = zyn::Render::render(&ItemFnElement {}, &input);
     let expected = quote!(
         const NAME: &str = "hello_world";
@@ -213,18 +214,20 @@ fn item_fn() {
 }
 
 #[zyn::element]
-fn item_input_element(#[zyn(input)] item: zyn::ItemInput) -> zyn::proc_macro2::TokenStream {
-    let name = item.ident();
+fn item_element(#[zyn(input)] item: zyn::syn::Item) -> zyn::proc_macro2::TokenStream {
+    let name = match &item {
+        syn::Item::Fn(f) => &f.sig.ident,
+        _ => panic!("expected fn"),
+    };
     zyn::zyn!(
         const NAME: &str = { { name | str } };
     )
 }
 
 #[test]
-fn item_input() {
-    let input: zyn::Input =
-        zyn::Input::Item(syn::parse_str::<zyn::ItemInput>("fn hello() {}").unwrap());
-    let result = zyn::Render::render(&ItemInputElement {}, &input);
+fn item() {
+    let input = zyn::Input::Item(syn::parse_str("fn hello() {}").unwrap());
+    let result = zyn::Render::render(&ItemElement {}, &input);
     let expected = quote!(
         const NAME: &str = "hello";
     );

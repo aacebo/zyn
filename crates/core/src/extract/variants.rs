@@ -42,24 +42,18 @@ impl FromInput for Variants {
 
     fn from_input(input: &Input) -> Result<Self, Self::Error> {
         match input {
-            Input::Derive(d) => match d {
-                crate::input::DeriveInput::Enum(e) => {
-                    Ok(Variants(e.data.variants.iter().cloned().collect()))
-                }
-                other => Err(syn::Error::new(
-                    other.ident().span(),
-                    "expected enum input for Variants extractor",
-                )),
-            },
-            Input::Item(i) => match i {
-                crate::input::ItemInput::Enum(e) => {
-                    Ok(Variants(e.variants.iter().cloned().collect()))
-                }
+            Input::Derive(d) => match &d.data {
+                syn::Data::Enum(e) => Ok(Variants(e.variants.iter().cloned().collect())),
                 _ => Err(syn::Error::new(
-                    Span::call_site(),
+                    d.ident.span(),
                     "expected enum input for Variants extractor",
                 )),
             },
+            Input::Item(syn::Item::Enum(e)) => Ok(Variants(e.variants.iter().cloned().collect())),
+            _ => Err(syn::Error::new(
+                Span::call_site(),
+                "expected enum input for Variants extractor",
+            )),
         }
     }
 }

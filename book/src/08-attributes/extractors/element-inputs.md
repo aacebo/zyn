@@ -1,6 +1,6 @@
 # Element Inputs
 
-All zyn input wrapper types implement `FromInput` and can be used directly as `#[zyn(input)]` element parameters. This lets you inject the full typed input into your element.
+`FromInput` is implemented for syn types directly — use them as `#[zyn(input)]` element parameters to inject the full typed input.
 
 ## Derive Input Types
 
@@ -9,20 +9,19 @@ For derive macros (`#[derive(...)]`):
 ```rust
 #[zyn::element]
 fn struct_element(
-    #[zyn(input)] s: zyn::DeriveStruct,
+    #[zyn(input)] d: zyn::syn::DeriveInput,
 ) -> zyn::proc_macro2::TokenStream {
-    let name = &s.ident;
-    let field_count = s.data.fields.len();
+    let name = &d.ident;
     zyn::zyn! { /* ... */ }
 }
 ```
 
-| Type | Matches | Fields |
-|---|---|---|
-| `DeriveInput` | Any derive input | `attrs`, `vis`, `ident`, `generics` |
-| `DeriveStruct` | Struct only | `attrs`, `vis`, `ident`, `generics`, `data: syn::DataStruct` |
-| `DeriveEnum` | Enum only | `attrs`, `vis`, `ident`, `generics`, `data: syn::DataEnum` |
-| `DeriveUnion` | Union only | `attrs`, `vis`, `ident`, `generics`, `data: syn::DataUnion` |
+| Type | Matches |
+|---|---|
+| `syn::DeriveInput` | Any derive input |
+| `syn::DataStruct` | Struct data only |
+| `syn::DataEnum` | Enum data only |
+| `syn::DataUnion` | Union data only |
 
 ## Item Input Types
 
@@ -31,7 +30,7 @@ For attribute macros and other item-level macros:
 ```rust
 #[zyn::element]
 fn fn_element(
-    #[zyn(input)] item: zyn::ItemFn,
+    #[zyn(input)] item: zyn::syn::ItemFn,
 ) -> zyn::proc_macro2::TokenStream {
     let name = &item.sig.ident;
     let args = &item.sig.inputs;
@@ -39,33 +38,31 @@ fn fn_element(
 }
 ```
 
-| Type | Matches | Derefs to |
-|---|---|---|
-| `ItemInput` | Any item input | — (enum, use accessors) |
-| `ItemFn` | `fn` | `syn::ItemFn` |
-| `ItemStruct` | `struct` | `syn::ItemStruct` |
-| `ItemEnum` | `enum` | `syn::ItemEnum` |
-| `ItemUnion` | `union` | `syn::ItemUnion` |
-| `ItemTrait` | `trait` | `syn::ItemTrait` |
-| `ItemImpl` | `impl` | `syn::ItemImpl` |
-| `ItemType` | `type` | `syn::ItemType` |
-| `ItemMod` | `mod` | `syn::ItemMod` |
-| `ItemConst` | `const` | `syn::ItemConst` |
-| `ItemStatic` | `static` | `syn::ItemStatic` |
-| `ItemUse` | `use` | `syn::ItemUse` |
-| `ItemExternCrate` | `extern crate` | `syn::ItemExternCrate` |
-| `ItemForeignMod` | `extern "C"` | `syn::ItemForeignMod` |
-| `ImplItemFn` | fn inside `impl` | `syn::ImplItemFn` |
-| `TraitItemFn` | fn inside `trait` | `syn::TraitItemFn` |
+| Type | Matches |
+|---|---|
+| `syn::Item` | Any item |
+| `syn::ItemFn` | `fn` |
+| `syn::ItemStruct` | `struct` |
+| `syn::ItemEnum` | `enum` |
+| `syn::ItemUnion` | `union` |
+| `syn::ItemTrait` | `trait` |
+| `syn::ItemImpl` | `impl` |
+| `syn::ItemType` | `type` |
+| `syn::ItemMod` | `mod` |
+| `syn::ItemConst` | `const` |
+| `syn::ItemStatic` | `static` |
+| `syn::ItemUse` | `use` |
+| `syn::ItemExternCrate` | `extern crate` |
+| `syn::ItemForeignMod` | `extern "C"` |
 
 ## Cross-Input Extraction
 
-`ItemStruct`, `ItemEnum`, and `ItemUnion` also work with derive inputs — zyn reconstructs the `syn::Item*` type from the derive data:
+`syn::ItemStruct`, `syn::ItemEnum`, and `syn::ItemUnion` also work with derive inputs — zyn reconstructs the item type from the derive data:
 
 ```rust
 #[zyn::element]
 fn struct_element(
-    #[zyn(input)] s: zyn::ItemStruct,
+    #[zyn(input)] s: zyn::syn::ItemStruct,
 ) -> zyn::proc_macro2::TokenStream {
     // Works whether input is Input::Item or Input::Derive
     let name = &s.ident;

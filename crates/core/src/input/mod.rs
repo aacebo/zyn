@@ -1,40 +1,39 @@
-pub mod derive;
-pub mod item;
+mod derive;
+mod item;
 
-pub use derive::*;
-pub use item::*;
+use quote::ToTokens;
 
 pub enum Input {
-    Derive(DeriveInput),
-    Item(ItemInput),
+    Derive(syn::DeriveInput),
+    Item(syn::Item),
 }
 
 impl Input {
     pub fn attrs(&self) -> &[syn::Attribute] {
         match self {
-            Self::Derive(d) => d.attrs(),
-            Self::Item(i) => i.attrs(),
+            Self::Derive(d) => &d.attrs,
+            Self::Item(i) => item::attrs(i),
         }
     }
 
     pub fn ident(&self) -> &syn::Ident {
         match self {
-            Self::Derive(d) => d.ident(),
-            Self::Item(i) => i.ident(),
+            Self::Derive(d) => &d.ident,
+            Self::Item(i) => item::ident(i),
         }
     }
 
     pub fn generics(&self) -> &syn::Generics {
         match self {
-            Self::Derive(d) => d.generics(),
-            Self::Item(i) => i.generics(),
+            Self::Derive(d) => &d.generics,
+            Self::Item(i) => item::generics(i),
         }
     }
 
     pub fn vis(&self) -> &syn::Visibility {
         match self {
-            Self::Derive(d) => d.vis(),
-            Self::Item(i) => i.vis(),
+            Self::Derive(d) => &d.vis,
+            Self::Item(i) => item::vis(i),
         }
     }
 }
@@ -45,7 +44,7 @@ impl Default for Input {
     }
 }
 
-impl quote::ToTokens for Input {
+impl ToTokens for Input {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
             Self::Derive(d) => d.to_tokens(tokens),
@@ -57,9 +56,9 @@ impl quote::ToTokens for Input {
 impl syn::parse::Parse for Input {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         use syn::parse::discouraged::Speculative;
-        let fork = input.fork();
 
-        if let Ok(d) = fork.parse::<DeriveInput>() {
+        let fork = input.fork();
+        if let Ok(d) = fork.parse::<syn::DeriveInput>() {
             input.advance_to(&fork);
             return Ok(Self::Derive(d));
         }
@@ -68,14 +67,14 @@ impl syn::parse::Parse for Input {
     }
 }
 
-impl From<DeriveInput> for Input {
-    fn from(v: DeriveInput) -> Self {
+impl From<syn::DeriveInput> for Input {
+    fn from(v: syn::DeriveInput) -> Self {
         Self::Derive(v)
     }
 }
 
-impl From<ItemInput> for Input {
-    fn from(v: ItemInput) -> Self {
+impl From<syn::Item> for Input {
+    fn from(v: syn::Item) -> Self {
         Self::Item(v)
     }
 }

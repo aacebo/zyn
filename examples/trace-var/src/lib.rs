@@ -4,11 +4,11 @@ use std::collections::HashSet;
 
 use proc_macro::TokenStream;
 use zyn::Args;
-use zyn::ItemFn;
 use zyn::Render;
 use zyn::proc_macro2::Ident;
 use zyn::proc_macro2::TokenStream as TokenStream2;
 use zyn::syn::Expr;
+use zyn::syn::ItemFn;
 use zyn::syn::Pat;
 use zyn::syn::parse_macro_input;
 

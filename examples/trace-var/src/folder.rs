@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
-use zyn::ItemFn;
 use zyn::Render;
 use zyn::proc_macro2::Ident;
 use zyn::syn::BinOp;
 use zyn::syn::Expr;
 use zyn::syn::ExprAssign;
 use zyn::syn::ExprBinary;
+use zyn::syn::ItemFn;
 use zyn::syn::Local;
 use zyn::syn::Pat;
 use zyn::syn::Stmt;
@@ -127,8 +127,7 @@ impl Render for TraceVarFolder {
         let mut folder = TraceVarFolderInner {
             vars: self.vars.clone(),
         };
-        let item: zyn::syn::ItemFn = (*self.input).clone();
-        zyn::zyn!({ { folder.fold_item_fn(item) } })
+        zyn::zyn!({ { folder.fold_item_fn(self.input.clone()) } })
     }
 }
 

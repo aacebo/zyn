@@ -78,24 +78,22 @@ impl<T: FromFields> FromInput for Fields<T> {
 
     fn from_input(input: &Input) -> Result<Self, Self::Error> {
         let raw = match input {
-            Input::Derive(d) => match d {
-                crate::input::DeriveInput::Struct(s) => s.data.fields.clone(),
-                other => {
-                    return Err(syn::Error::new(
-                        other.ident().span(),
-                        "expected struct input for Fields extractor",
-                    ));
-                }
-            },
-            Input::Item(i) => match i {
-                crate::input::ItemInput::Struct(s) => s.fields.clone(),
+            Input::Derive(d) => match &d.data {
+                syn::Data::Struct(s) => s.fields.clone(),
                 _ => {
                     return Err(syn::Error::new(
-                        Span::call_site(),
+                        d.ident.span(),
                         "expected struct input for Fields extractor",
                     ));
                 }
             },
+            Input::Item(syn::Item::Struct(s)) => s.fields.clone(),
+            _ => {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    "expected struct input for Fields extractor",
+                ));
+            }
         };
         T::from_fields(raw).map(Fields)
     }
