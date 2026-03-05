@@ -5,7 +5,7 @@ Elements defined in submodules are referenced with `::` path syntax:
 ```rust,zyn
 mod components {
     #[zyn::element]
-    pub fn field_decl(name: zyn::syn::Ident, ty: syn::Type) -> zyn::TokenStream {
+    pub fn field_decl(name: zyn::types::Ident, ty: zyn::types::Type) -> zyn::TokenStream {
         zyn::zyn!({{ name }}: {{ ty }},)
     }
 }
@@ -27,7 +27,7 @@ Namespacing lets you group related elements by concern:
 ```rust,zyn
 mod impls {
     #[zyn::element]
-    pub fn display(name: zyn::syn::Ident) -> zyn::TokenStream {
+    pub fn display(name: zyn::types::Ident) -> zyn::TokenStream {
         zyn::zyn! {
             impl ::std::fmt::Display for {{ name }} {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -38,7 +38,7 @@ mod impls {
     }
 
     #[zyn::element]
-    pub fn debug(name: zyn::syn::Ident) -> zyn::TokenStream {
+    pub fn debug(name: zyn::types::Ident) -> zyn::TokenStream {
         zyn::zyn! {
             impl ::std::fmt::Debug for {{ name }} {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -51,12 +51,12 @@ mod impls {
 
 mod fields {
     #[zyn::element]
-    pub fn required(name: zyn::syn::Ident, ty: syn::Type) -> zyn::TokenStream {
+    pub fn required(name: zyn::types::Ident, ty: zyn::types::Type) -> zyn::TokenStream {
         zyn::zyn!(pub {{ name }}: {{ ty }},)
     }
 
     #[zyn::element]
-    pub fn optional(name: zyn::syn::Ident, ty: syn::Type) -> zyn::TokenStream {
+    pub fn optional(name: zyn::types::Ident, ty: zyn::types::Type) -> zyn::TokenStream {
         zyn::zyn!(pub {{ name }}: Option<{{ ty }}>,)
     }
 }

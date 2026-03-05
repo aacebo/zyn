@@ -4,7 +4,7 @@ By default the template name is derived from the function name. Pass a string to
 
 ```rust,zyn
 #[zyn::element("say_hello")]
-fn internal_greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
+fn internal_greeting(name: zyn::types::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 
@@ -23,7 +23,7 @@ Custom names are useful when:
 
 ```rust,zyn
 #[zyn::element("getter")]
-fn emit_getter_method(name: zyn::syn::Ident, ty: syn::Type) -> zyn::TokenStream {
+fn emit_getter_method(name: zyn::types::Ident, ty: zyn::types::Type) -> zyn::TokenStream {
     zyn::zyn! {
         pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
             &self.{{ name }}
@@ -32,7 +32,7 @@ fn emit_getter_method(name: zyn::syn::Ident, ty: syn::Type) -> zyn::TokenStream 
 }
 
 #[zyn::element("setter")]
-fn emit_setter_method(name: zyn::syn::Ident, ty: syn::Type) -> zyn::TokenStream {
+fn emit_setter_method(name: zyn::types::Ident, ty: zyn::types::Type) -> zyn::TokenStream {
     zyn::zyn! {
         pub fn {{ name | ident:"set_{}" }}(&mut self, value: {{ ty }}) {
             self.{{ name }} = value;

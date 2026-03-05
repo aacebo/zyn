@@ -241,9 +241,9 @@ quote! { struct #ident { #(#tokens)* } }
 ```rust
 #[zyn::element]
 fn field_decl(
-    vis: zyn::syn::Visibility,
-    name: zyn::syn::Ident,
-    ty: zyn::syn::Type,
+    vis: zyn::types::Visibility,
+    name: zyn::types::Ident,
+    ty: zyn::types::Type,
 ) -> zyn::TokenStream {
     zyn::zyn! { {{ vis }} {{ name }}: {{ ty }}, }
 }

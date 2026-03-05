@@ -1,11 +1,11 @@
 # AttrExt
 
-Extension methods on a single `syn::Attribute`.
+Extension methods on a single `zyn::types::Attribute`.
 
 ```rust
 use zyn::ext::AttrExt;
 
-let attr: &syn::Attribute = /* ... */;
+let attr: &zyn::types::Attribute = /* ... */;
 
 attr.is("serde")          // true if the attribute path is "serde"
 let args = attr.args()?;  // parse the attribute's argument list as Args

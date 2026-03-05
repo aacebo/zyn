@@ -28,13 +28,13 @@ Nested structures each get a fresh `__zyn_ts_N`, allocated sequentially from the
 ### TokensNode
 
 ```rust
-output.extend(::zyn::__private::quote::quote!( <stream> ));
+output.extend(quote!( <stream> ));
 ```
 
 ### InterpNode (no pipes)
 
 ```rust
-::zyn::__private::quote::ToTokens::to_tokens(&( expr ), &mut output);
+ToTokens::to_tokens(&( expr ), &mut output);
 ```
 
 ### InterpNode (with pipes)
@@ -45,7 +45,7 @@ output.extend(::zyn::__private::quote::quote!( <stream> ));
     let __zyn_val = ::zyn::Pipe::pipe(&( Pipe1 ), __zyn_val);
     let __zyn_val = __zyn_val.to_string();   // re-stringify between pipes
     let __zyn_val = ::zyn::Pipe::pipe(&( Pipe2 ), __zyn_val);
-    ::zyn::__private::quote::ToTokens::to_tokens(&__zyn_val, &mut output);
+    ToTokens::to_tokens(&__zyn_val, &mut output);
 }
 ```
 
@@ -66,7 +66,7 @@ Delegate to `proc-macro2-diagnostics` via `Diagnostic::spanned(...).emit_as_item
     let __zyn_rendered = ::zyn::Render::render(&Name {
         prop: value,
     });
-    ::zyn::__private::quote::ToTokens::to_tokens(&__zyn_rendered, &mut output);
+    ToTokens::to_tokens(&__zyn_rendered, &mut output);
 }
 ```
 
@@ -80,7 +80,7 @@ Delegate to `proc-macro2-diagnostics` via `Diagnostic::spanned(...).emit_as_item
         prop: value,
         children: __zyn_ts_N,
     });
-    ::zyn::__private::quote::ToTokens::to_tokens(&__zyn_rendered, &mut output);
+    ToTokens::to_tokens(&__zyn_rendered, &mut output);
 }
 ```
 

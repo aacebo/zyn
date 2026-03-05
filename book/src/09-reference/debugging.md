@@ -70,7 +70,7 @@ note: zyn::expand! ─── raw
 }
 ```
 
-The output is cleaned up for readability — `__zyn_ts_0` becomes `output`, fully-qualified paths like `::zyn::__private::quote::ToTokens::to_tokens` become `ToTokens::to_tokens`.
+The output is cleaned up for readability — `__zyn_ts_0` becomes `output`, fully-qualified paths are simplified (e.g. `ToTokens::to_tokens`).
 
 ### `ast`
 

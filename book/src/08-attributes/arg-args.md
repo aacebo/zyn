@@ -27,9 +27,9 @@ arg.is_list()    // true if List variant
 arg.is_lit()     // true if Lit variant
 
 arg.as_flag()    // &Ident     — panics if not Flag
-arg.as_expr()    // &syn::Expr — panics if not Expr
+arg.as_expr()    // &zyn::types::Expr — panics if not Expr
 arg.as_args()    // &Args      — panics if not List
-arg.as_lit()     // &syn::Lit  — panics if not Lit
+arg.as_lit()     // &zyn::types::Lit  — panics if not Lit
 arg.as_str()     // String     — panics if not a string literal
 arg.as_int::<i64>() // T      — panics if not an integer literal
 ```

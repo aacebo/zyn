@@ -3,7 +3,7 @@
 This chapter covers two related but independent concerns:
 
 - **`Arg` and `Args`** — metadata types for parsing attribute argument lists. Always available; no feature flag required.
-- **`AttrExt` and `AttrsExt`** — extension traits on `syn::Attribute` and `[syn::Attribute]`. Require the `ext` feature.
+- **`AttrExt` and `AttrsExt`** — extension traits on `zyn::types::Attribute` and `[zyn::types::Attribute]`. Require the `ext` feature.
 
 ```toml
 [dependencies]

@@ -9,7 +9,7 @@ For derive macros (`#[derive(...)]`):
 ```rust
 #[zyn::element]
 fn struct_element(
-    #[zyn(input)] d: zyn::syn::DeriveInput,
+    #[zyn(input)] d: zyn::types::DeriveInput,
 ) -> zyn::TokenStream {
     let name = &d.ident;
     zyn::zyn! { /* ... */ }
@@ -18,10 +18,10 @@ fn struct_element(
 
 | Type | Matches |
 |---|---|
-| `syn::DeriveInput` | Any derive input |
-| `syn::DataStruct` | Struct data only |
-| `syn::DataEnum` | Enum data only |
-| `syn::DataUnion` | Union data only |
+| `zyn::types::DeriveInput` | Any derive input |
+| `zyn::types::DataStruct` | Struct data only |
+| `zyn::types::DataEnum` | Enum data only |
+| `zyn::types::DataUnion` | Union data only |
 
 ## Item Input Types
 
@@ -30,7 +30,7 @@ For attribute macros and other item-level macros:
 ```rust
 #[zyn::element]
 fn fn_element(
-    #[zyn(input)] item: zyn::syn::ItemFn,
+    #[zyn(input)] item: zyn::types::ItemFn,
 ) -> zyn::TokenStream {
     let name = &item.sig.ident;
     let args = &item.sig.inputs;
@@ -40,29 +40,29 @@ fn fn_element(
 
 | Type | Matches |
 |---|---|
-| `syn::Item` | Any item |
-| `syn::ItemFn` | `fn` |
-| `syn::ItemStruct` | `struct` |
-| `syn::ItemEnum` | `enum` |
-| `syn::ItemUnion` | `union` |
-| `syn::ItemTrait` | `trait` |
-| `syn::ItemImpl` | `impl` |
-| `syn::ItemType` | `type` |
-| `syn::ItemMod` | `mod` |
-| `syn::ItemConst` | `const` |
-| `syn::ItemStatic` | `static` |
-| `syn::ItemUse` | `use` |
-| `syn::ItemExternCrate` | `extern crate` |
-| `syn::ItemForeignMod` | `extern "C"` |
+| `zyn::types::Item` | Any item |
+| `zyn::types::ItemFn` | `fn` |
+| `zyn::types::ItemStruct` | `struct` |
+| `zyn::types::ItemEnum` | `enum` |
+| `zyn::types::ItemUnion` | `union` |
+| `zyn::types::ItemTrait` | `trait` |
+| `zyn::types::ItemImpl` | `impl` |
+| `zyn::types::ItemType` | `type` |
+| `zyn::types::ItemMod` | `mod` |
+| `zyn::types::ItemConst` | `const` |
+| `zyn::types::ItemStatic` | `static` |
+| `zyn::types::ItemUse` | `use` |
+| `zyn::types::ItemExternCrate` | `extern crate` |
+| `zyn::types::ItemForeignMod` | `extern "C"` |
 
 ## Cross-Input Extraction
 
-`syn::ItemStruct`, `syn::ItemEnum`, and `syn::ItemUnion` also work with derive inputs — zyn reconstructs the item type from the derive data:
+`zyn::types::ItemStruct`, `zyn::types::ItemEnum`, and `zyn::types::ItemUnion` also work with derive inputs — zyn reconstructs the item type from the derive data:
 
 ```rust
 #[zyn::element]
 fn struct_element(
-    #[zyn(input)] s: zyn::syn::ItemStruct,
+    #[zyn(input)] s: zyn::types::ItemStruct,
 ) -> zyn::TokenStream {
     // Works whether input is Input::Item or Input::Derive
     let name = &s.ident;
