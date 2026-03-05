@@ -31,16 +31,17 @@ let input: zyn::Input = zyn::parse_input!(ts as syn::Item).into();
 let input: zyn::Input = zyn::parse!(token_stream)?;
 ```
 
-`Input` implements `Default` (returns an empty sentinel struct), `Parse`, and `ToTokens`.
+`Input` implements `Default` (returns an empty sentinel struct), `Parse`, `ToTokens`, and `syn::spanned::Spanned`.
 
 ## `FromInput` Trait
 
 ```rust
 pub trait FromInput: Sized {
-    type Error: Into<syn::Error>;
-    fn from_input(input: &Input) -> Result<Self, Self::Error>;
+    fn from_input(input: &Input) -> zyn::Result<Self>;
 }
 ```
+
+Returns `zyn::Result<Self>` — an alias for `Result<Self, Diagnostics>`. Errors are accumulated as `Diagnostics` (wrapping `Vec<Diagnostic>`) instead of short-circuiting on the first failure.
 
 Implemented by:
 

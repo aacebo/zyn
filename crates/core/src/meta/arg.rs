@@ -130,6 +130,14 @@ impl Arg {
         }
     }
 
+    pub fn as_expr_lit(&self) -> Option<&Lit> {
+        match self {
+            Self::Lit(lit) => Some(lit),
+            Self::Expr(_, Expr::Lit(syn::ExprLit { lit, .. })) => Some(lit),
+            _ => None,
+        }
+    }
+
     pub fn as_bool(&self) -> bool {
         match self {
             Self::Lit(Lit::Bool(b)) => b.value,

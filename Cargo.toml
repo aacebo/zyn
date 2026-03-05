@@ -67,3 +67,7 @@ path = "tests/diagnostic/mod.rs"
 [[test]]
 name = "attribute"
 path = "tests/attribute/mod.rs"
+
+[[test]]
+name = "diagnostics"
+path = "tests/diagnostics/mod.rs"

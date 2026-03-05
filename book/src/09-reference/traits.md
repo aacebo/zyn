@@ -16,8 +16,7 @@ Elements are always infallible — diagnostics are expressed via `@throw`, `@war
 
 ```rust
 pub trait FromInput: Sized {
-    type Error: Into<syn::Error>;
-    fn from_input(input: &Input) -> Result<Self, Self::Error>;
+    fn from_input(input: &Input) -> zyn::Result<Self>;
 }
 ```
 
@@ -35,7 +34,7 @@ Extracts typed data from an `Input` context. Implemented by:
 
 ```rust
 pub trait FromArg: Sized {
-    fn from_arg(arg: &Arg) -> syn::Result<Self>;
+    fn from_arg(arg: &Arg) -> zyn::Result<Self>;
 }
 ```
 
@@ -45,7 +44,7 @@ Extracts a typed value from a single `Arg`. Used internally by `#[derive(Attribu
 
 ```rust
 pub trait FromFields: Sized {
-    fn from_fields(fields: syn::Fields) -> syn::Result<Self>;
+    fn from_fields(fields: syn::Fields) -> zyn::Result<Self>;
 }
 ```
 

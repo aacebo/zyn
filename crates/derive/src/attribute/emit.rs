@@ -14,74 +14,193 @@ pub fn from_args(
     ty_generics: &syn::TypeGenerics<'_>,
     where_clause: Option<&syn::WhereClause>,
 ) -> TokenStream {
-    let field_inits: Vec<TokenStream> = fields.iter().map(|f| {
+    let mut let_bindings: Vec<TokenStream> = Vec::new();
+    let mut struct_inits: Vec<TokenStream> = Vec::new();
+    let mut known_keys: Vec<String> = Vec::new();
+
+    for f in fields {
         let ident = &f.ident;
         let ty = &f.ty;
+        let field_ident = syn::Ident::new(&format!("__f_{ident}"), ident.span());
 
         if f.skip {
-            return quote! { #ident: ::std::default::Default::default() };
+            struct_inits.push(quote! { #ident: ::std::default::Default::default() });
+            continue;
         }
 
         match &f.key {
             FieldKey::Positional(idx) => {
-                quote! {
-                    #ident: <#ty as ::zyn::FromArg>::from_arg(&args[#idx])?
-                }
+                let_bindings.push(quote! {
+                    let #field_ident: ::std::option::Option<#ty> = match args.get_index(#idx) {
+                        ::std::option::Option::Some(arg) => {
+                            match <#ty as ::zyn::FromArg>::from_arg(arg) {
+                                ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
+                                ::std::result::Result::Err(e) => {
+                                    __diags.extend(e);
+                                    ::std::option::Option::None
+                                }
+                            }
+                        }
+                        ::std::option::Option::None => {
+                            __diags.push(::zyn::Diagnostic::spanned(
+                                ::zyn::proc_macro2::Span::call_site(),
+                                ::zyn::Level::Error,
+                                ::std::format!("missing required positional argument [{}]", #idx),
+                            ));
+                            ::std::option::Option::None
+                        }
+                    };
+                });
+
+                struct_inits.push(quote! { #ident: #field_ident.unwrap() });
             }
             FieldKey::Named(key) => {
+                known_keys.push(key.clone());
+
                 if f.is_bool() {
-                    return quote! { #ident: args.has(#key) };
+                    struct_inits.push(quote! { #ident: args.has(#key) });
+                    continue;
                 }
 
                 if let Some(inner_ty) = f.option_inner() {
-                    return quote! {
-                        #ident: match args.get(#key) {
-                            ::std::option::Option::Some(arg) => ::std::option::Option::Some(
-                                <#inner_ty as ::zyn::FromArg>::from_arg(arg)?
-                            ),
-                            ::std::option::Option::None => ::std::option::Option::None,
-                        }
-                    };
+                    let_bindings.push(quote! {
+                        let #field_ident: ::std::option::Option<::std::option::Option<#inner_ty>> = match args.get(#key) {
+                            ::std::option::Option::Some(arg) => {
+                                match <#inner_ty as ::zyn::FromArg>::from_arg(arg) {
+                                    ::std::result::Result::Ok(v) => ::std::option::Option::Some(::std::option::Option::Some(v)),
+                                    ::std::result::Result::Err(e) => {
+                                        __diags.extend(e);
+                                        ::std::option::Option::None
+                                    }
+                                }
+                            }
+                            ::std::option::Option::None => ::std::option::Option::Some(::std::option::Option::None),
+                        };
+                    });
+
+                    struct_inits.push(quote! { #ident: #field_ident.unwrap() });
+                    continue;
                 }
 
+                let missing_msg = build_missing_msg(key, f);
+
                 match &f.default {
-                    FieldDefault::None => quote! {
-                        #ident: match args.get(#key) {
-                            ::std::option::Option::Some(arg) => <#ty as ::zyn::FromArg>::from_arg(arg)?,
-                            ::std::option::Option::None => return ::std::result::Result::Err(
-                                ::zyn::syn::Error::new(
-                                    ::zyn::proc_macro2::Span::call_site(),
-                                    ::std::concat!("missing required field `", #key, "`"),
-                                )
-                            ),
-                        }
-                    },
-                    FieldDefault::Unit => quote! {
-                        #ident: match args.get(#key) {
-                            ::std::option::Option::Some(arg) => <#ty as ::zyn::FromArg>::from_arg(arg)?,
-                            ::std::option::Option::None => ::std::default::Default::default(),
-                        }
-                    },
-                    FieldDefault::Expr(expr) => quote! {
-                        #ident: match args.get(#key) {
-                            ::std::option::Option::Some(arg) => <#ty as ::zyn::FromArg>::from_arg(arg)?,
-                            ::std::option::Option::None => ::std::convert::Into::into(#expr),
-                        }
-                    },
+                    FieldDefault::None => {
+                        let_bindings.push(quote! {
+                            let #field_ident: ::std::option::Option<#ty> = match args.get(#key) {
+                                ::std::option::Option::Some(arg) => {
+                                    match <#ty as ::zyn::FromArg>::from_arg(arg) {
+                                        ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
+                                        ::std::result::Result::Err(e) => {
+                                            __diags.extend(e);
+                                            ::std::option::Option::None
+                                        }
+                                    }
+                                }
+                                ::std::option::Option::None => {
+                                    __diags.push(::zyn::Diagnostic::spanned(
+                                        ::zyn::proc_macro2::Span::call_site(),
+                                        ::zyn::Level::Error,
+                                        #missing_msg,
+                                    ));
+                                    ::std::option::Option::None
+                                }
+                            };
+                        });
+                    }
+                    FieldDefault::Unit => {
+                        let_bindings.push(quote! {
+                            let #field_ident: ::std::option::Option<#ty> = match args.get(#key) {
+                                ::std::option::Option::Some(arg) => {
+                                    match <#ty as ::zyn::FromArg>::from_arg(arg) {
+                                        ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
+                                        ::std::result::Result::Err(e) => {
+                                            __diags.extend(e);
+                                            ::std::option::Option::None
+                                        }
+                                    }
+                                }
+                                ::std::option::Option::None => ::std::option::Option::Some(::std::default::Default::default()),
+                            };
+                        });
+                    }
+                    FieldDefault::Expr(expr) => {
+                        let_bindings.push(quote! {
+                            let #field_ident: ::std::option::Option<#ty> = match args.get(#key) {
+                                ::std::option::Option::Some(arg) => {
+                                    match <#ty as ::zyn::FromArg>::from_arg(arg) {
+                                        ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
+                                        ::std::result::Result::Err(e) => {
+                                            __diags.extend(e);
+                                            ::std::option::Option::None
+                                        }
+                                    }
+                                }
+                                ::std::option::Option::None => ::std::option::Option::Some(::std::convert::Into::into(#expr)),
+                            };
+                        });
+                    }
                 }
+
+                struct_inits.push(quote! { #ident: #field_ident.unwrap() });
             }
         }
-    }).collect();
+    }
+
+    let known_keys_slice: Vec<&str> = known_keys.iter().map(|s| s.as_str()).collect();
 
     quote! {
         impl #impl_generics #name #ty_generics #where_clause {
-            pub fn from_args(args: &::zyn::Args) -> ::zyn::syn::Result<Self> {
+            pub fn from_args(args: &::zyn::Args) -> ::zyn::Result<Self> {
+                let mut __diags = ::zyn::Diagnostics::new();
+
+                #(#let_bindings)*
+
+                let __known: &[&str] = &[#(#known_keys_slice),*];
+                for __arg in args.iter() {
+                    if let ::std::option::Option::Some(__ident) = __arg.name() {
+                        let __key = __ident.to_string();
+                        if !__known.contains(&__key.as_str()) {
+                            let mut __d = ::zyn::Diagnostic::spanned(
+                                __ident.span(),
+                                ::zyn::Level::Error,
+                                ::std::format!("unknown argument `{}`", __key),
+                            );
+
+                            if let ::std::option::Option::Some(__s) = ::zyn::closest_match(&__key, __known) {
+                                __d = __d.span_help(
+                                    __ident.span(),
+                                    ::std::format!("did you mean `{}`?", __s),
+                                );
+                            }
+
+                            __diags.push(__d);
+                        }
+                    }
+                }
+
+                if __diags.has_errors() {
+                    return ::std::result::Result::Err(__diags);
+                }
+
                 ::std::result::Result::Ok(Self {
-                    #(#field_inits,)*
+                    #(#struct_inits,)*
                 })
             }
         }
     }
+}
+
+fn build_missing_msg(key: &str, field: &FieldMeta) -> String {
+    let mut msg = format!("missing required field `{key}`");
+
+    if let Some(about) = &field.about {
+        let ty = &field.ty;
+        let type_str = zyn_core::quote::quote!(#ty).to_string().replace(" ", "");
+        msg = format!("{msg}\n{key}: {type_str} (required) — {about}");
+    }
+
+    msg
 }
 
 pub fn from_arg(
@@ -92,10 +211,10 @@ pub fn from_arg(
 ) -> TokenStream {
     quote! {
         impl #impl_generics ::zyn::FromArg for #name #ty_generics #where_clause {
-            fn from_arg(arg: &::zyn::Arg) -> ::zyn::syn::Result<Self> {
+            fn from_arg(arg: &::zyn::Arg) -> ::zyn::Result<Self> {
                 match arg {
                     ::zyn::Arg::List(_, args) => Self::from_args(args),
-                    _ => ::std::result::Result::Err(::zyn::syn::Error::new(
+                    _ => ::std::result::Result::Err(::zyn::Diagnostics::error(
                         ::zyn::proc_macro2::Span::call_site(),
                         "expected list argument",
                     )),
@@ -118,7 +237,7 @@ pub fn from_input(
         let msg = format!("only one #[{attr_name}(...)] allowed");
         quote! {
             if matches.len() > 1 {
-                return ::std::result::Result::Err(::zyn::syn::Error::new(
+                return ::std::result::Result::Err(::zyn::Diagnostics::error(
                     ::zyn::proc_macro2::Span::call_site(),
                     #msg,
                 ));
@@ -132,7 +251,7 @@ pub fn from_input(
         quote! {
             match matches.first() {
                 ::std::option::Option::Some(attr) => {
-                    let args: ::zyn::Args = attr.parse_args()?;
+                    let args: ::zyn::Args = attr.parse_args().map_err(::zyn::Diagnostics::from)?;
                     Self::from_args(&args)
                 }
                 ::std::option::Option::None => Self::from_args(&::zyn::Args::new()),
@@ -142,7 +261,7 @@ pub fn from_input(
         quote! {
             let mut merged = ::zyn::Args::new();
             for attr in &matches {
-                let args: ::zyn::Args = attr.parse_args()?;
+                let args: ::zyn::Args = attr.parse_args().map_err(::zyn::Diagnostics::from)?;
                 merged.extend(args);
             }
             Self::from_args(&merged)
@@ -151,9 +270,7 @@ pub fn from_input(
 
     quote! {
         impl #impl_generics ::zyn::FromInput for #name #ty_generics #where_clause {
-            type Error = ::zyn::syn::Error;
-
-            fn from_input(input: &::zyn::Input) -> ::std::result::Result<Self, Self::Error> {
+            fn from_input(input: &::zyn::Input) -> ::zyn::Result<Self> {
                 let matches: ::std::vec::Vec<_> = input.attrs().iter()
                     .filter(|a| a.path().is_ident(#attr_name))
                     .collect();

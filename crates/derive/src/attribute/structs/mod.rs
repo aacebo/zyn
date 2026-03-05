@@ -6,6 +6,7 @@ pub use field_meta::FieldKey;
 pub use field_meta::FieldMeta;
 pub use struct_meta::StructMeta;
 
+use zyn_core::diagnostic::ToDiagnostics;
 use zyn_core::proc_macro2::TokenStream;
 use zyn_core::quote::quote;
 use zyn_core::syn::DeriveInput;
@@ -15,12 +16,12 @@ use super::emit;
 pub fn expand(input: DeriveInput) -> TokenStream {
     let struct_meta = match StructMeta::parse(&input.attrs) {
         Ok(m) => m,
-        Err(e) => return e.to_compile_error(),
+        Err(e) => return e.to_diagnostics().emit(),
     };
 
     let fields = match FieldMeta::parse(&input) {
         Ok(f) => f,
-        Err(e) => return e.to_compile_error(),
+        Err(e) => return e.to_diagnostics().emit(),
     };
 
     let name = &input.ident;

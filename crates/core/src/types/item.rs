@@ -1,6 +1,7 @@
-use proc_macro2::Span;
+use syn::spanned::Spanned;
 
 use super::Input;
+use crate::diagnostic::Diagnostics;
 use crate::extract::FromInput;
 
 pub fn attrs(item: &syn::Item) -> &[syn::Attribute] {
@@ -69,12 +70,10 @@ pub fn vis(item: &syn::Item) -> &syn::Visibility {
 }
 
 impl FromInput for syn::Item {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Item(v) => Ok(v.clone()),
-            _ => Err(syn::Error::new(Span::call_site(), "expected item input")),
+            _ => Err(Diagnostics::error(input.span(), "expected item input")),
         }
     }
 }
@@ -82,12 +81,10 @@ impl FromInput for syn::Item {
 macro_rules! impl_from_input_item {
     ($ty:ty, $variant:ident, $msg:literal) => {
         impl FromInput for $ty {
-            type Error = syn::Error;
-
-            fn from_input(input: &Input) -> Result<Self, Self::Error> {
+            fn from_input(input: &Input) -> crate::Result<Self> {
                 match input {
                     Input::Item(syn::Item::$variant(v)) => Ok(v.clone()),
-                    _ => Err(syn::Error::new(Span::call_site(), $msg)),
+                    _ => Err(Diagnostics::error(input.span(), $msg)),
                 }
             }
         }
@@ -114,69 +111,63 @@ impl_from_input_item!(syn::ItemType, Type, "expected type item input");
 impl_from_input_item!(syn::ItemUse, Use, "expected use item input");
 
 impl FromInput for syn::ItemStruct {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Item(syn::Item::Struct(v)) => Ok(v.clone()),
             Input::Derive(d) => match &d.data {
                 syn::Data::Struct(s) => Ok(syn::ItemStruct {
                     attrs: d.attrs.clone(),
                     vis: d.vis.clone(),
-                    struct_token: syn::Token![struct](Span::call_site()),
+                    struct_token: syn::Token![struct](d.ident.span()),
                     ident: d.ident.clone(),
                     generics: d.generics.clone(),
                     fields: s.fields.clone(),
                     semi_token: s.semi_token,
                 }),
-                _ => Err(syn::Error::new(d.ident.span(), "expected struct input")),
+                _ => Err(Diagnostics::error(d.ident.span(), "expected struct input")),
             },
-            _ => Err(syn::Error::new(Span::call_site(), "expected struct input")),
+            _ => Err(Diagnostics::error(input.span(), "expected struct input")),
         }
     }
 }
 
 impl FromInput for syn::ItemEnum {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Item(syn::Item::Enum(v)) => Ok(v.clone()),
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(syn::ItemEnum {
                     attrs: d.attrs.clone(),
                     vis: d.vis.clone(),
-                    enum_token: syn::Token![enum](Span::call_site()),
+                    enum_token: syn::Token![enum](d.ident.span()),
                     ident: d.ident.clone(),
                     generics: d.generics.clone(),
                     brace_token: syn::token::Brace::default(),
                     variants: e.variants.clone(),
                 }),
-                _ => Err(syn::Error::new(d.ident.span(), "expected enum input")),
+                _ => Err(Diagnostics::error(d.ident.span(), "expected enum input")),
             },
-            _ => Err(syn::Error::new(Span::call_site(), "expected enum input")),
+            _ => Err(Diagnostics::error(input.span(), "expected enum input")),
         }
     }
 }
 
 impl FromInput for syn::ItemUnion {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Item(syn::Item::Union(v)) => Ok(v.clone()),
             Input::Derive(d) => match &d.data {
                 syn::Data::Union(u) => Ok(syn::ItemUnion {
                     attrs: d.attrs.clone(),
                     vis: d.vis.clone(),
-                    union_token: syn::Token![union](Span::call_site()),
+                    union_token: syn::Token![union](d.ident.span()),
                     ident: d.ident.clone(),
                     generics: d.generics.clone(),
                     fields: u.fields.clone(),
                 }),
-                _ => Err(syn::Error::new(d.ident.span(), "expected union input")),
+                _ => Err(Diagnostics::error(d.ident.span(), "expected union input")),
             },
-            _ => Err(syn::Error::new(Span::call_site(), "expected union input")),
+            _ => Err(Diagnostics::error(input.span(), "expected union input")),
         }
     }
 }

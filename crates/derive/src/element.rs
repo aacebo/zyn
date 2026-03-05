@@ -94,9 +94,8 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
             quote! {
                 let #name = match <#ty as ::zyn::FromInput>::from_input(input) {
                     ::std::result::Result::Ok(v) => v,
-                    ::std::result::Result::Err(e) => {
-                        let __err: ::zyn::syn::Error = ::std::convert::Into::into(e);
-                        return __err.to_compile_error();
+                    ::std::result::Result::Err(__diags) => {
+                        return __diags.emit();
                     }
                 };
             }

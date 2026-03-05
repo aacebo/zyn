@@ -1,5 +1,7 @@
 use proc_macro2::Span;
+use syn::spanned::Spanned;
 
+use crate::diagnostic::Diagnostics;
 use crate::types::Input;
 
 use super::FromInput;
@@ -9,38 +11,41 @@ use super::FromInput;
 /// Implementations exist for `syn::Data` (any kind), `syn::DataStruct`,
 /// `syn::DataEnum`, and `syn::DataUnion`.
 pub trait FromData: Sized {
-    fn from_data(data: syn::Data) -> syn::Result<Self>;
+    fn from_data(data: syn::Data) -> crate::Result<Self>;
 }
 
 impl FromData for syn::Data {
-    fn from_data(data: syn::Data) -> syn::Result<Self> {
+    fn from_data(data: syn::Data) -> crate::Result<Self> {
         Ok(data)
     }
 }
 
 impl FromData for syn::DataStruct {
-    fn from_data(data: syn::Data) -> syn::Result<Self> {
+    fn from_data(data: syn::Data) -> crate::Result<Self> {
         match data {
             syn::Data::Struct(s) => Ok(s),
-            _ => Err(syn::Error::new(Span::call_site(), "expected struct data")),
+            _ => Err(Diagnostics::error(
+                Span::call_site(),
+                "expected struct data",
+            )),
         }
     }
 }
 
 impl FromData for syn::DataEnum {
-    fn from_data(data: syn::Data) -> syn::Result<Self> {
+    fn from_data(data: syn::Data) -> crate::Result<Self> {
         match data {
             syn::Data::Enum(e) => Ok(e),
-            _ => Err(syn::Error::new(Span::call_site(), "expected enum data")),
+            _ => Err(Diagnostics::error(Span::call_site(), "expected enum data")),
         }
     }
 }
 
 impl FromData for syn::DataUnion {
-    fn from_data(data: syn::Data) -> syn::Result<Self> {
+    fn from_data(data: syn::Data) -> crate::Result<Self> {
         match data {
             syn::Data::Union(u) => Ok(u),
-            _ => Err(syn::Error::new(Span::call_site(), "expected union data")),
+            _ => Err(Diagnostics::error(Span::call_site(), "expected union data")),
         }
     }
 }
@@ -80,13 +85,11 @@ impl<T: FromData> std::ops::DerefMut for Data<T> {
 }
 
 impl<T: FromData> FromInput for Data<T> {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => T::from_data(d.data.clone()).map(Data),
-            _ => Err(syn::Error::new(
-                Span::call_site(),
+            _ => Err(Diagnostics::error(
+                input.span(),
                 "Data extractor requires derive input",
             )),
         }

@@ -1,5 +1,6 @@
-use proc_macro2::Span;
+use syn::spanned::Spanned;
 
+use crate::diagnostic::Diagnostics;
 use crate::types::Input;
 
 use super::FromInput;
@@ -38,20 +39,18 @@ impl std::ops::DerefMut for Variants {
 }
 
 impl FromInput for Variants {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(Variants(e.variants.iter().cloned().collect())),
-                _ => Err(syn::Error::new(
+                _ => Err(Diagnostics::error(
                     d.ident.span(),
                     "expected enum input for Variants extractor",
                 )),
             },
             Input::Item(syn::Item::Enum(e)) => Ok(Variants(e.variants.iter().cloned().collect())),
-            _ => Err(syn::Error::new(
-                Span::call_site(),
+            _ => Err(Diagnostics::error(
+                input.span(),
                 "expected enum input for Variants extractor",
             )),
         }

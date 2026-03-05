@@ -2,6 +2,7 @@ mod variant_meta;
 
 use variant_meta::VariantMeta;
 
+use zyn_core::diagnostic::ToDiagnostics;
 use zyn_core::proc_macro2::TokenStream;
 use zyn_core::quote::quote;
 use zyn_core::syn::DeriveInput;
@@ -9,7 +10,7 @@ use zyn_core::syn::DeriveInput;
 pub fn expand(input: DeriveInput) -> TokenStream {
     let variants = match VariantMeta::parse(&input) {
         Ok(v) => v,
-        Err(e) => return e.to_compile_error(),
+        Err(e) => return e.to_diagnostics().emit(),
     };
 
     let name = &input.ident;
@@ -28,7 +29,7 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         quote! {
             ::zyn::Arg::Flag(ident) => match ident.to_string().as_str() {
                 #(#flag_arms,)*
-                other => ::std::result::Result::Err(::zyn::syn::Error::new(
+                other => ::std::result::Result::Err(::zyn::Diagnostics::error(
                     ident.span(),
                     ::std::format!("unknown variant `{}`, expected one of: {}", other, #expected),
                 )),
@@ -45,7 +46,7 @@ pub fn expand(input: DeriveInput) -> TokenStream {
             ::zyn::Arg::List(ident, args) => match ident.to_string().as_str() {
                 #(#list_arms,)*
                 _ if args.len() == 1 => Self::from_arg(&args[0]),
-                other => ::std::result::Result::Err(::zyn::syn::Error::new(
+                other => ::std::result::Result::Err(::zyn::Diagnostics::error(
                     ident.span(),
                     ::std::format!("unknown variant `{}`, expected one of: {}", other, #expected),
                 )),
@@ -59,7 +60,7 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         quote! {
             ::zyn::Arg::Expr(ident, _) => match ident.to_string().as_str() {
                 #(#expr_arms,)*
-                other => ::std::result::Result::Err(::zyn::syn::Error::new(
+                other => ::std::result::Result::Err(::zyn::Diagnostics::error(
                     ident.span(),
                     ::std::format!("unknown variant `{}`, expected one of: {}", other, #expected),
                 )),
@@ -69,12 +70,12 @@ pub fn expand(input: DeriveInput) -> TokenStream {
 
     quote! {
         impl #impl_generics #name #ty_generics #where_clause {
-            pub fn from_arg(arg: &::zyn::Arg) -> ::zyn::syn::Result<Self> {
+            pub fn from_arg(arg: &::zyn::Arg) -> ::zyn::Result<Self> {
                 match arg {
                     #flag_block
                     #list_block
                     #expr_block
-                    _ => ::std::result::Result::Err(::zyn::syn::Error::new(
+                    _ => ::std::result::Result::Err(::zyn::Diagnostics::error(
                         ::zyn::proc_macro2::Span::call_site(),
                         ::std::format!("expected one of: {}", #expected),
                     )),
@@ -83,7 +84,7 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         }
 
         impl #impl_generics ::zyn::FromArg for #name #ty_generics #where_clause {
-            fn from_arg(arg: &::zyn::Arg) -> ::zyn::syn::Result<Self> {
+            fn from_arg(arg: &::zyn::Arg) -> ::zyn::Result<Self> {
                 Self::from_arg(arg)
             }
         }

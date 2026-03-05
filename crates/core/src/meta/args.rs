@@ -29,6 +29,10 @@ impl Args {
             .find(|arg| arg.name().is_some_and(|n| n == name))
     }
 
+    pub fn get_index(&self, index: usize) -> Option<&Arg> {
+        self.0.get(index)
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &Arg> {
         self.0.iter()
     }

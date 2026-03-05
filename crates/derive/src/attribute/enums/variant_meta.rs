@@ -73,7 +73,7 @@ impl VariantMeta {
                         #field_ident: match args.get(#key) {
                             ::std::option::Option::Some(arg) => <#field_ty as ::zyn::FromArg>::from_arg(arg)?,
                             ::std::option::Option::None => return ::std::result::Result::Err(
-                                ::zyn::syn::Error::new(
+                                ::zyn::Diagnostics::error(
                                     ident.span(),
                                     ::std::concat!("missing required field `", #key, "`"),
                                 )

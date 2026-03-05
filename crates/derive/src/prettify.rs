@@ -2,7 +2,6 @@ use zyn_core::proc_macro2::TokenStream;
 
 pub fn prettify_raw(tokens: &TokenStream) -> String {
     let raw = tokens.to_string();
-
     let cleaned = raw
         .replace(
             ":: zyn :: proc_macro2 :: TokenStream :: new ()",

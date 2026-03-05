@@ -166,3 +166,86 @@ fn about_shows_required_status() {
     let about = MyAttr::about();
     assert!(about.contains("(required)"));
 }
+
+fn expect_err<T>(result: zyn::Result<T>) -> zyn::Diagnostics {
+    match result {
+        Err(e) => e,
+        Ok(_) => panic!("expected error"),
+    }
+}
+
+#[test]
+fn multiple_missing_fields_all_reported() {
+    let args: Args = zyn::parse!("").unwrap();
+    let err = expect_err(ArgMode::from_args(&args));
+    let combined = format!("{err}");
+    assert!(combined.contains("missing required field `a`"));
+    assert!(combined.contains("missing required field `b`"));
+    assert_eq!(err.len(), 2);
+}
+
+#[test]
+fn unknown_key_reported() {
+    let args: Args = zyn::parse!("name = \"hello\", bogus = 1").unwrap();
+    let err = expect_err(MyAttr::from_args(&args));
+    let combined = format!("{err}");
+    assert!(combined.contains("unknown argument `bogus`"));
+}
+
+#[test]
+fn did_you_mean_suggestion() {
+    let args: Args = zyn::parse!("naem = \"hello\"").unwrap();
+    let err = expect_err(MyAttr::from_args(&args));
+    let combined = format!("{err}");
+    assert!(combined.contains("unknown argument `naem`"));
+    assert!(combined.contains("did you mean"));
+}
+
+#[test]
+fn unknown_key_no_suggestion_when_distant() {
+    let args: Args = zyn::parse!("name = \"hello\", zzzzzzzzz = 1").unwrap();
+    let err = expect_err(MyAttr::from_args(&args));
+    let combined = format!("{err}");
+    assert!(combined.contains("unknown argument `zzzzzzzzz`"));
+}
+
+#[test]
+fn about_text_in_missing_error() {
+    let args: Args = zyn::parse!("count = 1").unwrap();
+    let err = expect_err(MyAttr::from_args(&args));
+    let combined = format!("{err}");
+    assert!(combined.contains("missing required field `name`"));
+    assert!(combined.contains("the name"));
+}
+
+#[test]
+fn valid_args_still_work_after_accumulation() {
+    let args: Args = zyn::parse!("name = \"test\", count = 5, enabled, tag = \"v2\"").unwrap();
+    let attr = MyAttr::from_args(&args).unwrap();
+    assert_eq!(attr.name, "test");
+    assert_eq!(attr.count, 5);
+    assert!(attr.enabled);
+    assert_eq!(attr.tag, Some("v2".to_string()));
+}
+
+#[test]
+fn type_mismatch_and_missing_both_reported() {
+    let args: Args = zyn::parse!("a = \"not_an_int\", b = 42").unwrap();
+    let err = expect_err(ArgMode::from_args(&args));
+    assert!(err.has_errors());
+
+    let combined = format!("{err}");
+    assert!(combined.contains("expected integer literal"));
+    assert!(combined.contains("expected string literal"));
+    assert_eq!(err.len(), 2);
+}
+
+#[test]
+fn unknown_key_with_valid_fields_still_errors() {
+    let args: Args = zyn::parse!("a = 1, b = \"ok\", bogus = 3").unwrap();
+    let err = expect_err(ArgMode::from_args(&args));
+
+    let combined = format!("{err}");
+    assert!(combined.contains("unknown argument `bogus`"));
+    assert_eq!(err.len(), 1);
+}

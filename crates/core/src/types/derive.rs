@@ -1,30 +1,27 @@
-use proc_macro2::Span;
+use syn::spanned::Spanned;
 
 use super::Input;
+use crate::diagnostic::Diagnostics;
 use crate::extract::FromInput;
 
 impl FromInput for syn::DeriveInput {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => Ok(d.clone()),
-            _ => Err(syn::Error::new(Span::call_site(), "expected derive input")),
+            _ => Err(Diagnostics::error(input.span(), "expected derive input")),
         }
     }
 }
 
 impl FromInput for syn::DataStruct {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Struct(s) => Ok(s.clone()),
-                _ => Err(syn::Error::new(d.ident.span(), "expected struct")),
+                _ => Err(Diagnostics::error(d.ident.span(), "expected struct")),
             },
-            _ => Err(syn::Error::new(
-                Span::call_site(),
+            _ => Err(Diagnostics::error(
+                input.span(),
                 "expected derive struct input",
             )),
         }
@@ -32,16 +29,14 @@ impl FromInput for syn::DataStruct {
 }
 
 impl FromInput for syn::DataEnum {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(e.clone()),
-                _ => Err(syn::Error::new(d.ident.span(), "expected enum")),
+                _ => Err(Diagnostics::error(d.ident.span(), "expected enum")),
             },
-            _ => Err(syn::Error::new(
-                Span::call_site(),
+            _ => Err(Diagnostics::error(
+                input.span(),
                 "expected derive enum input",
             )),
         }
@@ -49,16 +44,14 @@ impl FromInput for syn::DataEnum {
 }
 
 impl FromInput for syn::DataUnion {
-    type Error = syn::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Union(u) => Ok(u.clone()),
-                _ => Err(syn::Error::new(d.ident.span(), "expected union")),
+                _ => Err(Diagnostics::error(d.ident.span(), "expected union")),
             },
-            _ => Err(syn::Error::new(
-                Span::call_site(),
+            _ => Err(Diagnostics::error(
+                input.span(),
                 "expected derive union input",
             )),
         }

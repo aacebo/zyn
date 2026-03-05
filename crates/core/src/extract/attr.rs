@@ -38,9 +38,7 @@ impl<T: FromInput> std::ops::DerefMut for Attr<T> {
 }
 
 impl<T: FromInput> FromInput for Attr<T> {
-    type Error = T::Error;
-
-    fn from_input(input: &Input) -> Result<Self, Self::Error> {
+    fn from_input(input: &Input) -> crate::Result<Self> {
         T::from_input(input).map(Attr)
     }
 }

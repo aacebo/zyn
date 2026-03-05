@@ -71,7 +71,7 @@ let merged = base_args.merge(&override_args);
 
 ```rust
 pub trait FromArg: Sized {
-    fn from_arg(arg: &Arg) -> syn::Result<Self>;
+    fn from_arg(arg: &Arg) -> zyn::Result<Self>;
 }
 ```
 

@@ -16,6 +16,8 @@ pub use extract::*;
 pub use meta::*;
 pub use types::Input;
 
+pub type Result<T> = diagnostic::Result<T>;
+
 #[macro_export]
 macro_rules! parse {
     ($s:literal => $ty:ty) => {

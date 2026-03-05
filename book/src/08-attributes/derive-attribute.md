@@ -26,9 +26,18 @@ let cfg = SerdeConfig::from_input(&input)?;
 ```
 
 Generated methods:
-- `from_args(args: &Args) -> syn::Result<Self>` — extract from a parsed `Args`
-- `from_input(input: &Input) -> syn::Result<Self>` — implements `FromInput`
+- `from_args(args: &Args) -> zyn::Result<Self>` — extract from a parsed `Args`; accumulates all errors instead of short-circuiting
+- `from_input(input: &Input) -> zyn::Result<Self>` — implements `FromInput`
 - `about() -> &'static str` — human-readable description
+
+### Error Accumulation
+
+`from_args` collects all validation errors and returns them together as `Diagnostics`:
+
+- **Multiple errors**: Missing fields, type mismatches, and unknown keys are all reported at once
+- **Unknown key detection**: Named arguments not matching any field are flagged with an error
+- **"Did you mean?"**: Close misspellings suggest the correct field name via Levenshtein distance
+- **`about` text**: When a field has `#[zyn(about = "...")]`, error messages include the description as context
 
 ## Argument Mode
 
