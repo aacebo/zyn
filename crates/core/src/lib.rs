@@ -2,6 +2,7 @@ pub mod ast;
 pub mod case;
 pub mod debug;
 pub mod diagnostic;
+pub mod extract;
 pub mod ident;
 pub mod input;
 pub mod meta;
@@ -11,6 +12,7 @@ pub mod pipes;
 pub mod ext;
 
 pub use diagnostic::*;
+pub use extract::*;
 pub use input::*;
 pub use meta::*;
 pub use pipes::*;

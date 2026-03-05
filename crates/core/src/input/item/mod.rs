@@ -205,6 +205,26 @@ impl ItemInput {
             _ => panic!("called `ItemInput::as_trait_fn()` on a non-TraitFn variant"),
         }
     }
+
+    pub fn attrs(&self) -> &[syn::Attribute] {
+        match self {
+            Self::Struct(v) => &v.attrs,
+            Self::Enum(v) => &v.attrs,
+            Self::Union(v) => &v.attrs,
+            Self::Fn(v) => &v.attrs,
+            Self::Impl(v) => &v.attrs,
+            Self::Trait(v) => &v.attrs,
+            Self::Type(v) => &v.attrs,
+            Self::Mod(v) => &v.attrs,
+            Self::Const(v) => &v.attrs,
+            Self::Static(v) => &v.attrs,
+            Self::Use(v) => &v.attrs,
+            Self::ExternCrate(v) => &v.attrs,
+            Self::ForeignMod(v) => &v.attrs,
+            Self::ImplFn(v) => &v.attrs,
+            Self::TraitFn(v) => &v.attrs,
+        }
+    }
 }
 
 impl Parse for ItemInput {

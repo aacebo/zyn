@@ -49,7 +49,7 @@ impl DeriveInput {
         }
     }
 
-    pub fn attrs(&self) -> &Vec<syn::Attribute> {
+    pub fn attrs(&self) -> &[syn::Attribute] {
         match self {
             Self::Struct(s) => &s.attrs,
             Self::Enum(e) => &e.attrs,

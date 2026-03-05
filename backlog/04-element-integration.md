@@ -1,26 +1,16 @@
-# Phase 4: `#[element]` + `Attribute` Integration
+# Phase 4: `#[element]` + `FromInput` Extractors
 
 ## Goal
 
-Allow `#[zyn::element]` function parameters to be automatically populated from the proc macro's input item instead of being passed as props. Depends on Phase 2.
+`#[element]` parameters whose types implement `FromInput` are automatically populated from the proc macro's `Input` context — no annotations required. Plain-typed parameters remain as props. Depends on Phase 2.
 
-## The Problem
+## The Pattern
 
-Today, every parameter of an `#[element]` function becomes a struct field that must be filled by the caller as a prop: `@example(prop = val)`. There is no way to inject typed data derived from the proc macro's input item.
+Inspired by Actix Web's `FromRequest` extractors. Each parameter type either:
+- Implements `FromInput` → `#[element]` calls `T::from_input(&ctx)` in `render()`, not a struct field
+- Does not implement `FromInput` → plain prop, becomes a struct field filled at the call site
 
-## Parameter Injection Annotations
-
-Three `#[zyn(...)]` annotations control how a parameter is populated:
-
-| Annotation | Meaning | Generated code |
-|---|---|---|
-| `#[zyn(input)]` | The whole input type — becomes a struct field, filled at call site | `let p = &self.p;` |
-| `#[zyn(attr("name"))]` | Extract a specific attribute by ident via `Attribute::attribute()` | `let p = T::attribute(input.attrs()).unwrap_or_else(...)` |
-| `#[zyn(input(field))]` | Access a field on the input type | `let p = &self.input.field;` |
-
-Parameters with no annotation are **props** — struct fields filled by the caller as `@example(prop = val)`.
-
-## Examples
+## Usage
 
 ```rust
 #[derive(Attribute)]
@@ -32,69 +22,47 @@ struct MyAttr {
 
 #[zyn::element]
 fn example(
-    #[zyn(input)] input: zyn::DeriveInput,
-    #[zyn(attr("my_attr"))] attr: MyAttr,
-    #[zyn(input(ident))] name: syn::Ident,
+    my_attr: MyAttr,              // FromInput → extracted automatically
+    label: String,                // no FromInput → plain prop: @example(label = val)
 ) -> zyn::proc_macro2::TokenStream {
-    zyn::zyn! {
-        // use input, attr, name here
-    }
+    zyn::zyn! { ... }
 }
 ```
 
-`input` and `name` become struct fields (call site provides `input`; `name` is derived from `input.ident`). `attr` is injected — not a prop.
-
 ## What `#[element]` generates
 
-**Struct fields:** `#[zyn(input)]` params and unannotated prop params. Injected params (`attr`, `input(field)`) are not struct fields.
+**Struct fields:** only plain prop params (e.g. `label: String`). A hidden `__input: ::zyn::Input` field is also added to carry the extraction context.
 
-**`render()` body:**
+**`render()` body:** extractor params are resolved before binding:
 
 ```rust
 impl ::zyn::Render for Example {
     fn render(&self) -> ::zyn::proc_macro2::TokenStream {
-        let input = &self.input;
-        let attr = <MyAttr as ::zyn::Attribute>::attribute(self.input.attrs())
-            .unwrap_or_else(|e| e.to_compile_error());
-        let name = &self.input.ident;
+        let my_attr = <MyAttr as ::zyn::FromInput>::from_input(&self.__input)
+            .unwrap_or_else(|e| return e.into().to_compile_error());
+        let label = &self.label;
         // element body follows
     }
 }
 ```
 
-Error strategy for `attr(...)`: `.unwrap_or_else(|e| e.to_compile_error())` — no `Render` trait change needed.
+## How `__input` is populated
 
-## Input param requirement
+The element call site (`@example(label = val)`) exists inside a proc macro expansion. The generated struct gains a hidden `__input: ::zyn::Input` field populated with the outer macro's input context. `element_node.rs` threads the input through when constructing element structs.
 
-An `#[element]` function with any `#[zyn(attr(...))]` or `#[zyn(input(...))]` param **must** also have exactly one `#[zyn(input)]` param whose type provides `.attrs()` / the accessed field. The known input types are:
-
-- `zyn::DeriveInput`, `zyn::DeriveStruct`, `zyn::DeriveEnum`, `zyn::DeriveUnion`
-- `zyn::ItemInput`, `zyn::ItemStruct`, `zyn::ItemEnum`, `zyn::ItemFn`, `zyn::ItemImpl`
-- *(other `Item*` variants)*
-
-If no `#[zyn(input)]` param is found but `attr(...)` or `input(...)` params exist, `#[element]` emits a compile error.
-
-## Macro type inference (informational)
-
-The type of the `#[zyn(input)]` param implies the kind of proc macro the element is designed for:
-- `Derive*` types → derive macro context
-- `Item*` types → attribute macro context
-- No input param → pure template element
-
-Not enforced at compile time in this phase — surfaced as a doc comment on the generated struct.
-
-## Files to Modify
+## Files to Create / Modify
 
 | File | Change |
 |---|---|
-| `crates/derive/src/element.rs` | Parse the three `#[zyn(...)]` param annotations; classify params; generate struct fields and `render()` body accordingly |
+| `crates/core/src/input/mod.rs` | Add `Input` enum (wraps `DeriveInput` \| `ItemInput`) with `.attrs()`, `.ident()`, `.generics()` |
+| `crates/core/src/extract.rs` | **New** — `FromInput` trait |
+| `crates/core/src/lib.rs` | `pub mod extract; pub use extract::*;` |
+| `crates/derive/src/element.rs` | Detect `FromInput`-implementing params vs props; add hidden `__input` field; generate extractor calls in `render()` |
+| `crates/core/src/ast/at/element_node.rs` | Thread `Input` context into `__input` field when constructing element structs |
 
 ## Tests
 
-- `#[zyn(input)]` param → becomes a struct field
-- `#[zyn(attr("name"))]` param → extracted from input attrs in render, not a prop
-- `#[zyn(input(field))]` param → field access on input in render, not a prop
-- `#[zyn(attr(...))]` with no `#[zyn(input)]` param → compile error
-- Multiple `#[zyn(attr(...))]` params → all extracted from same input
-- Unannotated params → unchanged prop behavior
-- Attribute extraction failure at expand time → emits `compile_error!`
+- `#[derive(Attribute)]` attribute mode struct as element param → extracted via `FromInput`, not a prop
+- Plain-typed param → remains a prop, unchanged behavior
+- Extraction failure at expand time → emits `compile_error!`
+- Element with only props (no `FromInput` params) → unchanged behavior

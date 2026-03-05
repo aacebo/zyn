@@ -2,16 +2,18 @@
 
 ## Goal
 
-Generate `Attribute` implementations for enums. Enums always derive in argument mode — they are argument types, not top-level attributes. Depends on Phase 2.
+Generate extraction logic for enums. Enums always derive in argument mode — they are used as field types within attribute structs, not as top-level extractors. Depends on Phase 2.
 
 ## Enum Derive (Discriminated Unions)
 
-Enums generate only `from_arg`. `from_args` and `attribute` return `Err` (enums are argument types, not top-level attributes). Dispatch is by snake_cased variant name:
+Enums generate a `from_arg(arg: &Arg) -> syn::Result<Self>` associated function. Dispatch is by snake_cased variant name:
 
 - **Unit variants** → match as `Arg::Flag`: `fast` → `Mode::Fast`
 - **Struct variants** → match as `Arg::List`: `custom(speed = 5)` → `Mode::Custom { speed: 5 }`
 - **Tuple variants** → match as `Arg::List` with positional args: `hex("ff0000")` → `Color::Hex("ff0000".into())`
 - **Single-field tuple variants** → match as `Arg::Expr`: `name = "blue"` → `Color::Named("blue".into())`
+
+Enums do **not** implement `FromInput` — they are argument types, not top-level extractors.
 
 ```rust
 #[derive(Attribute)]
@@ -31,14 +33,7 @@ struct Config {
 ## Generated Code Example
 
 ```rust
-impl ::zyn::Attribute for Mode {
-    fn from_args(_args: &::zyn::Args) -> ::syn::Result<Self> {
-        Err(::syn::Error::new(
-            ::proc_macro2::Span::call_site(),
-            "enums are matched via from_arg, not from_args",
-        ))
-    }
-
+impl Mode {
     fn from_arg(arg: &::zyn::Arg) -> ::syn::Result<Self> {
         match arg {
             ::zyn::Arg::Flag(ident) => match ident.to_string().as_str() {
@@ -52,7 +47,7 @@ impl ::zyn::Attribute for Mode {
             ::zyn::Arg::List(ident, args) => match ident.to_string().as_str() {
                 "custom" => Ok(Self::Custom {
                     speed: match args.get("speed") {
-                        Some(arg) => ::zyn::Attribute::from_arg(arg)?,
+                        Some(arg) => ::zyn::FromArg::from_arg(arg)?,
                         None => return Err(::syn::Error::new(
                             ident.span(),
                             "missing required field `speed`",
@@ -70,19 +65,12 @@ impl ::zyn::Attribute for Mode {
             )),
         }
     }
-
-    fn attribute(_attrs: &[::syn::Attribute]) -> ::syn::Result<Self> {
-        Err(::syn::Error::new(
-            ::proc_macro2::Span::call_site(),
-            "enums are argument types, not top-level attributes",
-        ))
-    }
 }
 ```
 
 ## Variant Name Mapping
 
-Variant names are converted to snake_case for matching. `MyVariant` matches `my_variant`.
+Variant names are converted to snake_case for matching. `MyVariant` → `my_variant`.
 
 ## Files to Modify
 
@@ -98,5 +86,6 @@ Variant names are converted to snake_case for matching. `MyVariant` matches `my_
 - Tuple variant from `List` with positional args
 - Single-field tuple variant from `Expr`
 - Unknown variant → error listing valid options
-- Wrong arg shape (e.g. `Flag` when only struct variants exist) → error
+- Wrong arg shape → error
 - Enum as field type inside an attribute mode struct (integration)
+- No `FromInput` impl generated

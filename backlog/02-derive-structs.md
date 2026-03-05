@@ -2,7 +2,7 @@
 
 ## Goal
 
-Generate `Attribute` implementations for structs. Supports attribute mode (struct has `#[zyn("name")]`) and argument mode (no struct-level `#[zyn(...)]`). Depends on Phase 1.
+Generate `FromInput` implementations for structs. Supports attribute mode (struct has `#[zyn("name")]`) and argument mode (no struct-level `#[zyn(...)]`). Depends on Phase 1.
 
 ## Two Modes
 
@@ -10,7 +10,7 @@ The presence of `#[zyn("name")]` at the struct level determines the mode:
 
 ### Attribute mode
 
-Struct has `#[zyn("name", ...)]`. Generates all three trait methods (`from_args`, `from_arg`, `attribute`) plus `about()`.
+Struct has `#[zyn("name", ...)]`. Generates a `FromInput` impl that finds the named attribute in `input.attrs()`, parses its args, and constructs the struct from them. Also generates `about()`.
 
 ```rust
 #[derive(Attribute)]
@@ -26,12 +26,13 @@ struct SerdeConfig {
     format: String,
 }
 
-let config = SerdeConfig::attribute(&input.attrs)?;
+// used directly as an element extractor param:
+// fn my_element(cfg: SerdeConfig, ...) -> TokenStream
 ```
 
 ### Argument mode
 
-Struct has no `#[zyn("name")]`. Generates only `from_args` and `from_arg`. Used as nested types within attribute structs.
+Struct has no `#[zyn("name")]`. Generates a helper `from_args(args: &Args) -> syn::Result<Self>` associated function (not a trait impl). Used as nested types within attribute mode structs.
 
 ```rust
 #[derive(Attribute)]
@@ -45,9 +46,9 @@ struct Inner {
 
 | Annotation | Effect |
 |---|---|
-| `#[zyn("name")]` | The attribute name to match (e.g. `"serde"` matches `#[serde(...)]`). Presence activates attribute mode. |
-| `#[zyn(about = "...")]` | Description used in `about()` header and error messages |
-| `#[zyn(unique)]` | Only one occurrence of this attribute allowed on an item. Multiple → error. Without this, multiple occurrences are merged. |
+| `#[zyn("name")]` | The attribute name to match (e.g. `"serde"` matches `#[serde(...)]`). Activates attribute mode. |
+| `#[zyn(about = "...")]` | Description used in `about()` and error messages |
+| `#[zyn(unique)]` | Only one occurrence allowed on an item. Multiple → error. Without this, multiple occurrences are merged. |
 
 Combinable: `#[zyn("serde", unique, about = "Configure serialization")]`
 
@@ -61,7 +62,7 @@ Combinable: `#[zyn("serde", unique, about = "Configure serialization")]`
 | `#[zyn(default)]` | Use `Default::default()` when absent |
 | `#[zyn(default = value)]` | Use literal as default when absent |
 | `#[zyn(skip)]` | Don't extract; always `Default::default()` |
-| `#[zyn(about = "...")]` | Description used in error messages and generated `about()` |
+| `#[zyn(about = "...")]` | Description used in error messages and `about()` |
 
 Combinable: `#[zyn(0, default = ".", about = "working directory")]`
 
@@ -75,7 +76,7 @@ Combinable: `#[zyn(0, default = ".", about = "working directory")]`
 
 - Duplicate named keys within a single attribute → error
 - `Vec<T>` fields collect multiple occurrences of the same key
-- Multiple attribute occurrences on same item (e.g. two `#[serde(...)]`) → merged unless `#[zyn(unique)]`
+- Multiple attribute occurrences on same item → merged unless `#[zyn(unique)]`
 
 ## Generated Code Example
 
@@ -96,36 +97,46 @@ struct SerdeConfig {
 Generates:
 
 ```rust
-impl ::zyn::Attribute for SerdeConfig {
+impl SerdeConfig {
     fn from_args(args: &::zyn::Args) -> ::syn::Result<Self> {
         Ok(Self {
-            path: ::zyn::Attribute::from_arg(&args[0])?,
+            path: ::zyn::FromArg::from_arg(&args[0])?,
             casing: match args.get("rename_all") {
-                Some(arg) => Some(::zyn::Attribute::from_arg(arg)?),
+                Some(arg) => Some(::zyn::FromArg::from_arg(arg)?),
                 None => None,
             },
             deny_unknown_fields: args.has("deny_unknown_fields"),
             format: match args.get("format") {
-                Some(arg) => ::zyn::Attribute::from_arg(arg)?,
+                Some(arg) => ::zyn::FromArg::from_arg(arg)?,
                 None => ::std::string::String::from("json"),
             },
         })
     }
 
-    fn from_arg(arg: &::zyn::Arg) -> ::syn::Result<Self> {
-        match arg {
-            ::zyn::Arg::List(_, args) => Self::from_args(args),
-            _ => Err(::syn::Error::new(::proc_macro2::Span::call_site(), "expected list argument")),
-        }
+    pub fn about() -> &'static str {
+        "#[serde(...)]: Configure serialization\n\
+         \n\
+         Arguments:\n\
+         [0] path: String (required) — the input path\n\
+         rename_all: Option<String> — case transform\n\
+         deny_unknown_fields: bool\n\
+         format: String (default: \"json\") — output format"
     }
+}
 
-    fn attribute(attrs: &[::syn::Attribute]) -> ::syn::Result<Self> {
-        let matches: Vec<_> = attrs.iter()
+impl ::zyn::FromInput for SerdeConfig {
+    type Error = ::syn::Error;
+
+    fn from_input(input: &::zyn::Input) -> ::std::result::Result<Self, Self::Error> {
+        let matches: Vec<_> = input.attrs().iter()
             .filter(|a| a.path().is_ident("serde"))
             .collect();
 
         if matches.len() > 1 {
-            return Err(::syn::Error::new(::proc_macro2::Span::call_site(), "only one #[serde(...)] allowed"));
+            return Err(::syn::Error::new(
+                ::proc_macro2::Span::call_site(),
+                "only one #[serde(...)] allowed",
+            ));
         }
 
         match matches.first() {
@@ -137,23 +148,13 @@ impl ::zyn::Attribute for SerdeConfig {
         }
     }
 }
-
-impl SerdeConfig {
-    pub fn about() -> &'static str {
-        "#[serde(...)]: Configure serialization\n\
-         \n\
-         Arguments:\n\
-         [0] path: String (required) — the input path\n\
-         rename_all: Option<String> — case transform\n\
-         deny_unknown_fields: bool\n\
-         format: String (default: \"json\") — output format"
-    }
-}
 ```
+
+`FromInput` is only generated for **attribute mode** structs. Argument mode structs only get `from_args`.
 
 ## Recursive Nesting
 
-A field whose type also derives `Attribute` is parsed from a nested `List` arg via `T::from_arg(arg)`:
+A field whose type also derives `Attribute` (argument mode) is parsed from a nested `List` arg by calling `T::from_args(args)`:
 
 ```rust
 #[derive(Attribute)]
@@ -166,7 +167,7 @@ struct Outer {
 }
 ```
 
-`inner` matches `Arg::List("inner", args)` and calls `Inner::from_arg(arg)` → `Inner::from_args(args)`.
+`inner` matches `Arg::List("inner", args)` and calls `Inner::from_args(args)`.
 
 ## `about()` Generation
 
@@ -200,18 +201,19 @@ Generated on attribute mode structs only:
 - `unique` → error on multiple attribute occurrences
 - Non-unique → multiple attributes merged
 - Absent attribute entirely → defaults apply
+- `FromInput` impl generated → usable as element extractor param
 
 ### Argument mode struct
 - `from_args` extraction
-- `from_arg` from `List` arg
 - Nested within an attribute mode struct
+- No `FromInput` impl generated
 
 ### Recursive nesting
 - Nested struct field parsed from `List` arg
 - Multiple levels of nesting
 
 ### `about()` generation
-- Attribute mode struct with `about` on struct and fields
+- With `about` on struct and fields
 - No `about` annotations → minimal output
 - `skip` fields omitted
 - Positional fields show `[N]` prefix
