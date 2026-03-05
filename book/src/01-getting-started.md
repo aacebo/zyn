@@ -6,7 +6,7 @@ Add zyn to your proc-macro crate:
 
 ```toml
 [dependencies]
-zyn = "0.0.0"
+zyn = "0.1.0"
 ```
 
 ## Features

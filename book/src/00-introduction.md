@@ -139,12 +139,18 @@ emit_warning!(span, "deprecated");
 <td>
 
 ```rust
-zyn! {
-    @throw "expected a struct" {
-        @note "only named structs supported"
-        @help "change input to a struct"
-    }
-    @warn "this derive is deprecated"
+#[zyn::element]
+fn validated(
+    #[zyn(input)] ident: syn::Ident,
+) -> zyn::TokenStream {
+    error!("expected a struct";
+        span = ident.span());
+    note!("only named structs supported");
+    help!("change input to a struct");
+    bail!();
+
+    warn!("this derive is deprecated");
+    zyn::zyn! { /* ... */ }
 }
 ```
 
@@ -300,7 +306,6 @@ zyn = "0.1"
 Zyn replaces the entire stack with a single `zyn!` template macro and a set of companion tools:
 
 ```rust
-// with zyn — flat, readable, self-contained
 zyn! {
     @for (field in fields.iter()) {
         pub fn {{ field.ident | ident:"get_{}" }}(&self) -> &{{ field.ty }} {
@@ -316,7 +321,7 @@ zyn! {
 | **Control flow** | `@if`, `@for`, `@match` directives inline — no `.iter().map().collect()` |
 | **Case conversion** | Built-in pipes: `{{ name \| snake }}`, `{{ name \| pascal }}`, `{{ name \| screaming }}` — no extra crate |
 | **Name formatting** | `{{ name \| ident:"get_{}" }}` — one expression, no `let` binding |
-| **Diagnostics** | `@throw`, `@warn`, `@note`, `@help` with nesting — one syntax that uses `proc_macro::Diagnostic` on nightly |
+| **Diagnostics** | `error!`, `warn!`, `note!`, `help!`, `bail!` macros in [`#[element]`](./03-elements/diagnostics.md) bodies — one API for all diagnostic levels |
 | **Attribute parsing** | `Arg`, `Args`, `AttrExt`, `AttrsExt` — built-in, no `darling` dependency |
 | **Reusable codegen** | `#[zyn::element]` — composable template components invoked with `@name(props)` |
 | **Value transforms** | `#[zyn::pipe]` — custom pipes that chain with built-ins |
@@ -331,7 +336,7 @@ One dependency. No runtime cost. Everything expands at compile time into the sam
 - **Interpolation** — `{{ expr }}` inserts any `ToTokens` value, with field access and method calls
 - **Pipes** — `{{ name | snake }}`, `{{ name | ident:"get_{}" }}`, `{{ name | str }}` — 13 built-in pipes plus custom
 - **Control flow** — `@if`, `@for`, `@match` with full nesting
-- **Diagnostics** — `@throw`, `@warn`, `@note`, `@help` with child nesting
+- **Diagnostics** — `error!`, `warn!`, `note!`, `help!`, `bail!` macros in [`#[element]`](./03-elements/diagnostics.md) bodies
 - **Elements** — reusable template components via `#[zyn::element]`
 - **Custom pipes** — define transforms with `#[zyn::pipe]`
 - **Attribute parsing** — `Arg`, `Args`, `AttrExt`, `AttrsExt` for structured attribute handling
