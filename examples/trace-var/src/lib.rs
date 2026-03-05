@@ -6,10 +6,10 @@ use proc_macro::TokenStream;
 use zyn::Args;
 use zyn::Render;
 use zyn::TokenStream as TokenStream2;
-use zyn::types::Expr;
-use zyn::types::Ident;
-use zyn::types::ItemFn;
-use zyn::types::Pat;
+use zyn::syn::Expr;
+use zyn::syn::Ident;
+use zyn::syn::ItemFn;
+use zyn::syn::Pat;
 
 use folder::TraceVarFolder;
 

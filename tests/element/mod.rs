@@ -1,10 +1,10 @@
 mod extract;
 mod namespaced;
 
-use zyn::__private::quote::quote;
+use zyn::quote::quote;
 
 #[zyn::element]
-fn greeting(name: zyn::types::Ident) -> zyn::TokenStream {
+fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 
@@ -20,8 +20,8 @@ fn basic_element() {
 }
 
 #[zyn::element]
-fn wrapper(name: zyn::types::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
-    zyn::__private::quote::quote!(struct #name { #children })
+fn wrapper(name: zyn::syn::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
+    zyn::quote::quote!(struct #name { #children })
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn element_with_children() {
 }
 
 #[zyn::element("say_hello")]
-fn get_greeting(name: zyn::types::Ident) -> zyn::TokenStream {
+fn get_greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 
@@ -82,7 +82,7 @@ fn zero_param_with_parens() {
 
 #[zyn::element]
 fn container(children: zyn::TokenStream) -> zyn::TokenStream {
-    zyn::__private::quote::quote!(mod container { #children })
+    zyn::quote::quote!(mod container { #children })
 }
 
 #[test]

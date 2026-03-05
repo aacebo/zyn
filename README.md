@@ -12,7 +12,7 @@ A template engine for Rust procedural macros. Write code-generation templates wi
 use zyn::prelude::*;
 
 zyn! {
-    @if (input.vis == zyn::types::Visibility::Public(..)) { pub }
+    @if (input.vis == syn::Visibility::Public(..)) { pub }
     fn {{ input.ident | snake }}() {
         println!("hello!");
     }
@@ -104,9 +104,9 @@ Reusable template components:
 ```rust
 #[zyn::element]
 fn field_decl(
-    vis: zyn::types::Visibility,
-    name: zyn::types::Ident,
-    ty: zyn::types::Type,
+    vis: syn::Visibility,
+    name: syn::Ident,
+    ty: syn::Type,
 ) -> zyn::TokenStream {
     zyn::zyn! { {{ vis }} {{ name }}: {{ ty }}, }
 }
@@ -130,7 +130,7 @@ Children:
 ```rust
 #[zyn::element]
 fn wrapper(
-    vis: zyn::types::Visibility,
+    vis: syn::Visibility,
     children: zyn::TokenStream,
 ) -> zyn::TokenStream {
     zyn::zyn! { {{ vis }} struct Foo { {{ children }} } }
@@ -158,8 +158,8 @@ zyn! { @divider }
 
 ```rust
 #[zyn::pipe]
-fn prefix(input: String) -> zyn::types::Ident {
-    zyn::types::Ident::new(
+fn prefix(input: String) -> syn::Ident {
+    syn::Ident::new(
         &format!("pfx_{}", input),
         zyn::Span::call_site(),
     )
@@ -193,7 +193,7 @@ For element params, use `zyn::Attr<T>` to auto-resolve from the `input` context:
 #[zyn::element]
 fn builder_method(
     #[zyn(input)] cfg: zyn::Attr<BuilderConfig>,   // auto-resolved from input, not a prop
-    name: zyn::types::Ident,                  // regular prop, passed at @call site
+    name: syn::Ident,                  // regular prop, passed at @call site
 ) -> zyn::TokenStream {
     let method = zyn::format_ident!("{}", cfg.method);
     zyn::zyn! { pub fn {{ method }}(self) -> Self { self } }

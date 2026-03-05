@@ -56,13 +56,13 @@ impl Expand for ElementNode {
 
             quote! {
                 {
-                    let mut #inner = ::zyn::__private::proc_macro2::TokenStream::new();
+                    let mut #inner = ::zyn::proc_macro2::TokenStream::new();
                     #children_expanded
                     let __zyn_rendered = ::zyn::Render::render(&#name {
                         #(#prop_names: #prop_values,)*
                         children: #inner,
                     }, &input);
-                    ::zyn::__private::quote::ToTokens::to_tokens(&__zyn_rendered, &mut #output);
+                    ::zyn::quote::ToTokens::to_tokens(&__zyn_rendered, &mut #output);
                 }
             }
         } else {
@@ -71,7 +71,7 @@ impl Expand for ElementNode {
                     let __zyn_rendered = ::zyn::Render::render(&#name {
                         #(#prop_names: #prop_values,)*
                     }, &input);
-                    ::zyn::__private::quote::ToTokens::to_tokens(&__zyn_rendered, &mut #output);
+                    ::zyn::quote::ToTokens::to_tokens(&__zyn_rendered, &mut #output);
                 }
             }
         }

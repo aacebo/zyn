@@ -1,6 +1,6 @@
-use zyn_core::__private::proc_macro2::TokenStream;
-use zyn_core::__private::quote::quote;
-use zyn_core::__private::syn;
+use zyn_core::proc_macro2::TokenStream;
+use zyn_core::quote::quote;
+use zyn_core::syn;
 
 use super::structs::FieldDefault;
 use super::structs::FieldKey;
@@ -49,8 +49,8 @@ pub fn from_args(
                         #ident: match args.get(#key) {
                             ::std::option::Option::Some(arg) => <#ty as ::zyn::FromArg>::from_arg(arg)?,
                             ::std::option::Option::None => return ::std::result::Result::Err(
-                                ::zyn::__private::syn::Error::new(
-                                    ::zyn::__private::proc_macro2::Span::call_site(),
+                                ::zyn::syn::Error::new(
+                                    ::zyn::proc_macro2::Span::call_site(),
                                     ::std::concat!("missing required field `", #key, "`"),
                                 )
                             ),
@@ -75,7 +75,7 @@ pub fn from_args(
 
     quote! {
         impl #impl_generics #name #ty_generics #where_clause {
-            pub fn from_args(args: &::zyn::Args) -> ::zyn::__private::syn::Result<Self> {
+            pub fn from_args(args: &::zyn::Args) -> ::zyn::syn::Result<Self> {
                 ::std::result::Result::Ok(Self {
                     #(#field_inits,)*
                 })
@@ -92,11 +92,11 @@ pub fn from_arg(
 ) -> TokenStream {
     quote! {
         impl #impl_generics ::zyn::FromArg for #name #ty_generics #where_clause {
-            fn from_arg(arg: &::zyn::Arg) -> ::zyn::__private::syn::Result<Self> {
+            fn from_arg(arg: &::zyn::Arg) -> ::zyn::syn::Result<Self> {
                 match arg {
                     ::zyn::Arg::List(_, args) => Self::from_args(args),
-                    _ => ::std::result::Result::Err(::zyn::__private::syn::Error::new(
-                        ::zyn::__private::proc_macro2::Span::call_site(),
+                    _ => ::std::result::Result::Err(::zyn::syn::Error::new(
+                        ::zyn::proc_macro2::Span::call_site(),
                         "expected list argument",
                     )),
                 }
@@ -118,8 +118,8 @@ pub fn from_input(
         let msg = format!("only one #[{attr_name}(...)] allowed");
         quote! {
             if matches.len() > 1 {
-                return ::std::result::Result::Err(::zyn::__private::syn::Error::new(
-                    ::zyn::__private::proc_macro2::Span::call_site(),
+                return ::std::result::Result::Err(::zyn::syn::Error::new(
+                    ::zyn::proc_macro2::Span::call_site(),
                     #msg,
                 ));
             }
@@ -151,7 +151,7 @@ pub fn from_input(
 
     quote! {
         impl #impl_generics ::zyn::FromInput for #name #ty_generics #where_clause {
-            type Error = ::zyn::__private::syn::Error;
+            type Error = ::zyn::syn::Error;
 
             fn from_input(input: &::zyn::Input) -> ::std::result::Result<Self, Self::Error> {
                 let matches: ::std::vec::Vec<_> = input.attrs().iter()
@@ -189,9 +189,7 @@ pub fn about(
 
         let type_str = {
             let ty = &f.ty;
-            zyn_core::__private::quote::quote!(#ty)
-                .to_string()
-                .replace(" ", "")
+            zyn_core::quote::quote!(#ty).to_string().replace(" ", "")
         };
 
         let status = match (&f.default, f.is_bool(), f.option_inner().is_some()) {

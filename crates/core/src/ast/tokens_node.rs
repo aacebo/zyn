@@ -21,7 +21,7 @@ impl Expand for TokensNode {
     fn expand(&self, output: &Ident, _idents: &mut crate::ident::Iter) -> TokenStream {
         let stream = &self.stream;
         quote! {
-            #output.extend(::zyn::__private::quote::quote!(#stream));
+            #output.extend(::zyn::quote::quote!(#stream));
         }
     }
 }

@@ -1,6 +1,6 @@
 # AttrExt and AttrsExt
 
-> **Note:** `AttrExt` and `AttrsExt` are superseded by `#[derive(Attribute)]` and `FromInput`. They remain available for backwards compatibility and for cases where you need low-level `zyn::types::Attribute` access.
+> **Note:** `AttrExt` and `AttrsExt` are superseded by `#[derive(Attribute)]` and `FromInput`. They remain available for backwards compatibility and for cases where you need low-level `syn::Attribute` access.
 
 These extension traits require the `ext` feature:
 
@@ -15,7 +15,7 @@ use zyn::ext::{AttrExt, AttrsExt};
 
 ## `AttrExt`
 
-Extension methods on a single `zyn::types::Attribute`:
+Extension methods on a single `syn::Attribute`:
 
 ```rust
 attr.is("serde")     // true if last path segment == "serde"
@@ -24,11 +24,11 @@ attr.args()?         // parses the attribute's argument list as Args
 
 ## `AttrsExt`
 
-Extension methods on `&[zyn::types::Attribute]`:
+Extension methods on `&[syn::Attribute]`:
 
 ```rust
 attrs.has_attr("serde")              // bool — any attribute matches name
-attrs.find_attr("serde")             // Option<&zyn::types::Attribute>
+attrs.find_attr("serde")             // Option<&syn::Attribute>
 attrs.find_args("serde")?            // Option<Args>
 attrs.merge_args("serde")?           // Args — merges all matching occurrences
 ```

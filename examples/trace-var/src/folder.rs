@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 
 use zyn::Render;
-use zyn::types::BinOp;
-use zyn::types::Expr;
-use zyn::types::ExprAssign;
-use zyn::types::ExprBinary;
-use zyn::types::Ident;
-use zyn::types::ItemFn;
-use zyn::types::Local;
-use zyn::types::Pat;
-use zyn::types::Stmt;
-use zyn::types::fold;
-use zyn::types::fold::Fold;
+use zyn::syn::BinOp;
+use zyn::syn::Expr;
+use zyn::syn::ExprAssign;
+use zyn::syn::ExprBinary;
+use zyn::syn::Ident;
+use zyn::syn::ItemFn;
+use zyn::syn::Local;
+use zyn::syn::Pat;
+use zyn::syn::Stmt;
+use zyn::syn::fold;
+use zyn::syn::fold::Fold;
 
 use crate::AssignTrace;
 use crate::LetTrace;

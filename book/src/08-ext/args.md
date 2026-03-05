@@ -29,9 +29,9 @@ for arg in &args {
 
 ```rust
 if let Some(arg) = args.get("rename") {
-    let lit = arg.as_lit();    // &zyn::types::Lit
+    let lit = arg.as_lit();    // &syn::Lit
     // or
-    let expr = arg.as_expr();  // &zyn::types::Expr
+    let expr = arg.as_expr();  // &syn::Expr
 }
 ```
 

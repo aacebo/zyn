@@ -1,4 +1,4 @@
-use zyn::__private::quote::quote;
+use zyn::quote::quote;
 
 #[test]
 fn upper() {

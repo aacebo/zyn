@@ -8,7 +8,7 @@ Use `@throw` inside an element to halt compilation with an error:
 
 ```rust,zyn
 #[zyn::element]
-fn validated(name: zyn::types::Ident) -> zyn::TokenStream {
+fn validated(name: syn::Ident) -> zyn::TokenStream {
     zyn::zyn! {
         @if (name.to_string() == "forbidden") {
             @throw "reserved identifier"
@@ -33,7 +33,7 @@ Attach notes and help suggestions using a body block:
 
 ```rust,zyn
 #[zyn::element]
-fn validated(name: zyn::types::Ident) -> zyn::TokenStream {
+fn validated(name: syn::Ident) -> zyn::TokenStream {
     zyn::zyn! {
         @if (name.to_string() == "forbidden") {
             @throw "reserved identifier" {
@@ -63,7 +63,7 @@ Use `@warn` to emit a non-fatal warning:
 
 ```rust,zyn
 #[zyn::element]
-fn legacy(name: zyn::types::Ident) -> zyn::TokenStream {
+fn legacy(name: syn::Ident) -> zyn::TokenStream {
     zyn::zyn! {
         @warn "deprecated, use `new_elem` instead" {
             @help "replace `@legacy` with `@new_elem`"

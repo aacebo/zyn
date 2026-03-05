@@ -4,7 +4,7 @@ Annotate a function with `#[zyn::element]`. Parameters become struct fields (pro
 
 ```rust,zyn
 #[zyn::element]
-fn field_decl(vis: zyn::types::Visibility, name: zyn::types::Ident, ty: zyn::types::Type) -> zyn::TokenStream {
+fn field_decl(vis: syn::Visibility, name: syn::Ident, ty: syn::Type) -> zyn::TokenStream {
     zyn::zyn! {
         {{ vis }} {{ name }}: {{ ty }},
     }
@@ -16,9 +16,9 @@ The macro generates a struct and a `Render` impl:
 ```rust
 // generated:
 pub struct FieldDecl {
-    pub vis: zyn::types::Visibility,
-    pub name: zyn::types::Ident,
-    pub ty: zyn::types::Type,
+    pub vis: syn::Visibility,
+    pub name: syn::Ident,
+    pub ty: syn::Type,
 }
 
 impl zyn::Render for FieldDecl {
@@ -41,7 +41,7 @@ Every element's `render` body has an `input: &zyn::Input` in scope. This is the 
 
 ```rust,zyn
 #[zyn::element]
-fn my_element(name: zyn::types::Ident) -> zyn::TokenStream {
+fn my_element(name: syn::Ident) -> zyn::TokenStream {
     // `input` is always in scope — use it directly
     let ident = input.ident();
     let fields = zyn::Fields::from_input(input).unwrap_or_default();
@@ -83,7 +83,7 @@ struct MyConfig {
 fn my_element(
     #[zyn(input)] cfg: zyn::Attr<MyConfig>,        // extractor — resolved from input, not a prop
     #[zyn(input)] fields: zyn::Fields,             // extractor — resolved from input, not a prop
-    label: zyn::types::Ident,  // prop — passed at @my_element(label = ...)
+    label: syn::Ident,  // prop — passed at @my_element(label = ...)
 ) -> zyn::TokenStream {
     // cfg.skip, cfg.rename, fields, label all available via Deref
     zyn::zyn! { /* ... */ }
@@ -102,7 +102,7 @@ Element bodies use `zyn!` for template rendering:
 
 ```rust,zyn
 #[zyn::element]
-fn wrapper(name: zyn::types::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
+fn wrapper(name: syn::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
     zyn::zyn! {
         pub mod {{ name }} {
             {{ children }}

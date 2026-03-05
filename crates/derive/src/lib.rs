@@ -3,10 +3,10 @@ mod element;
 mod pipe;
 mod prettify;
 
-use zyn_core::__private::proc_macro2;
-use zyn_core::__private::quote::quote;
 use zyn_core::diagnostic::Diagnostic;
 use zyn_core::diagnostic::Level;
+use zyn_core::proc_macro2;
+use zyn_core::quote::quote;
 
 #[proc_macro]
 pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

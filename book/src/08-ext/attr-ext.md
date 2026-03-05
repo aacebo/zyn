@@ -1,11 +1,11 @@
 # AttrExt
 
-Extension methods on a single `zyn::types::Attribute`.
+Extension methods on a single `syn::Attribute`.
 
 ```rust
 use zyn::ext::AttrExt;
 
-let attr: &zyn::types::Attribute = /* ... */;
+let attr: &syn::Attribute = /* ... */;
 
 attr.is("serde")          // true if the attribute path is "serde"
 let args = attr.args()?;  // parse the attribute's argument list as Args
@@ -18,7 +18,7 @@ let args = attr.args()?;  // parse the attribute's argument list as Args
 ```rust
 #[proc_macro_derive(MyDerive, attributes(my_attr))]
 pub fn my_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = zyn::parse_input!(input as zyn::types::DeriveInput);
+    let input = zyn::parse_input!(input as syn::DeriveInput);
 
     for attr in &input.attrs {
         if attr.is("my_attr") {

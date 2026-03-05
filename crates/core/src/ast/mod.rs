@@ -210,7 +210,7 @@ impl Element {
 
         quote! {
             {
-                let mut #output = ::zyn::__private::proc_macro2::TokenStream::new();
+                let mut #output = ::zyn::proc_macro2::TokenStream::new();
                 #expanded
                 #output
             }

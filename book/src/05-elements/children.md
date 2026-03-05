@@ -4,7 +4,7 @@ Elements can accept children by including a `children: zyn::TokenStream` paramet
 
 ```rust,zyn
 #[zyn::element]
-fn wrapper(name: zyn::types::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
+fn wrapper(name: syn::Ident, children: zyn::TokenStream) -> zyn::TokenStream {
     zyn::zyn!(struct {{ name }} { {{ children }} })
 }
 

@@ -127,7 +127,7 @@ Attribute mode structs implement `FromInput` and can be used as `zyn::Attr<T>` e
 #[zyn::element]
 fn my_element(
     #[zyn(input)] cfg: zyn::Attr<MyConfig>,        // auto-resolved from input
-    name: zyn::types::Ident,   // regular prop
+    name: syn::Ident,   // regular prop
 ) -> zyn::TokenStream {
     // cfg.format, cfg.enabled, name all available via Deref
     zyn::zyn! { /* ... */ }

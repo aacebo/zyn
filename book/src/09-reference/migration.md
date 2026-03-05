@@ -34,6 +34,6 @@ These patterns have no template-level equivalent but are available through zyn's
 | `syn::parse2::<T>(tokens)` | `zyn::parse!(tokens => T)` |
 | `quote::format_ident!("name")` | `zyn::format_ident!("name")` |
 | `Span::call_site()` | `zyn::Span::call_site()` |
-| `syn::fold::Fold` / `syn::visit::Visit` | `zyn::types::fold::Fold` |
+| `syn::fold::Fold` / `syn::visit::Visit` | `syn::fold::Fold` |
 
 > In book examples and tests, `zyn::format_ident!()` appears frequently because it constructs illustrative input values. In real proc macros, these values typically come from parsed input (`input.ident`, `field.ty`, etc.) rather than being constructed manually.

@@ -1,4 +1,4 @@
-use zyn_core::__private::proc_macro2::TokenStream;
+use zyn_core::proc_macro2::TokenStream;
 
 pub fn prettify_raw(tokens: &TokenStream) -> String {
     let raw = tokens.to_string();

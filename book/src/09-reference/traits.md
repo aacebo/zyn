@@ -23,9 +23,9 @@ pub trait FromInput: Sized {
 
 Extracts typed data from an `Input` context. Implemented by:
 - `#[derive(Attribute)]` structs (attribute mode) — searches `input.attrs()` for a named attribute
-- `zyn::types::Ident` — returns `input.ident()`
-- `zyn::types::Generics` — returns `input.generics()`
-- `zyn::types::Visibility` — returns `input.vis()`
+- `syn::Ident` — returns `input.ident()`
+- `syn::Generics` — returns `input.generics()`
+- `syn::Visibility` — returns `input.vis()`
 - `Fields<T>` — extracts struct fields
 - `Variants` — extracts enum variants
 - `Data<T: FromData>` — re-parses the full input as `T`
@@ -39,7 +39,7 @@ pub trait FromArg: Sized {
 }
 ```
 
-Extracts a typed value from a single `Arg`. Used internally by `#[derive(Attribute)]` codegen. Implemented for `bool`, `String`, integer types, float types, `char`, `zyn::types::Ident`, `zyn::types::Path`, `zyn::types::Expr`, `zyn::types::LitStr`, `zyn::types::LitInt`, `Option<T>`, `Vec<T>`, `Args`.
+Extracts a typed value from a single `Arg`. Used internally by `#[derive(Attribute)]` codegen. Implemented for `bool`, `String`, integer types, float types, `char`, `syn::Ident`, `syn::Path`, `syn::Expr`, `syn::LitStr`, `syn::LitInt`, `Option<T>`, `Vec<T>`, `Args`.
 
 ## `FromFields`
 
@@ -49,7 +49,7 @@ pub trait FromFields: Sized {
 }
 ```
 
-Converts `zyn::types::Fields` into a specific shape. Implemented for `zyn::types::Fields` (identity), `zyn::types::FieldsNamed` (errors on non-named), `zyn::types::FieldsUnnamed` (errors on non-unnamed). Used as the type parameter of `Fields<T>`.
+Converts `syn::Fields` into a specific shape. Implemented for `syn::Fields` (identity), `syn::FieldsNamed` (errors on non-named), `syn::FieldsUnnamed` (errors on non-unnamed). Used as the type parameter of `Fields<T>`.
 
 ## `Pipe`
 
@@ -72,7 +72,7 @@ All built-in pipes accept `String` as `Input`. Custom pipes in a chain also rece
 pub trait Expand {
     fn expand(
         &self,
-        output: &zyn::types::Ident,
+        output: &syn::Ident,
         idents: &mut ident::Iter,
     ) -> zyn::TokenStream;
 }

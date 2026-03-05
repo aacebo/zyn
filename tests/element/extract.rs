@@ -1,4 +1,4 @@
-use zyn::__private::quote::quote;
+use zyn::quote::quote;
 
 #[derive(zyn::Attribute)]
 #[zyn("my_attr")]
@@ -9,7 +9,7 @@ struct TestAttr {
 #[zyn::element]
 fn attr_element(
     #[zyn(input)] attr: zyn::Attr<TestAttr>,
-    label: zyn::types::Ident,
+    label: zyn::syn::Ident,
 ) -> zyn::TokenStream {
     let name_str = attr.rename.as_deref().unwrap_or("default");
     let combined = zyn::format_ident!("{}_{}", label, name_str);
@@ -46,7 +46,7 @@ fn attr_absent_uses_default() {
 }
 
 #[zyn::element]
-fn extract_ident_element(#[zyn(input)] ident: zyn::Extract<zyn::types::Ident>) -> zyn::TokenStream {
+fn extract_ident_element(#[zyn(input)] ident: zyn::Extract<zyn::syn::Ident>) -> zyn::TokenStream {
     zyn::zyn!(
         const NAME: &str = { { ident | str } };
     )
@@ -82,7 +82,7 @@ fn fields() {
 
 #[zyn::element]
 fn named_fields_element(
-    #[zyn(input)] fields: zyn::Fields<zyn::types::FieldsNamed>,
+    #[zyn(input)] fields: zyn::Fields<zyn::syn::FieldsNamed>,
 ) -> zyn::TokenStream {
     let count = fields.named.len();
     zyn::zyn!(
@@ -119,7 +119,7 @@ fn variants() {
 }
 
 #[zyn::element]
-fn data_struct_element(#[zyn(input)] data: zyn::Data<zyn::types::DataStruct>) -> zyn::TokenStream {
+fn data_struct_element(#[zyn(input)] data: zyn::Data<zyn::syn::DataStruct>) -> zyn::TokenStream {
     let count = data.fields.len();
     zyn::zyn!(
         const COUNT: usize = { { count } };
@@ -137,7 +137,7 @@ fn data_struct() {
 }
 
 #[zyn::element]
-fn derive_input_element(#[zyn(input)] d: zyn::types::DeriveInput) -> zyn::TokenStream {
+fn derive_input_element(#[zyn(input)] d: zyn::syn::DeriveInput) -> zyn::TokenStream {
     let name = &d.ident;
     zyn::zyn!(
         const NAME: &str = { { name | str } };
@@ -155,7 +155,7 @@ fn derive_input() {
 }
 
 #[zyn::element]
-fn data_enum_element(#[zyn(input)] e: zyn::types::DataEnum) -> zyn::TokenStream {
+fn data_enum_element(#[zyn(input)] e: zyn::syn::DataEnum) -> zyn::TokenStream {
     let count = e.variants.len();
     zyn::zyn!(
         const COUNT: usize = { { count } };
@@ -173,7 +173,7 @@ fn data_enum() {
 }
 
 #[zyn::element]
-fn data_union_element(#[zyn(input)] u: zyn::types::DataUnion) -> zyn::TokenStream {
+fn data_union_element(#[zyn(input)] u: zyn::syn::DataUnion) -> zyn::TokenStream {
     let count = u.fields.named.len();
     zyn::zyn!(
         const COUNT: usize = { { count } };
@@ -191,7 +191,7 @@ fn data_union() {
 }
 
 #[zyn::element]
-fn item_fn_element(#[zyn(input)] item: zyn::types::ItemFn) -> zyn::TokenStream {
+fn item_fn_element(#[zyn(input)] item: zyn::syn::ItemFn) -> zyn::TokenStream {
     let name = &item.sig.ident;
     zyn::zyn!(
         const NAME: &str = { { name | str } };
@@ -209,9 +209,9 @@ fn item_fn() {
 }
 
 #[zyn::element]
-fn item_element(#[zyn(input)] item: zyn::types::Item) -> zyn::TokenStream {
+fn item_element(#[zyn(input)] item: zyn::syn::Item) -> zyn::TokenStream {
     let name = match &item {
-        zyn::types::Item::Fn(f) => &f.sig.ident,
+        zyn::syn::Item::Fn(f) => &f.sig.ident,
         _ => panic!("expected fn"),
     };
     zyn::zyn!(

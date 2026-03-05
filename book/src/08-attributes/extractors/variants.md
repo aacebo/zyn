@@ -1,8 +1,8 @@
 # `Variants`
 
-Extracts `Vec<zyn::types::Variant>` from an enum input. Errors at compile time if the input is not an enum.
+Extracts `Vec<syn::Variant>` from an enum input. Errors at compile time if the input is not an enum.
 
-Implements `Deref` and `DerefMut` to `Vec<zyn::types::Variant>`.
+Implements `Deref` and `DerefMut` to `Vec<syn::Variant>`.
 
 ```rust
 #[zyn::element]

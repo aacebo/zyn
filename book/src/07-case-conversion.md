@@ -18,7 +18,7 @@ case::to_kebab("HelloWorld")     // "hello-world"
 
 ## Macros
 
-Case conversion macros work with strings, `zyn::types::Ident`, and token streams:
+Case conversion macros work with strings, `syn::Ident`, and token streams:
 
 ```rust
 // String input -> String output
@@ -26,8 +26,8 @@ zyn::pascal!("hello_world")        // "HelloWorld"
 zyn::snake!("HelloWorld")          // "hello_world"
 
 // Ident input -> Ident output
-zyn::pascal!(ident => ident)       // zyn::types::Ident in PascalCase
-zyn::snake!(ident => ident)        // zyn::types::Ident in snake_case
+zyn::pascal!(ident => ident)       // syn::Ident in PascalCase
+zyn::snake!(ident => ident)        // syn::Ident in snake_case
 
 // Ident input -> TokenStream output
 zyn::pascal!(ident => token_stream)

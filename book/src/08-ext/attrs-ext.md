@@ -1,11 +1,11 @@
 # AttrsExt
 
-Extension methods on a slice of `zyn::types::Attribute`. Most derive macros work with `&[zyn::types::Attribute]` from `DeriveInput::attrs` or field attrs.
+Extension methods on a slice of `syn::Attribute`. Most derive macros work with `&[syn::Attribute]` from `DeriveInput::attrs` or field attrs.
 
 ```rust
 use zyn::ext::AttrsExt;
 
-let attrs: &[zyn::types::Attribute] = &input.attrs;
+let attrs: &[syn::Attribute] = &input.attrs;
 
 attrs.has_attr("skip")                // true if any attr is named "skip"
 attrs.find_attr("rename")             // Option<&Attribute>

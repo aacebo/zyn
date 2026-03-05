@@ -2,10 +2,10 @@ mod emit;
 mod enums;
 mod structs;
 
-use zyn_core::__private::proc_macro2::TokenStream;
-use zyn_core::__private::syn;
-use zyn_core::types::Data;
-use zyn_core::types::DeriveInput;
+use zyn_core::proc_macro2::TokenStream;
+use zyn_core::syn;
+use zyn_core::syn::Data;
+use zyn_core::syn::DeriveInput;
 
 pub fn expand(input: TokenStream) -> TokenStream {
     match zyn_core::parse!(input => DeriveInput) {

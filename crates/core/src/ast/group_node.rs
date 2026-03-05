@@ -59,19 +59,19 @@ impl Expand for GroupNode {
 
         let delim = match self.delimiter {
             Delimiter::Parenthesis => {
-                quote! { ::zyn::__private::proc_macro2::Delimiter::Parenthesis }
+                quote! { ::zyn::proc_macro2::Delimiter::Parenthesis }
             }
-            Delimiter::Bracket => quote! { ::zyn::__private::proc_macro2::Delimiter::Bracket },
-            Delimiter::Brace => quote! { ::zyn::__private::proc_macro2::Delimiter::Brace },
-            Delimiter::None => quote! { ::zyn::__private::proc_macro2::Delimiter::None },
+            Delimiter::Bracket => quote! { ::zyn::proc_macro2::Delimiter::Bracket },
+            Delimiter::Brace => quote! { ::zyn::proc_macro2::Delimiter::Brace },
+            Delimiter::None => quote! { ::zyn::proc_macro2::Delimiter::None },
         };
 
         quote! {
             {
-                let mut #inner = ::zyn::__private::proc_macro2::TokenStream::new();
+                let mut #inner = ::zyn::proc_macro2::TokenStream::new();
                 #body_expanded
-                ::zyn::__private::quote::ToTokens::to_tokens(
-                    &::zyn::__private::proc_macro2::Group::new(#delim, #inner),
+                ::zyn::quote::ToTokens::to_tokens(
+                    &::zyn::proc_macro2::Group::new(#delim, #inner),
                     &mut #output,
                 );
             }

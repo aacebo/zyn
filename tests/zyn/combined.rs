@@ -1,4 +1,4 @@
-use zyn::__private::quote::quote;
+use zyn::quote::quote;
 
 #[test]
 fn if_with_pipe_and_braces() {

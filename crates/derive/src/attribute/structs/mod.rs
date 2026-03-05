@@ -6,9 +6,9 @@ pub use field_meta::FieldKey;
 pub use field_meta::FieldMeta;
 pub use struct_meta::StructMeta;
 
-use zyn_core::__private::proc_macro2::TokenStream;
-use zyn_core::__private::quote::quote;
-use zyn_core::types::DeriveInput;
+use zyn_core::proc_macro2::TokenStream;
+use zyn_core::quote::quote;
+use zyn_core::syn::DeriveInput;
 
 use super::emit;
 

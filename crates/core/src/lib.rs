@@ -19,33 +19,30 @@ pub use types::Input;
 #[macro_export]
 macro_rules! parse {
     ($s:literal => $ty:ty) => {
-        $crate::__private::syn::parse_str::<$ty>($s)
+        $crate::syn::parse_str::<$ty>($s)
     };
     ($s:literal) => {
-        $crate::__private::syn::parse_str($s)
+        $crate::syn::parse_str($s)
     };
     ($ts:expr => $ty:ty) => {
-        $crate::__private::syn::parse2::<$ty>($ts)
+        $crate::syn::parse2::<$ty>($ts)
     };
     ($ts:expr) => {
-        $crate::__private::syn::parse2($ts)
+        $crate::syn::parse2($ts)
     };
 }
 
 #[macro_export]
 macro_rules! parse_input {
-    ($($tt:tt)*) => { $crate::__private::syn::parse_macro_input!($($tt)*) }
+    ($($tt:tt)*) => { $crate::syn::parse_macro_input!($($tt)*) }
 }
 
 pub use proc_macro2::{Span, TokenStream};
 pub use quote::{ToTokens, format_ident};
 
-#[doc(hidden)]
-pub mod __private {
-    pub use proc_macro2;
-    pub use quote;
-    pub use syn;
-}
+pub use proc_macro2;
+pub use quote;
+pub use syn;
 
 pub trait Expand {
     fn expand(

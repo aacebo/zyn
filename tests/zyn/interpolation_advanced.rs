@@ -1,8 +1,8 @@
-use zyn::__private::quote::quote;
+use zyn::quote::quote;
 
 struct Field {
-    name: zyn::types::Ident,
-    ty: zyn::types::Ident,
+    name: zyn::syn::Ident,
+    ty: zyn::syn::Ident,
 }
 
 struct Item {
@@ -45,7 +45,7 @@ fn method_call() {
 fn chained_method_call() {
     let name = "hello_world".to_string();
     let result =
-        zyn::zyn!({ { zyn::types::Ident::new(&name.to_uppercase(), zyn::Span::call_site()) } });
+        zyn::zyn!({ { zyn::syn::Ident::new(&name.to_uppercase(), zyn::Span::call_site()) } });
     let expected = quote!(HELLO_WORLD);
     assert_eq!(result.to_string(), expected.to_string());
 }
