@@ -1,9 +1,9 @@
-#![feature(proc_macro_diagnostic)]
-
 mod element;
 mod pipe;
 mod prettify;
 
+use zyn_core::diagnostic::Diagnostic;
+use zyn_core::diagnostic::Level;
 use zyn_core::proc_macro2;
 use zyn_core::quote::quote;
 use zyn_core::syn;
@@ -57,24 +57,24 @@ fn expand_debug(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             let expanded = element.to_token_stream();
             let pretty = prettify::prettify_raw(&expanded);
 
-            proc_macro::Diagnostic::spanned(
-                proc_macro::Span::call_site(),
-                proc_macro::Level::Note,
+            let _ = Diagnostic::spanned(
+                proc_macro2::Span::call_site(),
+                Level::Note,
                 format!("zyn::expand! ─── raw\n\n{}", pretty),
             )
-            .emit();
+            .emit_as_item_tokens();
 
             expanded
         }
         "ast" => {
             let ast_str = prettify::prettify_ast(&element);
 
-            proc_macro::Diagnostic::spanned(
-                proc_macro::Span::call_site(),
-                proc_macro::Level::Note,
+            let _ = Diagnostic::spanned(
+                proc_macro2::Span::call_site(),
+                Level::Note,
                 format!("zyn::expand! ─── ast\n\n{}", ast_str),
             )
-            .emit();
+            .emit_as_item_tokens();
 
             element.to_token_stream()
         }
