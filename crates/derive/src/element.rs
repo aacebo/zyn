@@ -94,8 +94,9 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
             quote! {
                 let #name = match <#ty as ::zyn::FromInput>::from_input(input) {
                     ::std::result::Result::Ok(v) => v,
-                    ::std::result::Result::Err(__diags) => {
-                        return __diags.emit();
+                    ::std::result::Result::Err(e) => {
+                        diagnostics.extend(e);
+                        return diagnostics.emit();
                     }
                 };
             }
@@ -114,9 +115,87 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
 
         impl ::zyn::Render for #struct_name {
             fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+                let mut diagnostics = ::zyn::Diagnostics::new();
+
+                macro_rules! error {
+                    ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            $span, ::zyn::Level::Error, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                    ($fmt:literal $(, $arg:expr)* $(,)?) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            ::zyn::Span::call_site(), ::zyn::Level::Error, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                }
+
+                macro_rules! warn {
+                    ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            $span, ::zyn::Level::Warning, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                    ($fmt:literal $(, $arg:expr)* $(,)?) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            ::zyn::Span::call_site(), ::zyn::Level::Warning, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                }
+
+                macro_rules! note {
+                    ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            $span, ::zyn::Level::Note, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                    ($fmt:literal $(, $arg:expr)* $(,)?) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            ::zyn::Span::call_site(), ::zyn::Level::Note, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                }
+
+                macro_rules! help {
+                    ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            $span, ::zyn::Level::Help, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                    ($fmt:literal $(, $arg:expr)* $(,)?) => {
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            ::zyn::Span::call_site(), ::zyn::Level::Help, format!($fmt $(, $arg)*)
+                        ))
+                    };
+                }
+
+                macro_rules! bail {
+                    () => {
+                        if diagnostics.has_errors() {
+                            return diagnostics.emit();
+                        }
+                    };
+                    ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {{
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            $span, ::zyn::Level::Error, format!($fmt $(, $arg)*)
+                        ));
+                        return diagnostics.emit();
+                    }};
+                    ($fmt:literal $(, $arg:expr)* $(,)?) => {{
+                        diagnostics.push(::zyn::Diagnostic::spanned(
+                            ::zyn::Span::call_site(), ::zyn::Level::Error, format!($fmt $(, $arg)*)
+                        ));
+                        return diagnostics.emit();
+                    }};
+                }
+
                 #(#extractor_bindings)*
                 #(#prop_bindings)*
-                #body
+                let __body = #body;
+                if diagnostics.has_errors() {
+                    return diagnostics.emit();
+                }
+                __body
             }
         }
 

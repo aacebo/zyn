@@ -61,10 +61,6 @@ name = "pipe"
 path = "tests/pipe/mod.rs"
 
 [[test]]
-name = "diagnostic"
-path = "tests/diagnostic/mod.rs"
-
-[[test]]
 name = "attribute"
 path = "tests/attribute/mod.rs"
 

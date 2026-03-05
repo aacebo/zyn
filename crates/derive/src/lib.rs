@@ -1,7 +1,6 @@
 mod attribute;
 mod element;
 mod pipe;
-mod prettify;
 
 use zyn_core::diagnostic::Diagnostic;
 use zyn_core::diagnostic::Level;
@@ -69,7 +68,7 @@ fn expand_debug(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     match mode.as_str() {
         "raw" => {
             let expanded = element.to_token_stream();
-            let pretty = prettify::prettify_raw(&expanded);
+            let pretty = zyn_core::debug::raw(&expanded);
 
             let _ = Diagnostic::spanned(
                 proc_macro2::Span::call_site(),
@@ -81,7 +80,7 @@ fn expand_debug(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             expanded
         }
         "ast" => {
-            let ast_str = prettify::prettify_ast(&element);
+            let ast_str = zyn_core::debug::ast(&element);
 
             let _ = Diagnostic::spanned(
                 proc_macro2::Span::call_site(),
@@ -98,7 +97,7 @@ fn expand_debug(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             quote! {
                 {
                     let __zyn_expand_result = #expanded;
-                    ::zyn::debug::print_pretty(&__zyn_expand_result);
+                    ::zyn::debug::print(&__zyn_expand_result);
                     __zyn_expand_result
                 }
             }

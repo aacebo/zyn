@@ -1,22 +1,12 @@
-mod diag_child_node;
 mod element_node;
 mod for_node;
-mod help_node;
 mod if_node;
 mod match_node;
-mod note_node;
-mod throw_node;
-mod warn_node;
 
-pub use diag_child_node::DiagChildNode;
 pub use element_node::ElementNode;
 pub use for_node::ForNode;
-pub use help_node::HelpNode;
 pub use if_node::IfNode;
 pub use match_node::MatchNode;
-pub use note_node::NoteNode;
-pub use throw_node::ThrowNode;
-pub use warn_node::WarnNode;
 
 use proc_macro2::Ident;
 use proc_macro2::Span;
@@ -33,10 +23,6 @@ pub enum AtNode {
     If(IfNode),
     For(ForNode),
     Match(MatchNode),
-    Throw(ThrowNode),
-    Warn(WarnNode),
-    Note(NoteNode),
-    Help(HelpNode),
     Element(ElementNode),
 }
 
@@ -51,22 +37,6 @@ impl AtNode {
 
     pub fn is_match(&self) -> bool {
         matches!(self, Self::Match(_))
-    }
-
-    pub fn is_throw(&self) -> bool {
-        matches!(self, Self::Throw(_))
-    }
-
-    pub fn is_warn(&self) -> bool {
-        matches!(self, Self::Warn(_))
-    }
-
-    pub fn is_note(&self) -> bool {
-        matches!(self, Self::Note(_))
-    }
-
-    pub fn is_help(&self) -> bool {
-        matches!(self, Self::Help(_))
     }
 
     pub fn is_element(&self) -> bool {
@@ -96,34 +66,6 @@ impl AtNode {
         }
     }
 
-    pub fn as_throw(&self) -> &ThrowNode {
-        match self {
-            Self::Throw(v) => v,
-            _ => panic!("called as_throw on non-Throw node"),
-        }
-    }
-
-    pub fn as_warn(&self) -> &WarnNode {
-        match self {
-            Self::Warn(v) => v,
-            _ => panic!("called as_warn on non-Warn node"),
-        }
-    }
-
-    pub fn as_note(&self) -> &NoteNode {
-        match self {
-            Self::Note(v) => v,
-            _ => panic!("called as_note on non-Note node"),
-        }
-    }
-
-    pub fn as_help(&self) -> &HelpNode {
-        match self {
-            Self::Help(v) => v,
-            _ => panic!("called as_help on non-Help node"),
-        }
-    }
-
     pub fn as_element(&self) -> &ElementNode {
         match self {
             Self::Element(v) => v,
@@ -138,10 +80,6 @@ impl AtNode {
             Self::If(v) => v.span(),
             Self::For(v) => v.span(),
             Self::Match(v) => v.span(),
-            Self::Throw(v) => v.span(),
-            Self::Warn(v) => v.span(),
-            Self::Note(v) => v.span(),
-            Self::Help(v) => v.span(),
             Self::Element(v) => v.span(),
         }
     }
@@ -165,30 +103,6 @@ impl From<MatchNode> for AtNode {
     }
 }
 
-impl From<ThrowNode> for AtNode {
-    fn from(v: ThrowNode) -> Self {
-        Self::Throw(v)
-    }
-}
-
-impl From<WarnNode> for AtNode {
-    fn from(v: WarnNode) -> Self {
-        Self::Warn(v)
-    }
-}
-
-impl From<NoteNode> for AtNode {
-    fn from(v: NoteNode) -> Self {
-        Self::Note(v)
-    }
-}
-
-impl From<HelpNode> for AtNode {
-    fn from(v: HelpNode) -> Self {
-        Self::Help(v)
-    }
-}
-
 impl From<ElementNode> for AtNode {
     fn from(v: ElementNode) -> Self {
         Self::Element(v)
@@ -201,10 +115,6 @@ impl Expand for AtNode {
             Self::If(v) => v.expand(output, idents),
             Self::For(v) => v.expand(output, idents),
             Self::Match(v) => v.expand(output, idents),
-            Self::Throw(v) => v.expand(output, idents),
-            Self::Warn(v) => v.expand(output, idents),
-            Self::Note(v) => v.expand(output, idents),
-            Self::Help(v) => v.expand(output, idents),
             Self::Element(v) => v.expand(output, idents),
         }
     }
@@ -229,26 +139,6 @@ impl Parse for AtNode {
             }
             "match" => {
                 let mut v = input.parse::<MatchNode>()?;
-                v.span = at_span;
-                Ok(v.into())
-            }
-            "throw" => {
-                let mut v = input.parse::<ThrowNode>()?;
-                v.span = at_span;
-                Ok(v.into())
-            }
-            "warn" => {
-                let mut v = input.parse::<WarnNode>()?;
-                v.span = at_span;
-                Ok(v.into())
-            }
-            "note" => {
-                let mut v = input.parse::<NoteNode>()?;
-                v.span = at_span;
-                Ok(v.into())
-            }
-            "help" => {
-                let mut v = input.parse::<HelpNode>()?;
                 v.span = at_span;
                 Ok(v.into())
             }

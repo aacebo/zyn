@@ -5,3 +5,5 @@ mod display;
 mod emit;
 mod iterator;
 mod levels;
+mod macros;
+mod syntax;

@@ -13,8 +13,8 @@
     "zyn-directives": {
       "patterns": [
         {
-          "comment": "@if, @else, @for, @match, @throw, @warn, @note, @help keywords",
-          "match": "(@)(if|else|for|match|throw|warn|note|help)\\b",
+          "comment": "@if, @else, @for, @match keywords",
+          "match": "(@)(if|else|for|match)\\b",
           "captures": {
             "1": { "name": "keyword.operator.directive.zyn" },
             "2": { "name": "keyword.control.directive.zyn" }

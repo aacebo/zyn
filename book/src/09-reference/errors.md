@@ -9,8 +9,6 @@ Parse errors produced during `zyn!(...)` expansion.
 | `{{ }}` (empty interpolation) | `"empty interpolation"` |
 | `@else` not preceded by `@if` | `"unexpected @else without @if"` |
 | `@for (x foo ...)` — wrong keyword between binding and iter | `"expected 'in'"` |
-| `@throw` / `@warn` / `@note` / `@help` without a string literal | `"expected string literal"` |
-| Invalid directive inside `@throw { }` / `@warn { }` body | `"expected 'note' or 'help', found '...'"` |
 | `@element(prop value)` — missing `=` in prop | syn parse error |
 | Unrecognized token where expression expected | syn parse error |
 
@@ -33,6 +31,6 @@ Parse errors produced during `zyn!(...)` expansion.
 
 All errors are collected and returned together as a single `Diagnostics` value.
 
-## Diagnostic Directives
+## Diagnostic Macros
 
-`@throw` emits a hard compile error via `compile_error!` (or natively via `proc_macro::Diagnostic` on nightly). `@warn`, `@note`, and `@help` emit non-fatal diagnostics that do not halt compilation. All four accept an optional `{ @note "..." @help "..." }` body (where applicable) to attach child diagnostics.
+`#[element]` generates local `error!`, `warn!`, `note!`, `help!`, and `bail!` macros that push diagnostics to the element's `diagnostics` accumulator. `bail!` returns early if errors exist. All accept `format!`-style arguments and an optional `; span = expr` suffix. These macros are only available inside `#[element]` bodies.

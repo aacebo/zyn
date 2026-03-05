@@ -1,21 +1,19 @@
 # Diagnostics
 
-Elements handle all diagnostics through **template syntax** — `@throw`, `@warn`, `@note`, and `@help` directives. Elements always return `zyn::TokenStream` and are infallible; any errors or warnings are expressed inline in the template.
+Elements handle diagnostics through the `error!`, `warn!`, `note!`, `help!`, and `bail!` macros. The `#[element]` attribute introduces a `diagnostics` accumulator automatically — macros push to it and `bail!` returns early if errors exist.
 
 ## Compile Errors
 
-Use `@throw` inside an element to halt compilation with an error:
+Use `error!` to push an error, and `bail!` to return early:
 
-```rust,zyn
+```rust
 #[zyn::element]
 fn validated(name: syn::Ident) -> zyn::TokenStream {
-    zyn::zyn! {
-        @if (name.to_string() == "forbidden") {
-            @throw "reserved identifier"
-        } @else {
-            fn {{ name }}() {}
-        }
+    if name.to_string() == "forbidden" {
+        bail!("reserved identifier"; span = name.span());
     }
+
+    zyn::zyn! { fn {{ name }}() {} }
 }
 ```
 
@@ -29,21 +27,19 @@ error: reserved identifier
 
 ## Errors with Notes and Help
 
-Attach notes and help suggestions using a body block:
+Accumulate multiple diagnostics before returning:
 
-```rust,zyn
+```rust
 #[zyn::element]
 fn validated(name: syn::Ident) -> zyn::TokenStream {
-    zyn::zyn! {
-        @if (name.to_string() == "forbidden") {
-            @throw "reserved identifier" {
-                @note "this name is reserved by the compiler"
-                @help "try a different name like `my_handler`"
-            }
-        } @else {
-            fn {{ name }}() {}
-        }
+    if name.to_string() == "forbidden" {
+        error!("reserved identifier"; span = name.span());
+        note!("this name is reserved by the compiler");
+        help!("try a different name like `my_handler`");
     }
+    bail!();
+
+    zyn::zyn! { fn {{ name }}() {} }
 }
 ```
 
@@ -59,38 +55,52 @@ help: try a different name like `my_handler`
 
 ## Warnings
 
-Use `@warn` to emit a non-fatal warning:
+Use `warn!` to emit a non-fatal warning. Does not halt compilation:
 
-```rust,zyn
+```rust
 #[zyn::element]
 fn legacy(name: syn::Ident) -> zyn::TokenStream {
-    zyn::zyn! {
-        @warn "deprecated, use `new_elem` instead" {
-            @help "replace `@legacy` with `@new_elem`"
-        }
-        fn {{ name }}() {}
-    }
+    warn!("deprecated, use `new_elem` instead");
+    help!("replace `@legacy` with `@new_elem`");
+
+    zyn::zyn! { fn {{ name }}() {} }
 }
 ```
 
-```bash
-warning: deprecated, use `new_elem` instead
-help: replace `@legacy` with `@new_elem`
-  --> src/lib.rs:5:5
-   |
- 5 |     @legacy(name = my_fn)
-   |     ^^^^^^^^^^^^^^^^^^^^^
+## Format String Interpolation
+
+All macros accept `format!`-style arguments:
+
+```rust
+error!("field `{}` is required", name);
+warn!("type `{}` is deprecated", ty);
 ```
 
-`@warn` does not halt compilation — the rest of the template continues to expand normally.
+## Custom Spans
 
-## Standalone Notes and Help
+Override the default span with `; span = expr`:
 
-`@note` and `@help` can appear standalone as informational diagnostics:
+```rust
+error!("invalid field"; span = field.span());
+```
 
-```rust,zyn
-zyn! {
-    @note "this field is deprecated"
-    @help "consider using `new_field` instead"
+## Accessing the Accumulator Directly
+
+The `diagnostics` variable is a `zyn::Diagnostics` and can be used directly:
+
+```rust
+#[zyn::element]
+fn my_element(#[zyn(input)] fields: zyn::Fields<syn::Field>) -> zyn::TokenStream {
+    for field in fields.iter() {
+        if field.ident.is_none() {
+            error!("all fields must be named"; span = field.span());
+        }
+    }
+
+    if diagnostics.has_errors() {
+        return diagnostics.emit();
+    }
+
+    zyn::zyn! { struct Validated; }
 }
 ```
