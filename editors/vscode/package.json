@@ -2,7 +2,7 @@
   "name": "zyn",
   "displayName": "zyn",
   "description": "Syntax highlighting for zyn template macros in Rust",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "aacebo",
   "license": "MIT",
   "repository": {
