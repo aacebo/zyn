@@ -2,40 +2,53 @@ pub use proc_macro2_diagnostics::Diagnostic;
 pub use proc_macro2_diagnostics::Level;
 pub use proc_macro2_diagnostics::SpanDiagnosticExt;
 
+/// A specialized [`Result`](std::result::Result) type for zyn diagnostics.
 pub type Result<T> = std::result::Result<T, Diagnostics>;
 
+/// An accumulator for compiler diagnostics (errors, warnings, notes, help messages).
+///
+/// Collects [`Diagnostic`] values during macro expansion and emits them as
+/// compiler messages via [`emit`](Self::emit).
 #[derive(Debug)]
 pub struct Diagnostics(Vec<Diagnostic>);
 
 impl Diagnostics {
+    /// Creates an empty diagnostics accumulator.
     pub fn new() -> Self {
         Self(Vec::new())
     }
 
+    /// Creates a diagnostics accumulator containing a single error.
     pub fn error(span: proc_macro2::Span, msg: impl Into<String>) -> Self {
         Self(vec![Diagnostic::spanned(span, Level::Error, msg.into())])
     }
 
+    /// Pushes a single diagnostic.
     pub fn push(&mut self, diag: Diagnostic) {
         self.0.push(diag);
     }
 
+    /// Appends all diagnostics from `other` into this accumulator.
     pub fn extend(&mut self, other: Diagnostics) {
         self.0.extend(other.0);
     }
 
+    /// Returns `true` if no diagnostics have been accumulated.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    /// Returns the number of accumulated diagnostics.
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    /// Returns `true` if any accumulated diagnostic is an error.
     pub fn has_errors(&self) -> bool {
         self.0.iter().any(|d| d.level() == Level::Error)
     }
 
+    /// Returns the highest severity level among accumulated diagnostics.
     pub fn max_level(&self) -> Option<Level> {
         self.0
             .iter()
@@ -43,10 +56,12 @@ impl Diagnostics {
             .max_by_key(|l| Self::level_ord(*l))
     }
 
+    /// Returns an iterator over the accumulated diagnostics.
     pub fn iter(&self) -> impl Iterator<Item = &Diagnostic> {
         self.0.iter()
     }
 
+    /// Consumes the accumulator and emits all diagnostics as compiler messages.
     pub fn emit(self) -> proc_macro2::TokenStream {
         let mut tokens = proc_macro2::TokenStream::new();
 
@@ -123,6 +138,7 @@ impl<'a> IntoIterator for &'a Diagnostics {
     }
 }
 
+/// Conversion trait for types that can be turned into [`Diagnostics`].
 pub trait ToDiagnostics {
     fn to_diagnostics(self) -> Diagnostics;
 }

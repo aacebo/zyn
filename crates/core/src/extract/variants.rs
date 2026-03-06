@@ -19,6 +19,7 @@ use super::FromInput;
 pub struct Variants(Vec<syn::Variant>);
 
 impl Variants {
+    /// Consumes the wrapper and returns the inner `Vec<syn::Variant>`.
     pub fn inner(self) -> Vec<syn::Variant> {
         self.0
     }

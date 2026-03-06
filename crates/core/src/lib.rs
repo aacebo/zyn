@@ -1,14 +1,27 @@
+//! Core library for zyn — AST, traits, types, and utilities for procedural macro development.
+
+/// Template AST node types.
 pub mod ast;
+/// Case conversion utilities.
 pub mod case;
+/// Debug formatting and printing for template expansions.
 pub mod debug;
+/// Diagnostic accumulation and emission.
 pub mod diagnostic;
+/// Extractors for resolving values from proc macro input.
 pub mod extract;
+/// Internal identifier generation for template expansion.
 pub mod ident;
+/// Attribute argument parsing types.
 pub mod meta;
+/// Built-in pipe types for template value transforms.
 pub mod pipes;
+/// Template parsing and expansion.
 pub mod template;
+/// Proc macro input types.
 pub mod types;
 
+/// Extension traits for `syn::Attribute` parsing.
 #[cfg(feature = "ext")]
 pub mod ext;
 
@@ -18,6 +31,7 @@ pub use meta::*;
 pub use template::Template;
 pub use types::Input;
 
+/// A specialized [`Result`](std::result::Result) type for zyn diagnostics.
 pub type Result<T> = diagnostic::Result<T>;
 
 /// Parses tokens or string literals into a type. Wraps `syn::parse_str` and `syn::parse2`.

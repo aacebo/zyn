@@ -11,6 +11,10 @@ use syn::parse::ParseStream;
 
 use super::Args;
 
+/// A single parsed attribute argument.
+///
+/// Represents one of four forms: a bare flag (`skip`), a key-value expression
+/// (`rename = "foo"`), a nested list (`serde(flatten)`), or a standalone literal (`"hello"`).
 #[derive(Clone)]
 pub enum Arg {
     Flag(Ident),
@@ -20,6 +24,7 @@ pub enum Arg {
 }
 
 impl Arg {
+    /// Returns the name of this argument, or `None` for standalone literals.
     pub fn name(&self) -> Option<&Ident> {
         match self {
             Self::Flag(name) => Some(name),
@@ -29,22 +34,27 @@ impl Arg {
         }
     }
 
+    /// Returns `true` if this is a bare flag (e.g. `skip`).
     pub fn is_flag(&self) -> bool {
         matches!(self, Self::Flag(_))
     }
 
+    /// Returns `true` if this is a key-value expression (e.g. `rename = "foo"`).
     pub fn is_expr(&self) -> bool {
         matches!(self, Self::Expr(_, _))
     }
 
+    /// Returns `true` if this is a nested list (e.g. `serde(flatten)`).
     pub fn is_list(&self) -> bool {
         matches!(self, Self::List(_, _))
     }
 
+    /// Returns `true` if this is a standalone literal.
     pub fn is_lit(&self) -> bool {
         matches!(self, Self::Lit(_))
     }
 
+    /// Returns the expression value. Panics if not an `Expr` variant.
     pub fn as_expr(&self) -> &Expr {
         match self {
             Self::Expr(_, expr) => expr,
@@ -52,6 +62,7 @@ impl Arg {
         }
     }
 
+    /// Returns the nested args. Panics if not a `List` variant.
     pub fn as_args(&self) -> &Args {
         match self {
             Self::List(_, args) => args,
@@ -59,6 +70,7 @@ impl Arg {
         }
     }
 
+    /// Returns the literal value. Panics if not a `Lit` variant.
     pub fn as_lit(&self) -> &Lit {
         match self {
             Self::Lit(lit) => lit,
@@ -66,6 +78,7 @@ impl Arg {
         }
     }
 
+    /// Returns the flag identifier. Panics if not a `Flag` variant.
     pub fn as_flag(&self) -> &Ident {
         match self {
             Self::Flag(i) => i,
@@ -73,6 +86,7 @@ impl Arg {
         }
     }
 
+    /// Extracts the string value. Panics if the value is not a string literal.
     pub fn as_str(&self) -> String {
         match self {
             Self::Lit(Lit::Str(s)) => s.value(),
@@ -86,6 +100,7 @@ impl Arg {
         }
     }
 
+    /// Parses the integer value. Panics if the value is not an integer literal.
     pub fn as_int<T: std::str::FromStr>(&self) -> T
     where
         T::Err: std::fmt::Display,
@@ -102,6 +117,7 @@ impl Arg {
         }
     }
 
+    /// Parses the float value. Panics if the value is not a float literal.
     pub fn as_float<T: std::str::FromStr>(&self) -> T
     where
         T::Err: std::fmt::Display,
@@ -118,6 +134,7 @@ impl Arg {
         }
     }
 
+    /// Extracts the char value. Panics if the value is not a char literal.
     pub fn as_char(&self) -> char {
         match self {
             Self::Lit(Lit::Char(c)) => c.value(),
@@ -131,6 +148,7 @@ impl Arg {
         }
     }
 
+    /// Returns the literal if this is a `Lit` or an `Expr` containing a literal.
     pub fn as_expr_lit(&self) -> Option<&Lit> {
         match self {
             Self::Lit(lit) => Some(lit),
@@ -139,6 +157,7 @@ impl Arg {
         }
     }
 
+    /// Extracts the bool value. Panics if the value is not a bool literal.
     pub fn as_bool(&self) -> bool {
         match self {
             Self::Lit(Lit::Bool(b)) => b.value,

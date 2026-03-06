@@ -24,6 +24,7 @@ pub struct Template {
 }
 
 impl Template {
+    /// Returns the source span of the first node, or `Span::call_site()` if empty.
     pub fn span(&self) -> Span {
         self.nodes
             .first()

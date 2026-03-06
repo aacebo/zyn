@@ -65,6 +65,7 @@ impl FromData for syn::DataUnion {
 pub struct Data<T: FromData = syn::Data>(T);
 
 impl<T: FromData> Data<T> {
+    /// Consumes the wrapper and returns the inner value.
     pub fn inner(self) -> T {
         self.0
     }

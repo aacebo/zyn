@@ -59,6 +59,7 @@ impl FromFields for syn::FieldsUnnamed {
 pub struct Fields<T: FromFields = syn::Fields>(T);
 
 impl<T: FromFields> Fields<T> {
+    /// Consumes the wrapper and returns the inner value.
     pub fn inner(self) -> T {
         self.0
     }

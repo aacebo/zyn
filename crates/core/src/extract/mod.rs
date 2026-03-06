@@ -34,6 +34,7 @@ pub trait FromInput: Sized {
 pub struct Extract<T: FromInput>(T);
 
 impl<T: FromInput> Extract<T> {
+    /// Consumes the wrapper and returns the inner value.
     pub fn inner(self) -> T {
         self.0
     }

@@ -18,6 +18,7 @@ use super::FromInput;
 pub struct Attr<T: FromInput>(T);
 
 impl<T: FromInput> Attr<T> {
+    /// Consumes the wrapper and returns the inner value.
     pub fn inner(self) -> T {
         self.0
     }

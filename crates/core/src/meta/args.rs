@@ -9,46 +9,59 @@ use syn::parse::ParseStream;
 
 use super::Arg;
 
+/// A parsed list of attribute arguments.
+///
+/// Represents the comma-separated contents inside an attribute
+/// (e.g. the `skip, rename = "foo"` in `#[my_attr(skip, rename = "foo")]`).
 #[derive(Clone, Default)]
 pub struct Args(Vec<Arg>);
 
 impl Args {
+    /// Creates an empty argument list.
     pub fn new() -> Self {
         Self(Vec::new())
     }
 
+    /// Returns `true` if an argument with the given name exists.
     pub fn has(&self, name: &str) -> bool {
         self.0
             .iter()
             .any(|arg| arg.name().is_some_and(|n| n == name))
     }
 
+    /// Returns the first argument with the given name.
     pub fn get(&self, name: &str) -> Option<&Arg> {
         self.0
             .iter()
             .find(|arg| arg.name().is_some_and(|n| n == name))
     }
 
+    /// Returns the argument at the given position.
     pub fn get_index(&self, index: usize) -> Option<&Arg> {
         self.0.get(index)
     }
 
+    /// Returns an iterator over the arguments.
     pub fn iter(&self) -> impl Iterator<Item = &Arg> {
         self.0.iter()
     }
 
+    /// Returns the number of arguments.
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    /// Returns `true` if there are no arguments.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    /// Appends all arguments from `other`, keeping duplicates.
     pub fn extend(&mut self, other: Args) {
         self.0.extend(other.0);
     }
 
+    /// Merges two argument lists, with `other` taking precedence on name conflicts.
     pub fn merge(&self, other: &Args) -> Args {
         let mut result: Vec<Arg> = Vec::new();
 

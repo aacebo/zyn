@@ -2,8 +2,11 @@ use syn::Attribute;
 
 use crate::meta::Args;
 
+/// Extension methods for a single `syn::Attribute`.
 pub trait AttrExt {
+    /// Returns `true` if the attribute's path matches the given name.
     fn is(&self, name: &str) -> bool;
+    /// Parses the attribute's arguments into an [`Args`] list.
     fn args(&self) -> syn::Result<Args>;
 }
 
@@ -17,10 +20,15 @@ impl AttrExt for Attribute {
     }
 }
 
+/// Extension methods for a slice of `syn::Attribute`.
 pub trait AttrsExt {
+    /// Returns the first attribute matching the given name.
     fn find_attr(&self, name: &str) -> Option<&Attribute>;
+    /// Parses the arguments of the first attribute matching the given name.
     fn find_args(&self, name: &str) -> syn::Result<Option<Args>>;
+    /// Returns `true` if any attribute matches the given name.
     fn has_attr(&self, name: &str) -> bool;
+    /// Merges arguments from all attributes matching the given name.
     fn merge_args(&self, name: &str) -> syn::Result<Args>;
 }
 

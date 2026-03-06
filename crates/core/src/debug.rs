@@ -2,6 +2,7 @@ use proc_macro2::TokenStream;
 
 use crate::ast;
 
+/// Returns the raw expansion code with internal names cleaned up.
 pub fn raw(tokens: &TokenStream) -> String {
     let raw = tokens.to_string();
     let cleaned = raw
@@ -32,6 +33,7 @@ pub fn raw(tokens: &TokenStream) -> String {
     fmt(&cleaned)
 }
 
+/// Returns a human-readable representation of the template AST.
 pub fn ast(element: &crate::template::Template) -> String {
     let mut lines = Vec::new();
     lines.push("Template [".to_string());
@@ -63,11 +65,13 @@ pub fn ast(element: &crate::template::Template) -> String {
     lines.join("\n")
 }
 
+/// Pretty-prints the generated token stream to stderr.
 pub fn print(tokens: &TokenStream) {
     let formatted = fmt(&tokens.to_string());
     eprintln!("zyn::debug! ─── pretty\n{}", formatted);
 }
 
+/// Formats a token string with indentation and line breaks.
 pub fn fmt(input: &str) -> String {
     let mut result = String::new();
     let mut depth: usize = 0;

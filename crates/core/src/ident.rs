@@ -1,6 +1,7 @@
 use proc_macro2::Ident;
 use proc_macro2::Span;
 
+/// An iterator that yields unique internal identifiers for template expansion.
 pub struct Iter {
     counter: usize,
 }

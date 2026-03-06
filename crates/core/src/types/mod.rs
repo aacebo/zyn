@@ -11,16 +11,19 @@ pub enum Input {
 }
 
 impl Input {
+    /// Returns `true` if the input is a derive macro input.
     pub fn is_derive(&self) -> bool {
         matches!(self, Self::Derive(_))
     }
 
+    /// Returns `true` if the input is an attribute macro item.
     pub fn is_item(&self) -> bool {
         matches!(self, Self::Item(_))
     }
 }
 
 impl Input {
+    /// Returns the inner `DeriveInput` if this is a derive input.
     pub fn as_derive(&self) -> Option<&syn::DeriveInput> {
         match self {
             Self::Derive(d) => Some(d),
@@ -28,6 +31,7 @@ impl Input {
         }
     }
 
+    /// Returns the inner `Item` if this is an attribute macro item.
     pub fn as_item(&self) -> Option<&syn::Item> {
         match self {
             Self::Item(i) => Some(i),
@@ -37,6 +41,7 @@ impl Input {
 }
 
 impl Input {
+    /// Returns the attributes on the input item.
     pub fn attrs(&self) -> &[syn::Attribute] {
         match self {
             Self::Derive(d) => &d.attrs,
@@ -44,6 +49,7 @@ impl Input {
         }
     }
 
+    /// Returns the identifier of the input item.
     pub fn ident(&self) -> &syn::Ident {
         match self {
             Self::Derive(d) => &d.ident,
@@ -51,6 +57,7 @@ impl Input {
         }
     }
 
+    /// Returns the generics of the input item.
     pub fn generics(&self) -> &syn::Generics {
         match self {
             Self::Derive(d) => &d.generics,
@@ -58,6 +65,7 @@ impl Input {
         }
     }
 
+    /// Returns the visibility of the input item.
     pub fn vis(&self) -> &syn::Visibility {
         match self {
             Self::Derive(d) => &d.vis,

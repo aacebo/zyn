@@ -136,6 +136,9 @@ impl Pipe for Fmt {
     }
 }
 
+/// Converts the input to a string literal.
+///
+/// Template usage: `{{ name | str }}`
 pub struct Str;
 
 impl Pipe for Str {
@@ -147,6 +150,9 @@ impl Pipe for Str {
     }
 }
 
+/// Trims characters from the start and end of the input.
+///
+/// Template usage: `{{ name | trim:"_" }}`
 pub struct Trim(pub &'static str, pub &'static str);
 
 impl Pipe for Trim {
@@ -161,6 +167,9 @@ impl Pipe for Trim {
     }
 }
 
+/// Converts the input to its plural form.
+///
+/// Template usage: `{{ name | plural }}`
 pub struct Plural;
 
 impl Pipe for Plural {
@@ -190,6 +199,9 @@ impl Pipe for Plural {
     }
 }
 
+/// Converts the input to its singular form.
+///
+/// Template usage: `{{ name | singular }}`
 pub struct Singular;
 
 impl Pipe for Singular {
