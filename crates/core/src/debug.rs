@@ -65,7 +65,7 @@ pub fn ast(element: &crate::template::Template) -> String {
 
 pub fn print(tokens: &TokenStream) {
     let formatted = fmt(&tokens.to_string());
-    eprintln!("zyn::expand! ─── pretty\n{}", formatted);
+    eprintln!("zyn::debug! ─── pretty\n{}", formatted);
 }
 
 pub fn fmt(input: &str) -> String {

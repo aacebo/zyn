@@ -1,6 +1,6 @@
 mod combined;
 mod control_flow;
-mod expand;
+mod debug;
 mod groups;
 mod interpolation;
 mod interpolation_advanced;
