@@ -47,6 +47,24 @@ zyn-derive = { workspace = true, optional = true }
 
 [dev-dependencies]
 zyn-core = { workspace = true }
+criterion = { version = "0.5", features = ["html_reports"] }
+darling = "0.23"
+heck = "0.5"
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+
+[[bench]]
+name = "expand"
+harness = false
+
+[[bench]]
+name = "attr"
+harness = false
+
+[[bench]]
+name = "case"
+harness = false
 
 [[test]]
 name = "zyn"

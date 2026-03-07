@@ -10,3 +10,8 @@ retry = 3
 
 [alias]
 lint = "clippy --workspace --all-features -- -D warnings"
+bench-expand = "bench --bench expand"
+bench-attr = "bench --bench attr"
+bench-case = "bench --bench case"
+bench-save = "bench -- --save-baseline main"
+bench-cmp = "bench -- --baseline main"
