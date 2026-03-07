@@ -2,8 +2,6 @@
 
 [Benchmarks](./BENCH.md)
 
-[![Benchmarks](https://img.shields.io/badge/benchmarks-bencher.dev-blue)](https://bencher.dev/perf/<your-project-slug-or-id>)
-
 I kept rebuilding the same proc macro scaffolding across my own crates — `syn` for parsing, `quote` for codegen, `heck` for case conversion, `proc-macro-error` for diagnostics, hand-rolled attribute parsing, and a pile of helper functions returning `TokenStream`. Every project was the same patchwork. zyn started as a way to stop repeating myself, and turned into a framework that replaces all of it with a single crate.
 
 <a href="https://aacebo.github.io/zyn" target="_blank">
