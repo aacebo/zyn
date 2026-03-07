@@ -41,9 +41,11 @@ fn extract_group(c: &mut Criterion) {
             let syn::Data::Struct(ref s) = black_box(&derive).data else {
                 panic!()
             };
+
             let syn::Fields::Named(ref n) = s.fields else {
                 panic!()
             };
+
             black_box(n.clone())
         })
     });
@@ -76,6 +78,7 @@ fn codegen_group(c: &mut Criterion) {
                 let ty = &f.ty;
                 quote! { pub fn #getter(&self) -> &#ty { &self.#fname } }
             });
+
             black_box(quote! { impl UserRecord { #(#methods)* } })
         })
     });
@@ -88,6 +91,7 @@ fn codegen_group(c: &mut Criterion) {
                 let ty = &f.ty;
                 quote! { pub fn #getter(&self) -> &#ty { &self.#fname } }
             });
+
             black_box(quote! { impl UserRecord { #(#methods)* } })
         })
     });
@@ -106,15 +110,18 @@ fn full_group(c: &mut Criterion) {
             let syn::Data::Struct(ref data) = derive.data else {
                 panic!()
             };
+
             let syn::Fields::Named(ref named) = data.fields else {
                 panic!()
             };
+
             let methods = named.named.iter().map(|f| {
                 let fname = f.ident.as_ref().unwrap();
                 let getter = format_ident!("get_{}", fname);
                 let ty = &f.ty;
                 quote! { pub fn #getter(&self) -> &#ty { &self.#fname } }
             });
+
             black_box(quote! { impl #name { #(#methods)* } })
         })
     });
@@ -130,6 +137,7 @@ fn full_group(c: &mut Criterion) {
                 let ty = &f.ty;
                 quote! { pub fn #getter(&self) -> &#ty { &self.#fname } }
             });
+
             black_box(quote! { impl #name { #(#methods)* } })
         })
     });

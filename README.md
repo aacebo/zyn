@@ -219,6 +219,15 @@ fn builder(
 - Case conversion functions available outside templates (`zyn::case::to_snake()`, etc.)
 - Re-exports `syn`, `quote`, and `proc-macro2` — one dependency in your `Cargo.toml`
 
+## Benchmarks
+
+zyn is benchmarked against `darling` for attribute parsing, vanilla `syn + quote` for
+macro expansion, and `heck` for case conversion. Attribute extraction is faster than
+darling and faster than the raw `syn::parse2` baseline. The full derive pipeline adds
+~660 ns of overhead over vanilla on a 5-field struct — entirely at compile time.
+
+Full results, methodology, and charts: [`benches/RESULTS.md`](benches/RESULTS.md)
+
 ## Links
 
 - GitHub: https://github.com/aacebo/zyn

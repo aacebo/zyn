@@ -27,6 +27,7 @@ fn attr_benchmarks(c: &mut Criterion) {
             pub first_name: String,
         }
     };
+
     let ast: syn::DeriveInput = syn::parse2(ts.clone()).unwrap();
     let input: zyn_core::Input = syn::parse2(ts.clone()).unwrap();
     let mut group = c.benchmark_group("attr");
