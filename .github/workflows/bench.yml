@@ -5,8 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
-  deployments: write
+  checks: write
 
 jobs:
   bench:
@@ -14,14 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
+      - uses: bencherdev/bencher@main
 
       - name: Run benchmarks
-        run: cargo bench -p zyn 2>&1 | tee benchmarks.txt
-
-      - name: Store results
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: cargo
-          output-file-path: benchmarks.txt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
+        run: |
+          bencher run \
+          --project zyn \
+          --token '${{ secrets.BENCHER_API_TOKEN }}' \
+          --branch main \
+          --testbed ubuntu-latest \
+          --adapter rust_bench \
+          cargo bench -p zyn
