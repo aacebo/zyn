@@ -16,7 +16,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
 
       - name: Run benchmarks
-        run: cargo bench --workspace -- --output-format bencher | tee benchmarks.txt
+        run: cargo bench -p zyn -- --output-format bencher | tee benchmarks.txt
 
       - name: Store results
         uses: benchmark-action/github-action-benchmark@v1
