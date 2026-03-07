@@ -30,7 +30,123 @@ mod attribute;
 mod common;
 mod macros;
 
-/// Expands a zyn template into a `TokenStream`.
+/// Expands a zyn template into a [`proc_macro2::TokenStream`].
+///
+/// Everything outside `{{ }}` and `@` directives passes through as literal tokens.
+///
+/// # Interpolation
+///
+/// `{{ expr }}` inserts any [`quote::ToTokens`] value:
+///
+/// ```ignore
+/// let name = format_ident!("my_fn");
+/// zyn! { fn {{ name }}() {} }
+/// // output: fn my_fn() {}
+/// ```
+///
+/// # Pipes
+///
+/// `{{ expr | pipe }}` transforms the value before inserting it. Pipes chain left to right:
+///
+/// ```ignore
+/// zyn! { fn {{ name | snake }}() {} }
+/// // name = "HelloWorld" → fn hello_world() {}
+///
+/// zyn! { fn {{ name | snake | ident:"get_{}" }}() {} }
+/// // name = "HelloWorld" → fn get_hello_world() {}
+/// ```
+///
+/// Built-in pipes:
+///
+/// | Pipe | Input | Output |
+/// |------|-------|--------|
+/// | `snake` | `HelloWorld` | `hello_world` |
+/// | `pascal` | `hello_world` | `HelloWorld` |
+/// | `camel` | `hello_world` | `helloWorld` |
+/// | `screaming` | `HelloWorld` | `HELLO_WORLD` |
+/// | `kebab` | `HelloWorld` | `"hello-world"` (string literal) |
+/// | `upper` | `hello` | `HELLO` |
+/// | `lower` | `HELLO` | `hello` |
+/// | `str` | `hello` | `"hello"` (string literal) |
+/// | `plural` | `user` | `users` |
+/// | `singular` | `users` | `user` |
+/// | `ident:"pattern_{}"` | `hello` | `pattern_hello` (ident) |
+/// | `fmt:"pattern_{}"` | `hello` | `"pattern_hello"` (string literal) |
+/// | `trim` | `__foo__` | `foo` |
+///
+/// # `@if`
+///
+/// ```ignore
+/// zyn! {
+///     @if (is_async) {
+///         async fn {{ name }}() {}
+///     } @else if (is_unsafe) {
+///         unsafe fn {{ name }}() {}
+///     } @else {
+///         fn {{ name }}() {}
+///     }
+/// }
+/// ```
+///
+/// Without `@else`, emits nothing when false:
+///
+/// ```ignore
+/// zyn! { @if (is_pub) { pub } fn {{ name }}() {} }
+/// // is_pub = true  → pub fn my_fn() {}
+/// // is_pub = false →     fn my_fn() {}
+/// ```
+///
+/// # `@for`
+///
+/// Iterator form:
+///
+/// ```ignore
+/// zyn! {
+///     @for (field in fields.iter()) {
+///         pub {{ field.ident }}: {{ field.ty }},
+///     }
+/// }
+/// // output: pub x: f64, pub y: f64,
+/// ```
+///
+/// Count form (no binding, repeats N times):
+///
+/// ```ignore
+/// zyn! { @for (3) { x, } }
+/// // output: x, x, x,
+/// ```
+///
+/// # `@match`
+///
+/// ```ignore
+/// zyn! {
+///     @match (kind) {
+///         Kind::Struct => { struct {{ name }} {} }
+///         Kind::Enum   => { enum {{ name }} {} }
+///         _            => {}
+///     }
+/// }
+/// ```
+///
+/// # Element invocation
+///
+/// Call a `#[zyn::element]` component with named props:
+///
+/// ```ignore
+/// zyn! {
+///     @for (field in fields.iter()) {
+///         @getter(name = field.ident.clone().unwrap(), ty = field.ty.clone())
+///     }
+/// }
+/// ```
+///
+/// With a children block:
+///
+/// ```ignore
+/// zyn! {
+///     @wrapper(title = "hello") { inner content }
+/// }
+/// ```
 #[proc_macro]
 pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     macros::template::expand(input.into()).into()

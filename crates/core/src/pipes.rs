@@ -19,6 +19,29 @@
 //! // name = "MyComponent" → const PATH: &str = "my-component";
 //! ```
 //!
+//! ## Built-in pipe reference
+//!
+//! All case pipes accept `String` input. Return type varies:
+//!
+//! | Pipe | Input | Output | Returns |
+//! |------|-------|--------|---------|
+//! | `snake` | `HelloWorld` | `hello_world` | `Ident` |
+//! | `pascal` | `hello_world` | `HelloWorld` | `Ident` |
+//! | `camel` | `hello_world` | `helloWorld` | `Ident` |
+//! | `screaming` | `HelloWorld` | `HELLO_WORLD` | `Ident` |
+//! | `kebab` | `HelloWorld` | `"hello-world"` | `LitStr` |
+//! | `upper` | `hello` | `HELLO` | `Ident` |
+//! | `lower` | `HELLO` | `hello` | `Ident` |
+//! | `str` | `hello` | `"hello"` | `LitStr` |
+//! | `plural` | `user` | `users` | `Ident` |
+//! | `singular` | `users` | `user` | `Ident` |
+//! | `ident:"pat_{}"` | `hello` | `pat_hello` | `Ident` |
+//! | `fmt:"pat_{}"` | `hello` | `"pat_hello"` | `LitStr` |
+//! | `trim` | `__foo__` | `foo` | `Ident` |
+//!
+//! `kebab`, `str`, and `fmt` return `LitStr` because their output may contain
+//! characters invalid in Rust identifiers.
+//!
 //! # Using pipes outside templates
 //!
 //! ```ignore
