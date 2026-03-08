@@ -4,6 +4,8 @@
 
 I kept rebuilding the same proc macro scaffolding across my own crates — `syn` for parsing, `quote` for codegen, `heck` for case conversion, `proc-macro-error` for diagnostics, hand-rolled attribute parsing, and a pile of helper functions returning `TokenStream`. Every project was the same patchwork. zyn started as a way to stop repeating myself, and turned into a framework that replaces all of it with a single crate.
 
+> ⚡ Everything in zyn is compile-time, type-safe, and zero-overhead — templates, pipes, extractors, and control flow all expand to the same `TokenStream`-building code you'd write by hand.
+
 <a href="https://aacebo.github.io/zyn" target="_blank">
     <img src="https://img.shields.io/badge/📖 Getting Started-blue?style=for-the-badge" />
 </a>
@@ -234,7 +236,7 @@ I'd appreciate any feedback — on the API design, the template syntax, the docs
 
 ## Performance
 
-The performance overhead of using zyn over vanilla `syn` + `quote` is negligible — single-digit microseconds in the full proc macro pipeline for both structs and enums. Where zyn replaces external crates, it's actually faster: case conversion is ~6x faster than `heck`, and attribute parsing is ~14% faster than `darling`.
+Benchmarks confirm the zero-overhead claim: the full pipeline (parse, extract, codegen) matches vanilla `syn` + `quote` for both structs and enums. Where zyn replaces external crates, it's faster — case conversion is ~6x faster than `heck`, and attribute parsing is ~14% faster than `darling`.
 
 [Live benchmark charts on bencher.dev](./BENCH.md)
 
