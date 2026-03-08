@@ -29,20 +29,35 @@
 /// Converts a string to PascalCase.
 ///
 /// Handles snake_case, camelCase, PascalCase, and SCREAMING_SNAKE_CASE inputs.
-/// First normalizes to snake_case to detect word boundaries, then capitalizes each word.
 pub fn to_pascal(s: &str) -> String {
-    let snake = to_snake(s);
-    let mut out = String::new();
+    let bytes = s.as_bytes();
+    let mut out = String::with_capacity(s.len());
     let mut capitalize = true;
 
-    for c in snake.chars() {
-        if c == '_' {
-            capitalize = true;
+    for i in 0..bytes.len() {
+        let c = bytes[i];
+
+        if c == b'_' {
+            if !out.is_empty() {
+                capitalize = true;
+            }
+        } else if c.is_ascii_uppercase() {
+            let prev_lower = i > 0 && bytes[i - 1].is_ascii_lowercase();
+            let next_lower = i + 1 < bytes.len() && bytes[i + 1].is_ascii_lowercase();
+            let prev_upper = i > 0 && bytes[i - 1].is_ascii_uppercase();
+
+            if capitalize || prev_lower || (next_lower && prev_upper) {
+                out.push(c as char);
+            } else {
+                out.push((c + 32) as char);
+            }
+
+            capitalize = false;
         } else if capitalize {
-            out.extend(c.to_uppercase());
+            out.push((c - 32) as char);
             capitalize = false;
         } else {
-            out.push(c);
+            out.push(c as char);
         }
     }
 
@@ -51,26 +66,28 @@ pub fn to_pascal(s: &str) -> String {
 
 /// Converts a string to snake_case.
 pub fn to_snake(s: &str) -> String {
-    let mut out = String::new();
-    let chars: Vec<char> = s.chars().collect();
+    let bytes = s.as_bytes();
+    let mut out = String::with_capacity(s.len() + 4);
 
-    for (i, &c) in chars.iter().enumerate() {
-        if c.is_uppercase() {
-            let prev_lower = i > 0 && chars[i - 1].is_lowercase();
-            let next_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-            let prev_upper = i > 0 && chars[i - 1].is_uppercase();
+    for i in 0..bytes.len() {
+        let c = bytes[i];
+
+        if c.is_ascii_uppercase() {
+            let prev_lower = i > 0 && bytes[i - 1].is_ascii_lowercase();
+            let next_lower = i + 1 < bytes.len() && bytes[i + 1].is_ascii_lowercase();
+            let prev_upper = i > 0 && bytes[i - 1].is_ascii_uppercase();
 
             if prev_lower || (next_lower && prev_upper) {
                 out.push('_');
             }
 
-            out.extend(c.to_lowercase());
-        } else if c == '_' {
+            out.push((c + 32) as char);
+        } else if c == b'_' {
             if !out.is_empty() && !out.ends_with('_') {
                 out.push('_');
             }
         } else {
-            out.push(c);
+            out.push(c as char);
         }
     }
 
@@ -79,23 +96,77 @@ pub fn to_snake(s: &str) -> String {
 
 /// Converts a string to camelCase.
 pub fn to_camel(s: &str) -> String {
-    let pascal = to_pascal(s);
-    let mut chars = pascal.chars();
+    let mut pascal = to_pascal(s);
 
-    match chars.next() {
-        None => String::new(),
-        Some(c) => c.to_lowercase().collect::<String>() + chars.as_str(),
+    if let Some(first) = pascal.as_bytes().first()
+        && first.is_ascii_uppercase()
+    {
+        unsafe {
+            pascal.as_bytes_mut()[0] = first + 32;
+        }
     }
+
+    pascal
 }
 
 /// Converts a string to SCREAMING_SNAKE_CASE.
 pub fn to_screaming(s: &str) -> String {
-    to_snake(s).to_uppercase()
+    let bytes = s.as_bytes();
+    let mut out = String::with_capacity(s.len() + 4);
+
+    for i in 0..bytes.len() {
+        let c = bytes[i];
+
+        if c.is_ascii_uppercase() {
+            let prev_lower = i > 0 && bytes[i - 1].is_ascii_lowercase();
+            let next_lower = i + 1 < bytes.len() && bytes[i + 1].is_ascii_lowercase();
+            let prev_upper = i > 0 && bytes[i - 1].is_ascii_uppercase();
+
+            if prev_lower || (next_lower && prev_upper) {
+                out.push('_');
+            }
+
+            out.push(c as char);
+        } else if c == b'_' {
+            if !out.is_empty() && !out.ends_with('_') {
+                out.push('_');
+            }
+        } else {
+            out.push((c - 32) as char);
+        }
+    }
+
+    out
 }
 
 /// Converts a string to kebab-case.
 pub fn to_kebab(s: &str) -> String {
-    to_snake(s).replace('_', "-")
+    let bytes = s.as_bytes();
+    let mut out = String::with_capacity(s.len() + 4);
+
+    for i in 0..bytes.len() {
+        let c = bytes[i];
+
+        if c.is_ascii_uppercase() {
+            let prev_lower = i > 0 && bytes[i - 1].is_ascii_lowercase();
+            let next_lower = i + 1 < bytes.len() && bytes[i + 1].is_ascii_lowercase();
+            let prev_upper = i > 0 && bytes[i - 1].is_ascii_uppercase();
+
+            if prev_lower || (next_lower && prev_upper) {
+                out.push('-');
+            }
+
+            out.push((c + 32) as char);
+        } else if c == b'_' {
+            if !out.is_empty() && !out.ends_with('-') {
+                out.push('-');
+            }
+        } else {
+            out.push(c as char);
+        }
+    }
+
+    out
 }
 
 /// Converts a string or ident to PascalCase.

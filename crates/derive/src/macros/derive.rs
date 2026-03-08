@@ -128,8 +128,9 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
     }
 
     let diagnostic_macros = crate::common::diagnostics::macros();
+    let input_expr = quote! { &::zyn::Input::from(input.clone()) };
     let extractor_bindings =
-        crate::common::extractors::bindings(&extractor_names, &extractor_types);
+        crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
     quote! {
         #derive_attr

@@ -86,22 +86,15 @@ impl Template {
             return;
         }
 
-        let span = pending
+        let stream = std::mem::take(pending);
+        let span = stream
             .clone()
             .into_iter()
             .next()
             .map(|tt| tt.span())
             .unwrap_or_else(Span::call_site);
 
-        nodes.push(
-            TokensNode {
-                span,
-                stream: pending.clone(),
-            }
-            .into(),
-        );
-
-        *pending = TokenStream::new();
+        nodes.push(TokensNode { span, stream }.into());
     }
 }
 

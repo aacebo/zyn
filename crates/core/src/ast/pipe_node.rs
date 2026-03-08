@@ -61,29 +61,32 @@ impl Parse for PipeNode {
     }
 }
 
-const BUILTIN_PIPES: &[&str] = &[
-    "upper",
-    "lower",
-    "snake",
-    "camel",
-    "pascal",
-    "kebab",
-    "screaming",
-    "ident",
-    "fmt",
-    "str",
-    "trim",
-    "plural",
-    "singular",
-];
+fn is_builtin(name: &str) -> bool {
+    matches!(
+        name,
+        "upper"
+            | "lower"
+            | "snake"
+            | "camel"
+            | "pascal"
+            | "kebab"
+            | "screaming"
+            | "ident"
+            | "fmt"
+            | "str"
+            | "trim"
+            | "plural"
+            | "singular"
+    )
+}
 
 impl Expand for PipeNode {
     fn expand(&self, _output: &Ident, _idents: &mut crate::ident::Iter) -> TokenStream {
         let pascal_name = pascal!(self.name => ident);
-        let is_builtin = BUILTIN_PIPES.contains(&self.name.to_string().as_str());
+        let name_str = self.name.to_string();
 
-        if is_builtin {
-            if self.name == "trim" {
+        if is_builtin(&name_str) {
+            if name_str == "trim" {
                 match self.args.as_slice() {
                     [] => {
                         quote! { let __zyn_val = ::zyn::Pipe::pipe(&(::zyn::pipes::Trim(" ", " ")), __zyn_val); }

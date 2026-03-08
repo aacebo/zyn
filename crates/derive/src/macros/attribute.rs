@@ -70,8 +70,9 @@ fn expand_attribute(item: ItemFn) -> TokenStream {
     }
 
     let diagnostic_macros = crate::common::diagnostics::macros();
+    let input_expr = quote! { &::zyn::Input::from(input.clone()) };
     let extractor_bindings =
-        crate::common::extractors::bindings(&extractor_names, &extractor_types);
+        crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
     quote! {
         #[proc_macro_attribute]

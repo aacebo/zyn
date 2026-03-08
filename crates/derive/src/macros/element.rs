@@ -79,8 +79,9 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
     });
 
     let diagnostic_macros = crate::common::diagnostics::macros();
+    let input_expr = quote! { input };
     let extractor_bindings =
-        crate::common::extractors::bindings(&extractor_names, &extractor_types);
+        crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
     let prop_bindings: Vec<TokenStream> = prop_names
         .iter()
