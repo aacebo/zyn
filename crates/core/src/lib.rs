@@ -14,6 +14,8 @@ pub mod extract;
 pub mod ident;
 /// Attribute argument parsing types.
 pub mod meta;
+/// Dot-separated path type for navigating nested `syn` metadata.
+pub mod path;
 /// Built-in pipe types for template value transforms.
 pub mod pipes;
 /// Template parsing and expansion.
@@ -21,7 +23,7 @@ pub mod template;
 /// Proc macro input types.
 pub mod types;
 
-/// Extension traits for `syn::Attribute` parsing.
+/// Extension traits for common `syn` AST types.
 #[cfg(feature = "ext")]
 pub mod ext;
 
