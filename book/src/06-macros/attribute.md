@@ -16,7 +16,7 @@ fn trace_var(
 ) -> zyn::TokenStream {
     let vars: std::collections::HashSet<zyn::syn::Ident> = args.into_iter().collect();
     // transform the function using vars...
-    zyn::zyn!({ { item } })
+    zyn::zyn!({{ item }})
 }
 ```
 
@@ -230,7 +230,7 @@ fn must_be_pub(
 
     warn!("this attribute is experimental");
 
-    zyn::zyn!({ { item } })
+    zyn::zyn!({{ item }})
 }
 ```
 

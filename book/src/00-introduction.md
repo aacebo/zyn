@@ -238,7 +238,7 @@ let tokens: Vec<_> = fields
     ))
     .collect();
 
-quote! { struct #ident { #(#tokens)* } }
+quote! { struct #ident { #(#tokens)* }}
 ```
 
 </td>

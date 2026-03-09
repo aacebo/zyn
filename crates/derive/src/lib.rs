@@ -112,7 +112,7 @@ mod macros;
 /// Count form (no binding, repeats N times):
 ///
 /// ```ignore
-/// zyn! { @for (3) { x, } }
+/// zyn! { @for (3) { x, }}
 /// // output: x, x, x,
 /// ```
 ///

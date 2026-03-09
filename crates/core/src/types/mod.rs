@@ -11,7 +11,7 @@
 //! ```ignore
 //! use zyn_core::Input;
 //!
-//! let ts = quote::quote! { pub struct Foo<T> { value: T } };
+//! let ts = quote::quote! { pub struct Foo<T> { value: T }};
 //! let input: Input = syn::parse2(ts).unwrap();
 //!
 //! assert_eq!(input.ident().to_string(), "Foo");

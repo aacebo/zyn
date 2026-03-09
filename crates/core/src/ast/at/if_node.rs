@@ -95,15 +95,15 @@ impl Expand for IfNode {
             let body_expanded = body.expand(output, idents);
 
             if i == 0 {
-                result = quote! { if #cond { #body_expanded } };
+                result = quote! { if #cond { #body_expanded }};
             } else {
-                result = quote! { #result else if #cond { #body_expanded } };
+                result = quote! { #result else if #cond { #body_expanded }};
             }
         }
 
         if let Some(else_body) = &self.else_body {
             let else_expanded = else_body.expand(output, idents);
-            result = quote! { #result else { #else_expanded } };
+            result = quote! { #result else { #else_expanded }};
         }
 
         result

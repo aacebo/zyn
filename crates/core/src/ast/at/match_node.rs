@@ -88,7 +88,7 @@ impl Expand for MatchNode {
             .iter()
             .map(|(pattern, body)| {
                 let body_expanded = body.expand(output, idents);
-                quote! { #pattern => { #body_expanded } }
+                quote! { #pattern => { #body_expanded }}
             })
             .collect();
 

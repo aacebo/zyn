@@ -197,9 +197,9 @@ zyn! {
 ```rust,zyn
 zyn! {
     @match (repr.as_str()) {
-        "u8"  => { impl From<{{ name }}> for u8  { fn from(v: {{ name }}) -> u8  { v.0 } } }
-        "u16" => { impl From<{{ name }}> for u16 { fn from(v: {{ name }}) -> u16 { v.0 } } }
-        "u32" => { impl From<{{ name }}> for u32 { fn from(v: {{ name }}) -> u32 { v.0 } } }
+        "u8"  => { impl From<{{ name }}> for u8  { fn from(v: {{ name }}) -> u8  { v.0 }} }
+        "u16" => { impl From<{{ name }}> for u16 { fn from(v: {{ name }}) -> u16 { v.0 }} }
+        "u32" => { impl From<{{ name }}> for u32 { fn from(v: {{ name }}) -> u32 { v.0 }} }
         _ => { compile_error!("unsupported repr"); }
     }
 }
@@ -210,8 +210,8 @@ zyn! {
 ```rust,zyn
 zyn! {
     @match (kind) {
-        Kind::Add | Kind::Sub => { fn apply(a: i32, b: i32) -> i32 { a {{ op }} b } }
-        Kind::Mul | Kind::Div => { fn apply(a: f64, b: f64) -> f64 { a {{ op }} b } }
+        Kind::Add | Kind::Sub => { fn apply(a: i32, b: i32) -> i32 { a {{ op }} b }}
+        Kind::Mul | Kind::Div => { fn apply(a: f64, b: f64) -> f64 { a {{ op }} b }}
     }
 }
 ```

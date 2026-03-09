@@ -74,7 +74,7 @@ Zero-parameter elements can still accept children:
 ```rust,zyn
 #[zyn::element]
 fn section(children: zyn::TokenStream) -> zyn::TokenStream {
-    zyn::zyn! { pub mod section { {{ children }} } }
+    zyn::zyn! { pub mod section { {{ children }} }}
 }
 
 zyn! {

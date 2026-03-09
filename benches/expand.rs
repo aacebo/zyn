@@ -81,9 +81,9 @@ fn codegen_vanilla(b: &mut Bencher) {
             let fname = f.ident.as_ref().unwrap();
             let getter = format_ident!("get_{}", fname);
             let ty = &f.ty;
-            quote! { pub fn #getter(&self) -> &#ty { &self.#fname } }
+            quote! { pub fn #getter(&self) -> &#ty { &self.#fname }}
         });
-        black_box(quote! { impl UserRecord { #(#methods)* } })
+        black_box(quote! { impl UserRecord { #(#methods)* }})
     })
 }
 
@@ -121,9 +121,9 @@ fn full_vanilla(b: &mut Bencher) {
             let fname = f.ident.as_ref().unwrap();
             let getter = format_ident!("get_{}", fname);
             let ty = &f.ty;
-            quote! { pub fn #getter(&self) -> &#ty { &self.#fname } }
+            quote! { pub fn #getter(&self) -> &#ty { &self.#fname }}
         });
-        black_box(quote! { impl #name { #(#methods)* } })
+        black_box(quote! { impl #name { #(#methods)* }})
     })
 }
 
@@ -189,9 +189,9 @@ fn enum_codegen_vanilla(b: &mut Bencher) {
         let methods = variants.iter().map(|v| {
             let name = &v.ident;
             let pred = format_ident!("is_{}", name);
-            quote! { pub fn #pred(&self) -> bool { matches!(self, Self::#name) } }
+            quote! { pub fn #pred(&self) -> bool { matches!(self, Self::#name) }}
         });
-        black_box(quote! { impl Status { #(#methods)* } })
+        black_box(quote! { impl Status { #(#methods)* }})
     })
 }
 
@@ -225,9 +225,9 @@ fn enum_full_vanilla(b: &mut Bencher) {
         let methods = data.variants.iter().map(|v| {
             let vname = &v.ident;
             let pred = format_ident!("is_{}", vname);
-            quote! { pub fn #pred(&self) -> bool { matches!(self, Self::#vname) } }
+            quote! { pub fn #pred(&self) -> bool { matches!(self, Self::#vname) }}
         });
-        black_box(quote! { impl #name { #(#methods)* } })
+        black_box(quote! { impl #name { #(#methods)* }})
     })
 }
 

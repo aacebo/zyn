@@ -49,7 +49,7 @@
 //! | `@if (cond) { ... }` | Conditional token emission |
 //! | `@for (x in iter) { ... }` | Loop over an iterator |
 //! | `@for (N) { ... }` | Repeat N times |
-//! | `@match (expr) { pat => { ... } }` | Pattern-based code generation |
+//! | `@match (expr) { pat => { ... }}` | Pattern-based code generation |
 //! | `@element_name(prop = val)` | Invoke a `#[zyn::element]` component |
 //!
 //! See [`zyn!`] for the full syntax reference with examples.

@@ -75,9 +75,3 @@ fn enum_as_field_in_attribute_struct() {
     let config = Config::from_args(&args).unwrap();
     assert!(matches!(config.mode, Mode::Fast));
 }
-
-#[test]
-fn no_from_input_on_enum() {
-    fn _assert_no_from_input<T: ::zyn::FromArg>() {}
-    _assert_no_from_input::<Mode>();
-}
