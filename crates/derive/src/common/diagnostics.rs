@@ -123,12 +123,14 @@ pub fn macros() -> TokenStream {
                 diagnostics.push(::zyn::Diagnostic::spanned(
                     $span, ::zyn::Level::Error, format!($fmt $(, $arg)*)
                 ));
+
                 return diagnostics.emit();
             }};
             ($fmt:literal $(, $arg:expr)* $(,)?) => {{
                 diagnostics.push(::zyn::Diagnostic::spanned(
                     ::zyn::Span::call_site(), ::zyn::Level::Error, format!($fmt $(, $arg)*)
                 ));
+
                 return diagnostics.emit();
             }};
         }

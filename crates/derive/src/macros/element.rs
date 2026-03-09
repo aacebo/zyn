@@ -36,7 +36,6 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
     }
 
     let struct_name = pascal!(item.sig.ident => ident);
-
     let mut prop_names: Vec<syn::Ident> = Vec::new();
     let mut prop_types: Vec<syn::Type> = Vec::new();
     let mut extractor_names: Vec<syn::Ident> = Vec::new();

@@ -26,10 +26,8 @@ pub fn expand(input: DeriveInput) -> TokenStream {
 
     let name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-
     let from_args = emit::from_args(name, &fields, &impl_generics, &ty_generics, where_clause);
     let from_arg = emit::from_arg(name, &impl_generics, &ty_generics, where_clause);
-
     let from_input = if struct_meta.attr_name.is_some() {
         Some(emit::from_input(
             name,

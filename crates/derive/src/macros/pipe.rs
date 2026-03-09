@@ -44,7 +44,6 @@ fn expand_pipe(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> Toke
     }
 
     let struct_name = pascal!(item.sig.ident => ident);
-
     let first_arg = &item.sig.inputs[0];
     let (input_name, input_type) = match first_arg {
         FnArg::Typed(pat_type) => {

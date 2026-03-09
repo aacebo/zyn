@@ -6,10 +6,8 @@ use zyn_core::quote::quote;
 
 pub fn expand(input: TokenStream) -> TokenStream {
     let mut tokens = input.into_iter().peekable();
-
     let mode = parse_mode(&mut tokens);
     let body: TokenStream = tokens.collect();
-
     let element = match zyn_core::parse!(body => zyn_core::Template) {
         Ok(el) => el,
         Err(e) => return e.to_compile_error(),

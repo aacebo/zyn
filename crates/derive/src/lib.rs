@@ -153,12 +153,80 @@ pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 }
 
 /// Expands a zyn template with diagnostic output for debugging.
+///
+/// Behaves identically to [`zyn!`] but emits a compile-time diagnostic showing
+/// the expanded token stream. Accepts an optional mode prefix before `=>`.
+///
+/// # Modes
+///
+/// | Mode | Description |
+/// |------|-------------|
+/// | `pretty` (default) | Pretty-printed token stream |
+/// | `raw` | Raw token stream debug output |
+/// | `ast` | AST node debug output |
+/// | `print` | Prints to stdout at compile time |
+///
+/// # Examples
+///
+/// ```ignore
+/// // Default (pretty) mode
+/// let ts = zyn::debug! { struct Foo; };
+///
+/// // Explicit mode
+/// let ts = zyn::debug! { raw => struct Foo; };
+/// let ts = zyn::debug! { ast => @if (flag) { struct Foo; } };
+/// ```
 #[proc_macro]
 pub fn debug(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     macros::debug::expand(input.into()).into()
 }
 
-/// Defines a reusable template component that generates a struct implementing `Render`.
+/// Defines a reusable template component generating a struct that implements `Render`.
+///
+/// Function parameters become either **props** (struct fields passed at call site)
+/// or **extractors** (marked `#[zyn(input)]`, resolved automatically from `Input`).
+///
+/// Built-in extractor types: `Extract<T>`, `Attr<T>`, `Fields`, `Variants`, `Data<T>`.
+/// A parameter named `children` receives the inner token stream from a children block.
+///
+/// # Examples
+///
+/// Simple element with props:
+///
+/// ```ignore
+/// #[zyn::element]
+/// fn greeting(name: syn::Ident) -> zyn::TokenStream {
+///     zyn::zyn!(pub fn {{ name }}() {})
+/// }
+///
+/// // Invoke inside a template
+/// zyn::zyn!(@greeting(name = format_ident!("hello")))
+/// // output: pub fn hello() {}
+/// ```
+///
+/// Element with an extractor and a children block:
+///
+/// ```ignore
+/// #[zyn::element]
+/// fn wrapper(
+///     #[zyn(input)] ident: zyn::Extract<syn::Ident>,
+///     children: zyn::TokenStream,
+/// ) -> zyn::TokenStream {
+///     zyn::zyn!(impl {{ ident }} { {{ children }} })
+/// }
+///
+/// zyn::zyn!(@wrapper { fn new() -> Self { Self } })
+/// // output: impl MyStruct { fn new() -> Self { Self } }
+/// ```
+///
+/// Optional custom name alias (defaults to function name):
+///
+/// ```ignore
+/// #[zyn::element("my_alias")]
+/// fn internal_name(label: syn::Ident) -> zyn::TokenStream { ... }
+///
+/// zyn::zyn!(@my_alias(label = format_ident!("x")))
+/// ```
 #[proc_macro_attribute]
 pub fn element(
     args: proc_macro::TokenStream,
@@ -167,7 +235,42 @@ pub fn element(
     macros::element::expand(args.into(), input.into()).into()
 }
 
-/// Defines a custom pipe transform that generates a struct implementing `Pipe`.
+/// Defines a custom pipe transform used inside `{{ expr | pipe }}` interpolations.
+///
+/// Transforms a single-argument function into a struct implementing `Pipe`.
+/// The function receives a `String` (the stringified token) and returns any
+/// [`quote::ToTokens`] value.
+///
+/// # Examples
+///
+/// Custom pipe (name defaults to the function name):
+///
+/// ```ignore
+/// #[zyn::pipe]
+/// fn shout(input: String) -> syn::Ident {
+///     syn::Ident::new(&input.to_uppercase(), proc_macro2::Span::call_site())
+/// }
+///
+/// let name = format_ident!("hello");
+/// zyn::zyn!(static {{ name | shout }}: &str = "hi";)
+/// // output: static HELLO: &str = "hi";
+/// ```
+///
+/// With a custom name alias:
+///
+/// ```ignore
+/// #[zyn::pipe("yell")]
+/// fn make_loud(input: String) -> syn::Ident { ... }
+///
+/// zyn::zyn!(fn {{ name | yell }}() {})
+/// ```
+///
+/// Chaining with built-in pipes:
+///
+/// ```ignore
+/// zyn::zyn!(fn {{ name | snake | ident:"get_{}" }}() {})
+/// // name = "HelloWorld" → fn get_hello_world() {}
+/// ```
 #[proc_macro_attribute]
 pub fn pipe(
     args: proc_macro::TokenStream,
@@ -176,7 +279,41 @@ pub fn pipe(
     macros::pipe::expand(args.into(), input.into()).into()
 }
 
-/// Defines a derive macro entry point that auto-parses `DeriveInput` into `Input`.
+/// Defines a derive macro entry point that auto-parses `DeriveInput` into typed inputs.
+///
+/// All parameters must be marked `#[zyn(input)]`; they are resolved from the
+/// annotated type's `DeriveInput` via [`FromInput`](zyn::FromInput). The macro
+/// name defaults to the function name in PascalCase, or can be set explicitly.
+///
+/// # Examples
+///
+/// ```ignore
+/// // In your proc-macro crate (lib.rs):
+/// #[zyn::derive]
+/// fn my_derive(
+///     #[zyn(input)] ident: zyn::Extract<syn::Ident>,
+///     #[zyn(input)] fields: zyn::Fields,
+/// ) -> zyn::TokenStream {
+///     zyn::zyn! {
+///         impl MyTrait for {{ ident }} {
+///             fn field_count() -> usize { {{ fields.len() }} }
+///         }
+///     }
+/// }
+///
+/// // Consumers annotate their types:
+/// #[derive(MyDerive)]
+/// struct Point { x: f64, y: f64 }
+/// // output: impl MyTrait for Point { fn field_count() -> usize { 2 } }
+/// ```
+///
+/// With an explicit macro name:
+///
+/// ```ignore
+/// #[zyn::derive("DebugExtra")]
+/// fn my_fn(#[zyn(input)] ident: zyn::Extract<syn::Ident>) -> zyn::TokenStream { ... }
+/// // Registers as #[derive(DebugExtra)]
+/// ```
 #[proc_macro_attribute]
 pub fn derive(
     args: proc_macro::TokenStream,
@@ -185,7 +322,41 @@ pub fn derive(
     macros::derive::expand(args.into(), input.into()).into()
 }
 
-/// Defines an attribute macro entry point that auto-parses the annotated item into `Input`.
+/// Defines an attribute macro entry point that auto-parses the annotated item into typed inputs.
+///
+/// Extractors marked `#[zyn(input)]` are resolved from the annotated item via
+/// [`FromInput`](zyn::FromInput). An optional `args: zyn::Args` parameter receives
+/// the raw attribute arguments. The macro name defaults to the function name.
+///
+/// # Examples
+///
+/// ```ignore
+/// // In your proc-macro crate (lib.rs):
+/// #[zyn::attribute]
+/// fn log_call(
+///     #[zyn(input)] item: syn::ItemFn,
+///     args: zyn::Args,
+/// ) -> zyn::TokenStream {
+///     let prefix = args.get("prefix")
+///         .and_then(|a| a.value::<String>().ok())
+///         .unwrap_or_else(|| "CALL".into());
+///     zyn::zyn! {
+///         {{ item }}
+///     }
+/// }
+///
+/// // Applied to a function:
+/// #[log_call(prefix = "DEBUG")]
+/// fn my_fn() { ... }
+/// ```
+///
+/// With an explicit macro name:
+///
+/// ```ignore
+/// #[zyn::attribute("trace")]
+/// fn trace_impl(#[zyn(input)] item: syn::ItemFn) -> zyn::TokenStream { ... }
+/// // Registers as #[trace]
+/// ```
 #[proc_macro_attribute]
 pub fn attribute(
     args: proc_macro::TokenStream,
@@ -194,7 +365,71 @@ pub fn attribute(
     macros::attribute::expand(args.into(), input.into()).into()
 }
 
-/// Derives the `Attribute` trait for typed attribute parsing from `#[attr(...)]` syntax.
+/// Derives typed attribute parsing from `#[attr(...)]` key-value syntax.
+///
+/// **Attribute mode** (`#[zyn("name")]`): also implements [`FromInput`](zyn::FromInput)
+/// so the struct can be used as an `Attr<T>` extractor in `#[element]` or `#[derive]`.
+///
+/// **Argument mode** (no `#[zyn("name")]`): implements `FromArgs` and `FromArg` only,
+/// suitable for nested argument structures.
+///
+/// # Field options
+///
+/// | Attribute | Effect |
+/// |-----------|--------|
+/// | `#[zyn(default)]` | Uses `Default::default()` when the field is absent |
+/// | `#[zyn(default = "val")]` | Uses `Into::into("val")` as the default |
+/// | `#[zyn(about = "...")]` | Doc string shown in `about()` output |
+///
+/// # Examples
+///
+/// Attribute mode (registers `FromInput` + `FromArgs`):
+///
+/// ```ignore
+/// #[derive(zyn::Attribute)]
+/// #[zyn("my_attr", about = "controls behaviour")]
+/// struct MyAttr {
+///     #[zyn(about = "the item name")]
+///     rename: Option<String>,
+///     #[zyn(default)]
+///     skip: bool,
+/// }
+///
+/// // Used as an extractor in an element:
+/// #[zyn::element]
+/// fn my_element(#[zyn(input)] attr: zyn::Attr<MyAttr>) -> zyn::TokenStream {
+///     zyn::zyn!(@if (attr.skip) { /* nothing */ } @else { /* generate */ })
+/// }
+///
+/// // Applied to a type:
+/// #[my_attr(rename = "other_name")]
+/// struct Foo;
+/// ```
+///
+/// Argument mode (no `#[zyn("name")]`):
+///
+/// ```ignore
+/// #[derive(zyn::Attribute)]
+/// struct Config { level: i64, tag: String }
+///
+/// let args: zyn::Args = zyn::parse!("level = 3, tag = \"v1\"").unwrap();
+/// let cfg = Config::from_args(&args).unwrap();
+/// ```
+///
+/// Enum derive for variant dispatch:
+///
+/// ```ignore
+/// #[derive(zyn::Attribute)]
+/// enum Mode {
+///     Fast,
+///     Slow,
+///     Custom { speed: i64 },
+/// }
+///
+/// let arg: zyn::Arg = zyn::parse!("custom(speed = 10)").unwrap();
+/// let mode = Mode::from_arg(&arg).unwrap();
+/// // mode == Mode::Custom { speed: 10 }
+/// ```
 #[proc_macro_derive(Attribute, attributes(zyn))]
 pub fn derive_attribute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     attribute::expand(input.into()).into()

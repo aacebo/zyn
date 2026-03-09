@@ -113,6 +113,7 @@ impl VariantMeta {
                 let name = &self.snake_name;
                 let ident = &self.ident;
                 let ty = &tys[0];
+
                 Some(zyn_core::quote::quote! {
                     #name => ::std::result::Result::Ok(Self::#ident(
                         ::std::convert::Into::into(<#ty as ::zyn::FromArg>::from_arg(arg)?)
