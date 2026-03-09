@@ -493,6 +493,38 @@ pub fn attribute(
 /// let cfg = Config::from_args(&args).unwrap();
 /// ```
 ///
+/// # Diagnostics
+///
+/// Errors are accumulated and returned together. Unknown arguments automatically
+/// produce "did you mean?" suggestions when a close match exists:
+///
+/// ```ignore
+/// #[derive(zyn::Attribute)]
+/// #[zyn("config")]
+/// struct Config {
+///     enabled: bool,
+///     format: String,
+/// }
+///
+/// // #[config(enabed, fromat = "json")]
+/// //
+/// // error: unknown argument `enabed`
+/// //   --> src/lib.rs:10:10
+/// //    |
+/// // 10 | #[config(enabed, fromat = "json")]
+/// //    |          ^^^^^^
+/// //    |
+/// //    = help: did you mean `enabled`?
+/// //
+/// // error: unknown argument `fromat`
+/// //   --> src/lib.rs:10:18
+/// //    |
+/// // 10 | #[config(enabed, fromat = "json")]
+/// //    |                  ^^^^^^
+/// //    |
+/// //    = help: did you mean `format`?
+/// ```
+///
 /// Enum derive for variant dispatch:
 ///
 /// ```ignore

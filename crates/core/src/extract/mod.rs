@@ -48,7 +48,6 @@
 //! }
 //! ```
 
-use quote::ToTokens;
 use syn::Lit;
 use syn::spanned::Spanned;
 
@@ -265,7 +264,7 @@ impl<T: FromArg> FromArg for Vec<T> {
 impl FromArg for Args {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
-            Arg::List(_, args) => syn::parse2(args.to_token_stream()).map_err(Diagnostics::from),
+            Arg::List(_, args) => Ok(args.clone()),
             _ => Err(Diagnostics::error(arg.span(), "expected list argument")),
         }
     }

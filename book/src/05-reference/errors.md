@@ -31,6 +31,9 @@ Errors produced during `zyn!(...)` expansion:
 
 All errors are collected and returned together as a single `Diagnostics` value.
 
+> **Typo recovery:** Unknown arguments within Levenshtein distance 3 of a known field
+> automatically generate a `help: did you mean ...?` suggestion pointing at the typo span.
+
 ## Element Diagnostic Macros
 
 `#[zyn::element]` generates local `error!`, `warn!`, `note!`, `help!`, and `bail!` macros that push diagnostics to the element's `diagnostics` accumulator. `bail!` returns early if errors exist. All accept `format!`-style arguments and an optional `; span = expr` suffix. These macros are only available inside `#[zyn::element]` bodies.

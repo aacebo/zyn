@@ -12,6 +12,22 @@
 //! // Nested list:    #[attr(tags("a", "b"))]
 //! ```
 //!
+//! # Typo suggestions
+//!
+//! `#[derive(Attribute)]` automatically detects misspelled argument names and
+//! suggests the closest match. If a user writes `#[my_attr(skiip)]` instead of
+//! `#[my_attr(skip)]`, the compiler reports:
+//!
+//! ```text
+//! error: unknown argument `skiip`
+//!   --> src/lib.rs:5:12
+//!    |
+//! 5  | #[my_attr(skiip)]
+//!    |           ^^^^^
+//!    |
+//!    = help: did you mean `skip`?
+//! ```
+//!
 //! # Examples
 //!
 //! Parsing `Args` from a string (useful in tests):

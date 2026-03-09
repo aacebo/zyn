@@ -48,8 +48,38 @@ Generated methods:
 `from_args` collects all validation errors and returns them together as `Diagnostics`:
 
 - Missing fields, type mismatches, and unknown keys are all reported at once
-- Close misspellings suggest the correct field name via Levenshtein distance
 - `about` text is included in error messages as context
+
+**Typo suggestions** — When an unknown argument is close to a known field name, the error
+includes a "did you mean?" hint:
+
+```rust
+#[derive(zyn::Attribute)]
+#[zyn("config")]
+struct Config {
+    enabled: bool,
+    format: String,
+}
+
+// User writes #[config(enabed, fromat = "json")]
+// Compiler output:
+//
+// error: unknown argument `enabed`
+//   --> src/lib.rs:10:10
+//    |
+// 10 | #[config(enabed, fromat = "json")]
+//    |          ^^^^^^
+//    |
+//    = help: did you mean `enabled`?
+//
+// error: unknown argument `fromat`
+//   --> src/lib.rs:10:18
+//    |
+// 10 | #[config(enabed, fromat = "json")]
+//    |                  ^^^^^^
+//    |
+//    = help: did you mean `format`?
+```
 
 ## Argument Mode
 
