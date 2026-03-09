@@ -28,6 +28,7 @@ fn expand_attribute(item: ItemFn) -> TokenStream {
     let mut extractor_names: Vec<syn::Ident> = Vec::new();
     let mut extractor_types: Vec<syn::Type> = Vec::new();
     let mut args_binding: Option<TokenStream> = None;
+
     for arg in &item.sig.inputs {
         match arg {
             FnArg::Typed(pat_type) => {

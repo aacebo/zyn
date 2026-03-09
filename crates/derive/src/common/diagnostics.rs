@@ -7,15 +7,30 @@ pub fn macros() -> TokenStream {
     quote! {
         /// Pushes an error diagnostic. Accepts `format!`-style arguments.
         ///
-        /// ```bash
-        /// error: expected struct, found enum
-        ///  --> src/lib.rs:4:1
+        /// ```rust,ignore
+        /// #[zyn::element]
+        /// fn validated(#[zyn(input)] ident: syn::Ident) -> zyn::TokenStream {
+        ///     if ident == "forbidden" {
+        ///         error!("reserved identifier"; span = ident.span());
+        ///     }
+        ///     bail!();
+        ///     zyn::zyn! { fn {{ ident }}() {} }
+        /// }
+        /// ```
+        ///
+        /// ```text
+        /// error: reserved identifier
+        ///  --> src/lib.rs:8:24
+        ///   |
+        /// 8 |     @validated(name = forbidden)
+        ///   |                       ^^^^^^^^^
         /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
         /// error!("expected struct, found enum"; span = ident.span());
         /// ```
+        #[allow(unused)]
         macro_rules! error {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
                 diagnostics.push(::zyn::Diagnostic::spanned(
@@ -31,15 +46,24 @@ pub fn macros() -> TokenStream {
 
         /// Pushes a warning diagnostic. Accepts `format!`-style arguments.
         ///
-        /// ```bash
-        /// warning: field `name` is unused
-        ///  --> src/lib.rs:8:5
+        /// ```rust,ignore
+        /// #[zyn::element]
+        /// fn legacy(#[zyn(input)] ident: syn::Ident) -> zyn::TokenStream {
+        ///     warn!("this element is deprecated, use `new_api` instead");
+        ///     zyn::zyn! { fn {{ ident }}() {} }
+        /// }
+        /// ```
+        ///
+        /// ```text
+        /// warning: this element is deprecated, use `new_api` instead
+        ///  --> src/lib.rs:5:5
         /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
         /// warn!("field `{}` is unused", name; span = field.span());
         /// ```
+        #[allow(unused)]
         macro_rules! warn {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
                 diagnostics.push(::zyn::Diagnostic::spanned(
@@ -55,15 +79,32 @@ pub fn macros() -> TokenStream {
 
         /// Pushes a note diagnostic. Accepts `format!`-style arguments.
         ///
-        /// ```bash
-        /// note: derived from `MyStruct`
-        ///  --> src/lib.rs:2:1
+        /// ```rust,ignore
+        /// #[zyn::element]
+        /// fn validated(name: syn::Ident) -> zyn::TokenStream {
+        ///     if name == "forbidden" {
+        ///         error!("reserved identifier"; span = name.span());
+        ///         note!("this name is reserved by the compiler");
+        ///     }
+        ///     bail!();
+        ///     zyn::zyn! { fn {{ name }}() {} }
+        /// }
+        /// ```
+        ///
+        /// ```text
+        /// error: reserved identifier
+        ///  --> src/lib.rs:8:24
+        ///   |
+        /// 8 |     @validated(name = forbidden)
+        ///   |                       ^^^^^^^^^
+        ///   = note: this name is reserved by the compiler
         /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
         /// note!("derived from `{}`", ident; span = ident.span());
         /// ```
+        #[allow(unused)]
         macro_rules! note {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
                 diagnostics.push(::zyn::Diagnostic::spanned(
@@ -79,15 +120,29 @@ pub fn macros() -> TokenStream {
 
         /// Pushes a help diagnostic. Accepts `format!`-style arguments.
         ///
-        /// ```bash
-        /// help: consider adding `#[zyn(skip)]`
-        ///  --> src/lib.rs:8:5
+        /// ```rust,ignore
+        /// #[zyn::element]
+        /// fn validated(name: syn::Ident) -> zyn::TokenStream {
+        ///     if name == "bad" {
+        ///         error!("name is bad");
+        ///         help!("use a different name");
+        ///     }
+        ///     bail!();
+        ///     zyn::zyn! { fn {{ name }}() {} }
+        /// }
+        /// ```
+        ///
+        /// ```text
+        /// error: name is bad
+        ///  --> src/lib.rs:4:10
+        ///   = help: use a different name
         /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
         /// help!("consider adding `#[zyn(skip)]`"; span = field.span());
         /// ```
+        #[allow(unused)]
         macro_rules! help {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
                 diagnostics.push(::zyn::Diagnostic::spanned(
@@ -103,16 +158,31 @@ pub fn macros() -> TokenStream {
 
         /// Returns early with accumulated diagnostics.
         ///
+        /// ```rust,ignore
+        /// #[zyn::element]
+        /// fn format_error(name: syn::Ident) -> zyn::TokenStream {
+        ///     if name == "foo" {
+        ///         bail!("field `{}` is invalid", name);
+        ///     }
+        ///     zyn::zyn! { fn {{ name }}() {} }
+        /// }
+        /// ```
+        ///
+        /// ```text
+        /// error: field `foo` is invalid
+        ///  --> src/lib.rs:4:10
+        /// ```
+        ///
         /// With no arguments, returns only if errors have been pushed:
         /// ```rust,ignore
         /// bail!(); // no-op if no errors
         /// ```
         ///
-        /// With a message, pushes an error and returns immediately:
+        /// With a span:
         /// ```rust,ignore
-        /// bail!("unsupported type");
         /// bail!("unsupported type `{}`", name; span = name.span());
         /// ```
+        #[allow(unused)]
         macro_rules! bail {
             () => {
                 if diagnostics.has_errors() {
