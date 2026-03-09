@@ -10,7 +10,7 @@
 //! |-------|--------|---------|
 //! | [`AttrExt`] | `syn::Attribute` | Name checking, argument parsing, dot-path metadata queries |
 //! | [`MetaExt`] | `syn::Meta` | Variant predicates, conversions, nested navigation |
-//! | [`FieldExt`] | `syn::Field` | Attribute lookup and dot-path metadata queries |
+//! | [`FieldExt`] | `syn::Field` | Dot-path metadata queries on struct/enum fields |
 //! | [`FieldsExt`] | `syn::Fields`, `syn::ItemStruct`, etc. | Variant predicates and field lookup via [`FieldKey`] |
 //! | [`TypeExt`] | `syn::Type`, `syn::Field` | Detecting `Option`/`Result` wrappers, inner type extraction |
 //! | [`DataExt`] | `syn::Data` | Variant predicates and conversions for struct/enum/union data |
@@ -20,7 +20,7 @@
 //! # Examples
 //!
 //! ```ignore
-//! use zyn::ext::{AttrExt, MetaExt, FieldExt, FieldsExt, FieldKey, TypeExt, DataExt, ItemExt};
+//! use zyn::ext::{AttrExt, MetaExt, FieldExt, FieldsExt, FieldKey, TypeExt, DataExt, ItemExt, VariantExt};
 //!
 //! // Attribute querying with dot-paths
 //! if attr.is("serde") {
@@ -28,11 +28,11 @@
 //! }
 //!
 //! // Field attribute navigation
-//! let meta = field.meta("serde.rename");
+//! let meta = field.get("serde.rename");
 //!
 //! // Fields lookup
 //! let key: FieldKey = "id".into();
-//! if let Some(f) = fields.find(&key) {
+//! if let Some(f) = fields.get(&key) {
 //!     // ...
 //! }
 //!
