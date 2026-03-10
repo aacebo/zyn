@@ -20,6 +20,9 @@ I kept rebuilding the same proc macro scaffolding across my own crates — `syn`
 <a href="https://bencher.dev/perf/zyn/plots" target="_blank">
   <img src="https://img.shields.io/badge/bencher.dev-passing-brightgreen" alt="bencher.dev" />
 </a>
+<a href="https://crates.io/crates/zyn" target="_blank">
+    <img alt="Crates.io Size" src="https://img.shields.io/crates/size/zyn">
+</a>
 
 `cargo add zyn`
 
