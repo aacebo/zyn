@@ -2,12 +2,6 @@
 
 # zyn — a template engine for Rust proc macros
 
-[Benchmarks](./BENCH.md)
-
-I kept rebuilding the same proc macro scaffolding across my own crates — `syn` for parsing, `quote` for codegen, `heck` for case conversion, `proc-macro-error` for diagnostics, hand-rolled attribute parsing, and a pile of helper functions returning `TokenStream`. Every project was the same patchwork. zyn started as a way to stop repeating myself, and turned into a framework that replaces all of it with a single crate.
-
-> ⚡ Everything in zyn is compile-time, type-safe, and zero-overhead — templates, pipes, extractors, and control flow all expand to the same `TokenStream`-building code you'd write by hand.
-
 <a href="https://aacebo.github.io/zyn" target="_blank">
     <img src="https://img.shields.io/badge/📖 Getting Started-blue" />
 </a>
@@ -24,7 +18,15 @@ I kept rebuilding the same proc macro scaffolding across my own crates — `syn`
     <img alt="Crates.io Size" src="https://img.shields.io/crates/size/zyn">
 </a>
 
-`cargo add zyn`
+[Benchmarks](./BENCH.md)
+
+I kept rebuilding the same proc macro scaffolding across my own crates — `syn` for parsing, `quote` for codegen, `heck` for case conversion, `proc-macro-error` for diagnostics, hand-rolled attribute parsing, and a pile of helper functions returning `TokenStream`. Every project was the same patchwork. zyn started as a way to stop repeating myself, and turned into a framework that replaces all of it with a single crate.
+
+> ⚡ Everything in zyn is compile-time, type-safe, and zero-overhead — templates, pipes, extractors, and control flow all expand to the same `TokenStream`-building code you'd write by hand.
+
+```bash
+cargo add zyn
+```
 
 ## What it looks like
 
