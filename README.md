@@ -242,6 +242,11 @@ Benchmarks confirm the zero-overhead claim: the full pipeline (parse, extract, c
 
 [Live benchmark charts on bencher.dev](./BENCH.md)
 
+## Discussions
+
+- [Diagnostics API](https://github.com/aacebo/zyn/discussions/7)
+- [Extractor API](https://github.com/aacebo/zyn/discussions/8)
+
 ## License
 
 MIT
