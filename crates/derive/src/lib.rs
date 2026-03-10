@@ -152,112 +152,6 @@ pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     macros::template::expand(input.into()).into()
 }
 
-/// Expands a zyn template with diagnostic output for debugging.
-///
-/// Behaves identically to [`zyn!`] — returns the same [`TokenStream`] — but
-/// also emits a compile-time diagnostic describing the expansion. Accepts an
-/// optional mode keyword followed by `=>` before the template body; defaults
-/// to `pretty`.
-///
-/// # `pretty` (default) — final rendered tokens, to stderr
-///
-/// Emits the expanded token stream to stderr at build time, formatted with
-/// indentation. Replace `zyn!` with `zyn::debug!` when you want to see exactly
-/// what your template produces.
-///
-/// ```ignore
-/// let name = format_ident!("UserStore");
-/// let is_pub = true;
-/// zyn::debug! {
-///     @if (is_pub) { pub }
-///     struct {{ name }} {
-///         id: u64,
-///         email: String,
-///     }
-/// }
-/// ```
-///
-/// ```text
-/// zyn::debug! ─── pretty
-/// pub struct UserStore {
-///     id: u64,
-///     email: String,
-/// }
-/// ```
-///
-/// # `raw` — intermediate generated code, as a compiler note
-///
-/// Shows the Rust code the template compiles to — the code that actually runs
-/// inside your proc macro and builds the output token stream. Internal names
-/// (`__zyn_ts_0`, `__zyn_val`, `::zyn::quote::quote!`, …) are replaced with
-/// readable aliases (`output`, `value`, `quote!`, …).
-///
-/// ```ignore
-/// let name = format_ident!("Greet");
-/// zyn::debug! { raw =>
-///     fn {{ name | snake }}() -> &'static str {
-///         "hello"
-///     }
-/// }
-/// ```
-///
-/// ```text
-/// note: zyn::debug! ─── raw
-///
-/// {
-///     let mut output = TokenStream::new();
-///     quote! {
-///         fn
-///     }.to_tokens(&mut output);
-///     let value = &name;
-///     let value = Pipe::pipe(&snake, &value.to_string());
-///     ToTokens::to_tokens(&value, &mut output);
-///     quote! {
-///         () -> & 'static str {
-///             "hello"
-///         }
-///     }.to_tokens(&mut output);
-///     output
-/// }
-/// ```
-///
-/// # `ast` — template parse tree, as a compiler note
-///
-/// Shows the sequence of [`Node`] variants the template parser produced
-/// *before* any expansion. Each node is one line: `Tokens(...)`,
-/// `Interp { ... }`, `At(If)`, `At(For)`, `At(Match)`, `At(Element)`,
-/// or `Group { ... }`.
-///
-/// ```ignore
-/// zyn::debug! { ast =>
-///     @if (is_pub) { pub }
-///     struct {{ name }} {
-///         @for (field in fields.iter()) {
-///             {{ field.ident }}: {{ field.ty }},
-///         }
-///     }
-/// }
-/// ```
-///
-/// ```text
-/// note: zyn::debug! ─── ast
-///
-/// Template [
-///   At(If)
-///   Tokens("struct")
-///   Interp { ... }
-///   Group { ... }
-/// ]
-/// ```
-///
-/// Each `@if`, `@for`, `@match`, or element call is a single `At(...)` node
-/// regardless of how many tokens are inside it. Bare token runs become
-/// `Tokens(...)` and `{{ }}` blocks become `Interp { ... }`.
-#[proc_macro]
-pub fn debug(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    macros::debug::expand(input.into()).into()
-}
-
 /// Defines a reusable template component generating a struct that implements `Render`.
 ///
 /// Function parameters become either **props** (struct fields passed at call site)
@@ -304,6 +198,30 @@ pub fn debug(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 ///
 /// zyn::zyn!(@my_alias(label = format_ident!("x")))
 /// ```
+///
+/// # Debugging
+///
+/// Add `debug` to inspect the generated code as a compiler `note` diagnostic.
+/// Requires the `ZYN_DEBUG` environment variable to match the generated struct
+/// name (supports `*` wildcards, e.g., `ZYN_DEBUG="*"`).
+///
+/// ```ignore
+/// #[zyn::element(debug)]
+/// #[zyn::element(debug = "pretty")]   // requires `pretty` feature
+/// #[zyn::element("alias", debug)]
+/// ```
+///
+/// ```bash
+/// ZYN_DEBUG="Greeting" cargo build
+/// ```
+///
+/// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.
+///
+/// The `pretty` format uses `prettyplease` for formatted output. Enable it with:
+///
+/// ```toml
+/// zyn = { version = "0.3", features = ["pretty"] }
+/// ```
 #[proc_macro_attribute]
 pub fn element(
     args: proc_macro::TokenStream,
@@ -348,6 +266,21 @@ pub fn element(
 /// zyn::zyn!(fn {{ name | snake | ident:"get_{}" }}() {})
 /// // name = "HelloWorld" → fn get_hello_world() {}
 /// ```
+///
+/// # Debugging
+///
+/// Add `debug` to inspect the generated code as a compiler `note` diagnostic.
+/// Requires the `ZYN_DEBUG` environment variable to match the generated struct
+/// name (supports `*` wildcards).
+///
+/// ```ignore
+/// #[zyn::pipe(debug)]
+/// #[zyn::pipe(debug = "pretty")]       // requires `pretty` feature
+/// #[zyn::pipe("alias", debug)]
+/// ```
+///
+/// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.
+/// See the [debugging guide](https://aacebo.github.io/zyn/05-reference/debugging.html) for details.
 #[proc_macro_attribute]
 pub fn pipe(
     args: proc_macro::TokenStream,
@@ -391,6 +324,21 @@ pub fn pipe(
 /// fn my_fn(#[zyn(input)] ident: zyn::Extract<syn::Ident>) -> zyn::TokenStream { ... }
 /// // Registers as #[derive(DebugExtra)]
 /// ```
+///
+/// # Debugging
+///
+/// Add `debug` to inspect the generated code as a compiler `note` diagnostic.
+/// Requires the `ZYN_DEBUG` environment variable to match the derive name
+/// (supports `*` wildcards).
+///
+/// ```ignore
+/// #[zyn::derive("MyDerive", debug)]
+/// #[zyn::derive("MyDerive", debug = "pretty")]               // requires `pretty` feature
+/// #[zyn::derive("MyDerive", attributes(skip), debug)]
+/// ```
+///
+/// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.
+/// See the [debugging guide](https://aacebo.github.io/zyn/05-reference/debugging.html) for details.
 #[proc_macro_attribute]
 pub fn derive(
     args: proc_macro::TokenStream,
@@ -434,6 +382,20 @@ pub fn derive(
 /// fn trace_impl(#[zyn(input)] item: syn::ItemFn) -> zyn::TokenStream { ... }
 /// // Registers as #[trace]
 /// ```
+///
+/// # Debugging
+///
+/// Add `debug` to inspect the generated code as a compiler `note` diagnostic.
+/// Requires the `ZYN_DEBUG` environment variable to match the function name
+/// (supports `*` wildcards).
+///
+/// ```ignore
+/// #[zyn::attribute(debug)]
+/// #[zyn::attribute(debug = "pretty")]  // requires `pretty` feature
+/// ```
+///
+/// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.
+/// See the [debugging guide](https://aacebo.github.io/zyn/05-reference/debugging.html) for details.
 #[proc_macro_attribute]
 pub fn attribute(
     args: proc_macro::TokenStream,

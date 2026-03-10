@@ -1,94 +1,221 @@
-# Debugging with `debug!`
+# Debugging
 
-`zyn::debug!` is a drop-in replacement for `zyn!` that prints what the template produces, then returns the same tokens. Use it to see exactly what code your template generates.
+Inspect generated code by adding the `debug` argument to any zyn attribute macro. Debug output is emitted as a compiler `note` diagnostic, visible in both terminal and IDE.
 
-## Basic Usage
+## Setup
+
+Two conditions must be met for debug output:
+
+1. Add `debug` (or `debug = "pretty"`) to the macro attribute
+2. Set the `ZYN_DEBUG` environment variable to match the generated type name
 
 ```rust
-let tokens = zyn::debug! {
-    struct {{ name }} {
-        @for (field in fields.iter()) {
-            {{ field.ident }}: {{ field.ty }},
+#[zyn::element(debug)]
+fn greeting(name: syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+```bash
+ZYN_DEBUG="*" cargo build
+```
+
+Without `ZYN_DEBUG` set, the `debug` argument is inert — no output, no overhead. This makes it safe to leave in source code during development.
+
+## Supported macros
+
+| Macro | Syntax |
+|-------|--------|
+| `#[zyn::element]` | `#[zyn::element(debug)]`, `#[zyn::element("name", debug)]` |
+| `#[zyn::pipe]` | `#[zyn::pipe(debug)]`, `#[zyn::pipe("name", debug)]` |
+| `#[zyn::derive]` | `#[zyn::derive("Name", debug)]`, `#[zyn::derive("Name", attributes(skip), debug)]` |
+| `#[zyn::attribute]` | `#[zyn::attribute(debug)]` |
+
+All macros also accept `debug = "pretty"` in place of `debug`:
+
+| Macro | Pretty syntax |
+|-------|---------------|
+| `#[zyn::element]` | `#[zyn::element(debug = "pretty")]`, `#[zyn::element("name", debug = "pretty")]` |
+| `#[zyn::pipe]` | `#[zyn::pipe(debug = "pretty")]`, `#[zyn::pipe("name", debug = "pretty")]` |
+| `#[zyn::derive]` | `#[zyn::derive("Name", debug = "pretty")]` |
+| `#[zyn::attribute]` | `#[zyn::attribute(debug = "pretty")]` |
+
+## Output formats
+
+### Raw (default)
+
+The default format emits the raw `TokenStream::to_string()` output. This is a flat, single-line string with fully-qualified paths and spaces between all tokens. No extra dependencies are required.
+
+```rust
+#[zyn::element(debug)]
+fn greeting(name: syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+```bash
+ZYN_DEBUG="Greeting" cargo build
+```
+
+```text
+note: zyn::element ─── Greeting
+
+      struct Greeting { pub name : zyn :: syn :: Ident , } impl :: zyn :: Render
+      for Greeting { fn render (& self , input : & :: zyn :: Input) -> :: zyn ::
+      proc_macro2 :: TokenStream { ... } }
+  --> src/lib.rs:1:1
+```
+
+The raw format is useful for quick checks and when you want to see the exact tokens being generated.
+
+### Pretty (feature-gated)
+
+The `pretty` format uses [`prettyplease`](https://crates.io/crates/prettyplease) to produce properly formatted Rust code with indentation and line breaks.
+
+Enable the `pretty` feature in your `Cargo.toml`:
+
+```toml
+[dependencies]
+zyn = { version = "0.3", features = ["pretty"] }
+```
+
+Then use `debug = "pretty"`:
+
+```rust
+#[zyn::element(debug = "pretty")]
+fn greeting(name: syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+```bash
+ZYN_DEBUG="Greeting" cargo build
+```
+
+```text
+note: zyn::element ─── Greeting
+
+      struct Greeting {
+          pub name: zyn::syn::Ident,
+      }
+      impl ::zyn::Render for Greeting {
+          fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+              let mut diagnostics = ::zyn::Diagnostics::new();
+              let name = &self.name;
+              let __body = { zyn::zyn!(fn {{ name }}() {}) };
+              if diagnostics.has_errors() {
+                  return diagnostics.emit();
+              }
+              __body
+          }
+      }
+  --> src/lib.rs:1:1
+```
+
+If `debug = "pretty"` is used without the `pretty` feature enabled, you'll get a helpful compile error:
+
+```text
+error: enable the `pretty` feature to use `debug = "pretty"`
+ --> src/lib.rs:1:24
+  |
+1 | #[zyn::element(debug = "pretty")]
+  |                        ^^^^^^^^
+```
+
+## ZYN_DEBUG environment variable
+
+The `ZYN_DEBUG` environment variable controls which items produce debug output. It accepts comma-separated patterns with `*` wildcards, matched against the **generated type name** (the PascalCase struct name, not the function name).
+
+For an element defined as `fn greeting(...)`, the generated type is `Greeting`. For a pipe `fn shout(...)`, the type is `Shout`.
+
+```bash
+# Match everything
+ZYN_DEBUG="*" cargo build
+
+# Exact match
+ZYN_DEBUG="Greeting" cargo build
+
+# Prefix wildcard
+ZYN_DEBUG="Greet*" cargo build
+
+# Suffix wildcard
+ZYN_DEBUG="*Element" cargo build
+
+# Multiple patterns
+ZYN_DEBUG="Greeting,Shout" cargo build
+
+# Mix wildcards and exact
+ZYN_DEBUG="Greet*,Shout,*Pipe" cargo build
+```
+
+## Noise stripping
+
+Before formatting (in both raw and pretty modes), zyn strips internal boilerplate from the generated code:
+
+- **`#[doc = "..."]` attributes** — removes the doc comment blocks on generated diagnostic macros
+- **`#[allow(...)]` attributes** — removes `#[allow(unused)]` and similar
+- **`macro_rules!` definitions** — removes the internal `error!`, `warn!`, `note!`, `help!`, and `bail!` macro definitions
+
+This keeps the debug output focused on the code you care about: the generated struct and its `Render` / `Pipe` implementation.
+
+## Full example
+
+Given this element:
+
+```rust
+#[zyn::element(debug = "pretty")]
+fn field_getter(
+    name: syn::Ident,
+    ty: syn::Type,
+) -> zyn::TokenStream {
+    zyn::zyn!(
+        pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
+            &self.{{ name }}
         }
-    }
-};
-```
-
-```bash
-zyn::debug! ─── pretty
-struct MyStruct {
-    name: String,
-    age: u32,
+    )
 }
 ```
 
-## Modes
+Running with `ZYN_DEBUG="FieldGetter" cargo build` produces:
 
-Specify a mode before `=>` to control the output format:
+```text
+note: zyn::element ─── FieldGetter
 
-### `pretty` (default)
+      struct FieldGetter {
+          pub name: syn::Ident,
+          pub ty: syn::Type,
+      }
+      impl ::zyn::Render for FieldGetter {
+          fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+              let mut diagnostics = ::zyn::Diagnostics::new();
+              let name = &self.name;
+              let ty = &self.ty;
+              let __body = {
+                  zyn::zyn!(
+                      pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
+                          &self.{{ name }}
+                      }
+                  )
+              };
+              if diagnostics.has_errors() {
+                  return diagnostics.emit();
+              }
+              __body
+          }
+      }
+```
 
-Shows the **final Rust code** your template produces — the actual output, formatted with indentation.
+## Pipeline API
+
+For library authors building on top of zyn, the debug module exposes a pipeline API via the `DebugExt` trait:
 
 ```rust
-zyn::debug! { pretty =>
-    @if (is_pub) { pub }
-    fn {{ name | snake }}() {}
-}
-```
+use zyn::debug::DebugExt;
 
-When no mode is specified, `pretty` is used:
+// Raw format — always available
+let raw: String = tokens.debug().raw();
 
-```rust
-zyn::debug! {
-    fn {{ name }}() {}
-}
-```
-
-The output appears on `stderr` at runtime (when the proc macro executes), so it's visible in `cargo build` and `cargo test` output.
-
-### `raw`
-
-Shows the **expansion code** — the token-building machinery that `zyn!` generates behind the scenes. Emitted as a compile-time diagnostic (zero runtime cost).
-
-```rust
-zyn::debug! { raw =>
-    struct {{ name }} {}
-}
-```
-
-```bash
-note: zyn::debug! ─── raw
-
-{
-    let mut output = TokenStream::new();
-    output.extend(quote!(struct));
-    ToTokens::to_tokens(&(name), &mut output);
-    output.extend(quote!({}));
-    output
-}
-```
-
-The output is cleaned up for readability — `__zyn_ts_0` becomes `output`, fully-qualified paths are simplified.
-
-### `ast`
-
-Shows the **parsed template structure** — which AST nodes the parser created. Emitted as a compile-time diagnostic.
-
-```rust
-zyn::debug! { ast =>
-    @if (is_pub) { pub }
-    struct {{ name }} {}
-}
-```
-
-```bash
-note: zyn::debug! ─── ast
-
-Template [
-  At(If)
-  Tokens("struct")
-  Interp { ... }
-  Tokens("{}")
-]
+// Pretty format — requires `pretty` feature
+#[cfg(feature = "pretty")]
+let pretty: String = tokens.debug().pretty();
 ```

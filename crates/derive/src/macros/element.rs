@@ -5,25 +5,58 @@ use zyn_core::syn;
 use zyn_core::syn::FnArg;
 use zyn_core::syn::ItemFn;
 use zyn_core::syn::ReturnType;
+use zyn_core::syn::parse::Parse;
+use zyn_core::syn::parse::ParseStream;
 use zyn_core::syn::spanned::Spanned;
 
-pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
-    let custom_name: Option<zyn_core::syn::LitStr> = if args.is_empty() {
-        None
-    } else {
-        match zyn_core::syn::parse2(args) {
-            Ok(lit) => Some(lit),
-            Err(e) => return e.to_compile_error(),
+use crate::common::debug::DebugConfig;
+
+struct ElementArgs {
+    name: Option<syn::LitStr>,
+    debug: Option<DebugConfig>,
+}
+
+impl Parse for ElementArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if input.is_empty() {
+            return Ok(Self {
+                name: None,
+                debug: None,
+            });
         }
+
+        let mut name = None;
+        let mut debug = None;
+
+        if input.peek(syn::LitStr) {
+            name = Some(input.parse()?);
+
+            if input.peek(syn::Token![,]) {
+                input.parse::<syn::Token![,]>()?;
+            }
+        }
+
+        if !input.is_empty() {
+            debug = crate::common::debug::parse_debug_arg(input)?;
+        }
+
+        Ok(Self { name, debug })
+    }
+}
+
+pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
+    let element_args = match syn::parse2::<ElementArgs>(args) {
+        Ok(a) => a,
+        Err(e) => return e.to_compile_error(),
     };
 
-    match zyn_core::syn::parse2::<ItemFn>(input) {
-        Ok(item) => expand_element(item, custom_name),
+    match syn::parse2::<ItemFn>(input) {
+        Ok(item) => expand_element(item, element_args),
         Err(e) => e.to_compile_error(),
     }
 }
 
-fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> TokenStream {
+fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
 
@@ -72,7 +105,7 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
         }
     }
 
-    let alias = custom_name.map(|lit| {
+    let alias = args.name.map(|lit| {
         let alias_name = zyn_core::syn::Ident::new(&pascal!(&lit.value()), lit.span());
         quote! { use #struct_name as #alias_name; }
     });
@@ -87,7 +120,7 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
         .map(|name| quote! { let #name = &self.#name; })
         .collect();
 
-    quote! {
+    let output = quote! {
         #vis struct #struct_name {
             #(pub #prop_names: #prop_types,)*
         }
@@ -111,5 +144,15 @@ fn expand_element(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> T
         }
 
         #alias
+    };
+
+    if let Some(ref config) = args.debug {
+        let ident = struct_name.to_string();
+
+        if crate::common::debug::is_enabled(&ident) {
+            crate::common::debug::emit(config, &format!("zyn::element ─── {ident}"), &output);
+        }
     }
+
+    output
 }

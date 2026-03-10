@@ -5,25 +5,58 @@ use zyn_core::syn;
 use zyn_core::syn::FnArg;
 use zyn_core::syn::ItemFn;
 use zyn_core::syn::ReturnType;
+use zyn_core::syn::parse::Parse;
+use zyn_core::syn::parse::ParseStream;
 use zyn_core::syn::spanned::Spanned;
 
-pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
-    let custom_name: Option<zyn_core::syn::LitStr> = if args.is_empty() {
-        None
-    } else {
-        match zyn_core::syn::parse2(args) {
-            Ok(lit) => Some(lit),
-            Err(e) => return e.to_compile_error(),
+use crate::common::debug::DebugConfig;
+
+struct PipeArgs {
+    name: Option<syn::LitStr>,
+    debug: Option<DebugConfig>,
+}
+
+impl Parse for PipeArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if input.is_empty() {
+            return Ok(Self {
+                name: None,
+                debug: None,
+            });
         }
+
+        let mut name = None;
+        let mut debug = None;
+
+        if input.peek(syn::LitStr) {
+            name = Some(input.parse()?);
+
+            if input.peek(syn::Token![,]) {
+                input.parse::<syn::Token![,]>()?;
+            }
+        }
+
+        if !input.is_empty() {
+            debug = crate::common::debug::parse_debug_arg(input)?;
+        }
+
+        Ok(Self { name, debug })
+    }
+}
+
+pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
+    let pipe_args = match syn::parse2::<PipeArgs>(args) {
+        Ok(a) => a,
+        Err(e) => return e.to_compile_error(),
     };
 
-    match zyn_core::syn::parse2::<ItemFn>(input) {
-        Ok(item) => expand_pipe(item, custom_name),
+    match syn::parse2::<ItemFn>(input) {
+        Ok(item) => expand_pipe(item, pipe_args),
         Err(e) => e.to_compile_error(),
     }
 }
 
-fn expand_pipe(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> TokenStream {
+fn expand_pipe(item: ItemFn, args: PipeArgs) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
 
@@ -70,12 +103,12 @@ fn expand_pipe(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> Toke
         ReturnType::Default => unreachable!(),
     };
 
-    let alias = custom_name.map(|lit| {
+    let alias = args.name.map(|lit| {
         let alias_name = zyn_core::syn::Ident::new(&pascal!(&lit.value()), lit.span());
         quote! { use #struct_name as #alias_name; }
     });
 
-    quote! {
+    let output = quote! {
         #vis struct #struct_name;
 
         impl ::zyn::Pipe for #struct_name {
@@ -87,5 +120,15 @@ fn expand_pipe(item: ItemFn, custom_name: Option<zyn_core::syn::LitStr>) -> Toke
         }
 
         #alias
+    };
+
+    if let Some(ref config) = args.debug {
+        let ident = struct_name.to_string();
+
+        if crate::common::debug::is_enabled(&ident) {
+            crate::common::debug::emit(config, &format!("zyn::pipe ─── {ident}"), &output);
+        }
     }
+
+    output
 }

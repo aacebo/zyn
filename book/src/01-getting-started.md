@@ -15,7 +15,7 @@ Zyn re-exports `syn`, `quote`, and `proc-macro2` — you don't need to add them 
 
 | Feature | Default | Description |
 |---------|---------|-------------|
-| `derive` | yes | Proc macros (`zyn!`, `debug!`, `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`), extractors (`Extract<T>`, `Attr<T>`, `Fields`, `Variants`, `Data<T>`), diagnostics (`error!`, `warn!`, `note!`, `help!`, `bail!`), and `#[derive(Attribute)]` |
+| `derive` | yes | Proc macros (`zyn!`, `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`), extractors (`Extract<T>`, `Attr<T>`, `Fields`, `Variants`, `Data<T>`), diagnostics (`error!`, `warn!`, `note!`, `help!`, `bail!`), and `#[derive(Attribute)]` |
 | `ext` | no | Extension traits (`AttrExt`, `MetaExt`, `FieldExt`, `FieldsExt`, `TypeExt`, `DataExt`, `ItemExt`, `VariantExt`) for working with `syn` AST types |
 
 To enable `ext`:
@@ -183,4 +183,4 @@ See [Proc Macro Entry Points](./06-macros/README.md) for `#[zyn::attribute]`, cu
 - [Diagnostics](./03-elements/diagnostics.md) — `error!`, `warn!`, `note!`, `help!`, `bail!`
 - [derive(Attribute)](./04-attributes/README.md) — typed attribute parsing with `#[derive(Attribute)]`
 - [Proc Macro Entry Points](./06-macros/README.md) — `#[zyn::derive]` and `#[zyn::attribute]`
-- [Debugging](./05-reference/debugging.md) — `zyn::debug!` with `pretty`, `raw`, and `ast` modes
+- [Debugging](./05-reference/debugging.md) — `debug` attribute arg with `ZYN_DEBUG` env var

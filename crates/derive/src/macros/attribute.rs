@@ -4,16 +4,40 @@ use zyn_core::syn;
 use zyn_core::syn::FnArg;
 use zyn_core::syn::ItemFn;
 use zyn_core::syn::ReturnType;
+use zyn_core::syn::parse::Parse;
+use zyn_core::syn::parse::ParseStream;
 use zyn_core::syn::spanned::Spanned;
 
-pub fn expand(_args: TokenStream, input: TokenStream) -> TokenStream {
+use crate::common::debug::DebugConfig;
+
+struct AttributeArgs {
+    debug: Option<DebugConfig>,
+}
+
+impl Parse for AttributeArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if input.is_empty() {
+            return Ok(Self { debug: None });
+        }
+
+        let debug = crate::common::debug::parse_debug_arg(input)?;
+        Ok(Self { debug })
+    }
+}
+
+pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
+    let attr_args = match syn::parse2::<AttributeArgs>(args) {
+        Ok(a) => a,
+        Err(e) => return e.to_compile_error(),
+    };
+
     match syn::parse2::<ItemFn>(input) {
-        Ok(item) => expand_attribute(item),
+        Ok(item) => expand_attribute(item, attr_args),
         Err(e) => e.to_compile_error(),
     }
 }
 
-fn expand_attribute(item: ItemFn) -> TokenStream {
+fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
     let fn_name = &item.sig.ident;
     let body = &item.block;
 
@@ -74,7 +98,7 @@ fn expand_attribute(item: ItemFn) -> TokenStream {
     let extractor_bindings =
         crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
-    quote! {
+    let output = quote! {
         #[proc_macro_attribute]
         pub fn #fn_name(
             __zyn_args: proc_macro::TokenStream,
@@ -101,5 +125,15 @@ fn expand_attribute(item: ItemFn) -> TokenStream {
 
             __zyn_result.into()
         }
+    };
+
+    if let Some(ref config) = args.debug {
+        let ident = fn_name.to_string();
+
+        if crate::common::debug::is_enabled(&ident) {
+            crate::common::debug::emit(config, &format!("zyn::attribute ─── {ident}"), &output);
+        }
     }
+
+    output
 }

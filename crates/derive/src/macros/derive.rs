@@ -9,9 +9,12 @@ use zyn_core::syn::parse::Parse;
 use zyn_core::syn::parse::ParseStream;
 use zyn_core::syn::spanned::Spanned;
 
+use crate::common::debug::DebugConfig;
+
 struct DeriveArgs {
     name: Option<syn::LitStr>,
     helpers: Vec<syn::Ident>,
+    debug: Option<DebugConfig>,
 }
 
 impl Parse for DeriveArgs {
@@ -20,31 +23,44 @@ impl Parse for DeriveArgs {
             return Ok(Self {
                 name: None,
                 helpers: Vec::new(),
+                debug: None,
             });
         }
 
         let name: syn::LitStr = input.parse()?;
         let mut helpers = Vec::new();
+        let mut debug = None;
 
         if input.peek(syn::Token![,]) {
             input.parse::<syn::Token![,]>()?;
 
             if !input.is_empty() {
-                let kw: syn::Ident = input.parse()?;
+                if input.peek(syn::Ident) {
+                    let fork = input.fork();
+                    let kw: syn::Ident = fork.parse()?;
 
-                if kw != "attributes" {
-                    return Err(syn::Error::new(kw.span(), "expected `attributes`"));
+                    if kw == "attributes" {
+                        input.parse::<syn::Ident>()?;
+
+                        let content;
+                        syn::parenthesized!(content in input);
+
+                        while !content.is_empty() {
+                            helpers.push(content.parse()?);
+
+                            if content.peek(syn::Token![,]) {
+                                content.parse::<syn::Token![,]>()?;
+                            }
+                        }
+
+                        if input.peek(syn::Token![,]) {
+                            input.parse::<syn::Token![,]>()?;
+                        }
+                    }
                 }
 
-                let content;
-                syn::parenthesized!(content in input);
-
-                while !content.is_empty() {
-                    helpers.push(content.parse()?);
-
-                    if content.peek(syn::Token![,]) {
-                        content.parse::<syn::Token![,]>()?;
-                    }
+                if !input.is_empty() {
+                    debug = crate::common::debug::parse_debug_arg(input)?;
                 }
             }
         }
@@ -52,6 +68,7 @@ impl Parse for DeriveArgs {
         Ok(Self {
             name: Some(name),
             helpers,
+            debug,
         })
     }
 }
@@ -132,7 +149,7 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
     let extractor_bindings =
         crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
-    quote! {
+    let output = quote! {
         #derive_attr
         pub fn #fn_name(__zyn_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let input = ::zyn::parse_input!(__zyn_input as ::zyn::syn::DeriveInput);
@@ -155,5 +172,15 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
 
             __zyn_result.into()
         }
+    };
+
+    if let Some(ref config) = args.debug {
+        let ident = derive_name.to_string();
+
+        if crate::common::debug::is_enabled(&ident) {
+            crate::common::debug::emit(config, &format!("zyn::derive ─── {ident}"), &output);
+        }
     }
+
+    output
 }

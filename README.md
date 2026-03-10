@@ -235,7 +235,7 @@ fn builder(
 - Extractor system: `Extract<T>`, `Attr<T>`, `Fields`, `Variants`, `Data<T>`
 - `error!`, `warn!`, `note!`, `help!`, `bail!` diagnostics
 - `#[derive(Attribute)]` for typed attribute parsing
-- `zyn::debug!` — drop-in `zyn!` replacement that prints expansions (`pretty`, `raw`, `ast` modes)
+- `debug` / `debug = "pretty"` + `ZYN_DEBUG` env var — inspect generated code as compiler diagnostics (`pretty` feature for formatted output)
 - Case conversion functions available outside templates (`zyn::case::to_snake()`, etc.)
 - Re-exports `syn`, `quote`, and `proc-macro2` — one dependency in your `Cargo.toml`
 

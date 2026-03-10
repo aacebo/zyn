@@ -18,5 +18,8 @@ all-features = true
 doctest = false
 proc-macro = true
 
+[features]
+pretty = ["zyn-core/pretty"]
+
 [dependencies]
 zyn-core = { workspace = true }

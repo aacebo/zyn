@@ -44,6 +44,7 @@ doctest = false
 default = ["derive"]
 derive = ["zyn-derive"]
 ext = ["zyn-core/ext"]
+pretty = ["zyn-derive/pretty"]
 
 [dependencies]
 zyn-core = { workspace = true }
@@ -81,6 +82,10 @@ path = "tests/pipe/mod.rs"
 [[test]]
 name = "attribute"
 path = "tests/attribute/mod.rs"
+
+[[test]]
+name = "debug"
+path = "tests/debug/mod.rs"
 
 [[test]]
 name = "diagnostics"

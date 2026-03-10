@@ -3,6 +3,7 @@ jobs = -1
 
 [env]
 RUST_BACKTRACE = "1"
+ZYN_DEBUG = "*"
 # RUST_TEST_NOCAPTURE = "1"
 
 [net]
