@@ -21,7 +21,7 @@ Errors produced during `zyn!(...)` expansion:
 
 ## Attribute Extraction Errors
 
-`#[derive(Attribute)]` accumulates all validation errors via the `Diagnostics` type (`zyn::Result<T>` = `Result<T, Diagnostics>`):
+`#[derive(Attribute)]` accumulates all validation errors via the `Diagnostic` type (`zyn::Result<T>` = `Result<T, Diagnostic>`):
 
 | Situation | Error |
 |---|---|
@@ -29,7 +29,7 @@ Errors produced during `zyn!(...)` expansion:
 | Type mismatch | `"expected string literal"` etc. from `FromArg` |
 | Unknown named argument | `"unknown argument \`naem\`"` with `"did you mean \`name\`?"` if a close match exists (Levenshtein distance ≤ 3) |
 
-All errors are collected and returned together as a single `Diagnostics` value.
+All errors are collected and returned together as a single `Diagnostic` value.
 
 > **Typo recovery:** Unknown arguments within Levenshtein distance 3 of a known field
 > automatically generate a `help: did you mean ...?` suggestion pointing at the typo span.

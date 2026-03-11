@@ -1,105 +1,104 @@
-use zyn::Diagnostic;
-use zyn::Diagnostics;
 use zyn::Level;
-use zyn::proc_macro2::Span;
 
 #[test]
-fn max_level_empty_is_none() {
-    assert!(Diagnostics::new().max_level().is_none());
+fn level_empty_is_none() {
+    assert_eq!(zyn::mark::new().build().level(), Level::None);
 }
 
 #[test]
-fn max_level_error_only() {
-    let d = Diagnostics::error(Span::call_site(), "err");
-    assert_eq!(d.max_level(), Some(Level::Error));
+fn level_error_only() {
+    let d = zyn::mark::error("err").build();
+    assert_eq!(d.level(), Level::Error);
 }
 
 #[test]
-fn max_level_warning_only() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    assert_eq!(d.max_level(), Some(Level::Warning));
+fn level_warning_only() {
+    let d = zyn::mark::new().add(zyn::mark::warning("w")).build();
+    assert_eq!(d.level(), Level::Warning);
 }
 
 #[test]
-fn max_level_note_only() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Note, "n"));
-    assert_eq!(d.max_level(), Some(Level::Note));
+fn level_note_only() {
+    let d = zyn::mark::new().add(zyn::mark::note("n")).build();
+    assert_eq!(d.level(), Level::Note);
 }
 
 #[test]
-fn max_level_help_only() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Help, "h"));
-    assert_eq!(d.max_level(), Some(Level::Help));
+fn level_help_only() {
+    let d = zyn::mark::new().add(zyn::mark::help("h")).build();
+    assert_eq!(d.level(), Level::Help);
 }
 
 #[test]
-fn max_level_error_beats_warning() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Error, "e"));
-    assert_eq!(d.max_level(), Some(Level::Error));
+fn level_error_beats_warning() {
+    let d = zyn::mark::new()
+        .add(zyn::mark::warning("w"))
+        .add(zyn::mark::error("e"))
+        .build();
+    assert_eq!(d.level(), Level::Error);
 }
 
 #[test]
-fn max_level_warning_beats_note() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Note, "n"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    assert_eq!(d.max_level(), Some(Level::Warning));
+fn level_warning_beats_note() {
+    let d = zyn::mark::new()
+        .add(zyn::mark::note("n"))
+        .add(zyn::mark::warning("w"))
+        .build();
+    assert_eq!(d.level(), Level::Warning);
 }
 
 #[test]
-fn max_level_warning_beats_help() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Help, "h"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    assert_eq!(d.max_level(), Some(Level::Warning));
+fn level_warning_beats_help() {
+    let d = zyn::mark::new()
+        .add(zyn::mark::help("h"))
+        .add(zyn::mark::warning("w"))
+        .build();
+    assert_eq!(d.level(), Level::Warning);
 }
 
 #[test]
-fn max_level_all_four_returns_error() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Note, "n"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Help, "h"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Error, "e"));
-    assert_eq!(d.max_level(), Some(Level::Error));
+fn level_all_four_returns_error() {
+    let d = zyn::mark::new()
+        .add(zyn::mark::note("n"))
+        .add(zyn::mark::help("h"))
+        .add(zyn::mark::warning("w"))
+        .add(zyn::mark::error("e"))
+        .build();
+    assert_eq!(d.level(), Level::Error);
 }
 
 #[test]
-fn has_errors_with_error() {
-    let d = Diagnostics::error(Span::call_site(), "e");
-    assert!(d.has_errors());
+fn is_error_with_error() {
+    let d = zyn::mark::error("e").build();
+    assert!(d.is_error());
 }
 
 #[test]
-fn has_errors_false_when_empty() {
-    assert!(!Diagnostics::new().has_errors());
+fn is_error_false_when_empty() {
+    assert!(!zyn::mark::new().build().is_error());
 }
 
 #[test]
-fn has_errors_false_with_only_warnings() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    assert!(!d.has_errors());
+fn is_error_false_with_only_warnings() {
+    let d = zyn::mark::new().add(zyn::mark::warning("w")).build();
+    assert!(!d.is_error());
 }
 
 #[test]
-fn has_errors_false_with_note_and_help() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Note, "n"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Help, "h"));
-    assert!(!d.has_errors());
+fn is_error_false_with_note_and_help() {
+    let d = zyn::mark::new()
+        .add(zyn::mark::note("n"))
+        .add(zyn::mark::help("h"))
+        .build();
+    assert!(!d.is_error());
 }
 
 #[test]
-fn has_errors_true_with_mixed_levels() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Warning, "w"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Note, "n"));
-    d.push(Diagnostic::spanned(Span::call_site(), Level::Error, "e"));
-    assert!(d.has_errors());
+fn is_error_true_with_mixed_levels() {
+    let d = zyn::mark::new()
+        .add(zyn::mark::warning("w"))
+        .add(zyn::mark::note("n"))
+        .add(zyn::mark::error("e"))
+        .build();
+    assert!(d.is_error());
 }

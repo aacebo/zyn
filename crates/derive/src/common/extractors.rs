@@ -15,8 +15,8 @@ pub fn bindings(
                 let #name = match <#ty as ::zyn::FromInput>::from_input(#input_expr) {
                     ::std::result::Result::Ok(v) => v,
                     ::std::result::Result::Err(e) => {
-                        diagnostics.extend(e);
-                        return diagnostics.emit();
+                        diagnostics = diagnostics.add(e);
+                        return diagnostics.build().emit();
                     }
                 };
             }

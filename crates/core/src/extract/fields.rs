@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 use syn::spanned::Spanned;
 
-use crate::diagnostic::Diagnostics;
+use crate::mark;
 use crate::types::Input;
 
 use super::FromInput;
@@ -11,35 +11,29 @@ use super::FromInput;
 /// Implementations exist for `syn::Fields` (any kind), `syn::FieldsNamed`
 /// (named only), and `syn::FieldsUnnamed` (tuple only).
 pub trait FromFields: Sized {
-    fn from_fields(fields: syn::Fields) -> crate::Result<Self>;
+    fn from_fields(fields: syn::Fields, span: Span) -> crate::Result<Self>;
 }
 
 impl FromFields for syn::Fields {
-    fn from_fields(fields: syn::Fields) -> crate::Result<Self> {
+    fn from_fields(fields: syn::Fields, _span: Span) -> crate::Result<Self> {
         Ok(fields)
     }
 }
 
 impl FromFields for syn::FieldsNamed {
-    fn from_fields(fields: syn::Fields) -> crate::Result<Self> {
+    fn from_fields(fields: syn::Fields, span: Span) -> crate::Result<Self> {
         match fields {
             syn::Fields::Named(f) => Ok(f),
-            _ => Err(Diagnostics::error(
-                Span::call_site(),
-                "expected named fields",
-            )),
+            _ => Err(mark::error("expected named fields").span(span).build()),
         }
     }
 }
 
 impl FromFields for syn::FieldsUnnamed {
-    fn from_fields(fields: syn::Fields) -> crate::Result<Self> {
+    fn from_fields(fields: syn::Fields, span: Span) -> crate::Result<Self> {
         match fields {
             syn::Fields::Unnamed(f) => Ok(f),
-            _ => Err(Diagnostics::error(
-                Span::call_site(),
-                "expected unnamed fields",
-            )),
+            _ => Err(mark::error("expected unnamed fields").span(span).build()),
         }
     }
 }
@@ -85,21 +79,24 @@ impl<T: FromFields> FromInput for Fields<T> {
             Input::Derive(d) => match &d.data {
                 syn::Data::Struct(s) => s.fields.clone(),
                 _ => {
-                    return Err(Diagnostics::error(
-                        d.ident.span(),
-                        "expected struct input for Fields extractor",
-                    ));
+                    return Err(mark::error("expected struct input for Fields extractor")
+                        .span(d.ident.span())
+                        .build());
                 }
             },
             Input::Item(syn::Item::Struct(s)) => s.fields.clone(),
             _ => {
-                return Err(Diagnostics::error(
-                    input.span(),
-                    "expected struct input for Fields extractor",
-                ));
+                return Err(mark::error("expected struct input for Fields extractor")
+                    .span(input.span())
+                    .build());
             }
         };
 
-        T::from_fields(raw).map(Fields)
+        let span = match input {
+            Input::Derive(d) => d.ident.span(),
+            _ => input.span(),
+        };
+
+        T::from_fields(raw, span).map(Fields)
     }
 }

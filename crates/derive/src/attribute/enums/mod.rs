@@ -2,7 +2,7 @@ mod variant_meta;
 
 use variant_meta::VariantMeta;
 
-use zyn_core::diagnostic::ToDiagnostics;
+use zyn_core::mark::Diagnostic;
 use zyn_core::proc_macro2::TokenStream;
 use zyn_core::quote::quote;
 use zyn_core::syn::DeriveInput;
@@ -10,7 +10,7 @@ use zyn_core::syn::DeriveInput;
 pub fn expand(input: DeriveInput) -> TokenStream {
     let variants = match VariantMeta::parse(&input) {
         Ok(v) => v,
-        Err(e) => return e.to_diagnostics().emit(),
+        Err(e) => return Diagnostic::from(e).emit(),
     };
 
     let name = &input.ident;
@@ -29,10 +29,11 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         quote! {
             ::zyn::Arg::Flag(ident) => match ident.to_string().as_str() {
                 #(#flag_arms,)*
-                other => ::std::result::Result::Err(::zyn::Diagnostics::error(
-                    ident.span(),
-                    ::std::format!("unknown variant `{}`, expected one of: {}", other, #expected),
-                )),
+                other => ::std::result::Result::Err(
+                    ::zyn::mark::error(::std::format!("unknown variant `{}`, expected one of: {}", other, #expected))
+                        .span(ident.span())
+                        .build()
+                ),
             },
         }
     };
@@ -46,10 +47,11 @@ pub fn expand(input: DeriveInput) -> TokenStream {
             ::zyn::Arg::List(ident, args) => match ident.to_string().as_str() {
                 #(#list_arms,)*
                 _ if args.len() == 1 => Self::from_arg(&args[0]),
-                other => ::std::result::Result::Err(::zyn::Diagnostics::error(
-                    ident.span(),
-                    ::std::format!("unknown variant `{}`, expected one of: {}", other, #expected),
-                )),
+                other => ::std::result::Result::Err(
+                    ::zyn::mark::error(::std::format!("unknown variant `{}`, expected one of: {}", other, #expected))
+                        .span(ident.span())
+                        .build()
+                ),
             },
         }
     };
@@ -60,10 +62,11 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         quote! {
             ::zyn::Arg::Expr(ident, _) => match ident.to_string().as_str() {
                 #(#expr_arms,)*
-                other => ::std::result::Result::Err(::zyn::Diagnostics::error(
-                    ident.span(),
-                    ::std::format!("unknown variant `{}`, expected one of: {}", other, #expected),
-                )),
+                other => ::std::result::Result::Err(
+                    ::zyn::mark::error(::std::format!("unknown variant `{}`, expected one of: {}", other, #expected))
+                        .span(ident.span())
+                        .build()
+                ),
             },
         }
     };
@@ -75,10 +78,11 @@ pub fn expand(input: DeriveInput) -> TokenStream {
                     #flag_block
                     #list_block
                     #expr_block
-                    _ => ::std::result::Result::Err(::zyn::Diagnostics::error(
-                        ::zyn::proc_macro2::Span::call_site(),
-                        ::std::format!("expected one of: {}", #expected),
-                    )),
+                    _ => ::std::result::Result::Err(
+                        ::zyn::mark::error(::std::format!("expected one of: {}", #expected))
+                            .span(::zyn::syn::spanned::Spanned::span(arg))
+                            .build()
+                    ),
                 }
             }
         }

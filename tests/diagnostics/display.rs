@@ -1,34 +1,25 @@
 use zyn::Diagnostic;
-use zyn::Diagnostics;
-use zyn::Level;
 use zyn::proc_macro2::Span;
 
 #[test]
 fn empty_displays_as_empty_string() {
-    let d = Diagnostics::new();
+    let d = zyn::mark::new().build();
     assert_eq!(format!("{d}"), "");
 }
 
 #[test]
 fn single_error_contains_message() {
-    let d = Diagnostics::error(Span::call_site(), "field `name` is required");
+    let d = zyn::mark::error("field `name` is required").build();
     let output = format!("{d}");
     assert!(output.contains("field `name` is required"));
 }
 
 #[test]
 fn multiple_errors_contain_all_messages() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Error,
-        "missing `a`",
-    ));
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Error,
-        "missing `b`",
-    ));
+    let d = zyn::mark::new()
+        .add(zyn::mark::error("missing `a`"))
+        .add(zyn::mark::error("missing `b`"))
+        .build();
 
     let output = format!("{d}");
     assert!(output.contains("missing `a`"));
@@ -37,17 +28,10 @@ fn multiple_errors_contain_all_messages() {
 
 #[test]
 fn multiple_diagnostics_separated_by_newlines() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Error,
-        "first",
-    ));
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Warning,
-        "second",
-    ));
+    let d = zyn::mark::new()
+        .add(zyn::mark::error("first"))
+        .add(zyn::mark::warning("second"))
+        .build();
 
     let output = format!("{d}");
     assert!(output.contains('\n'));
@@ -55,27 +39,12 @@ fn multiple_diagnostics_separated_by_newlines() {
 
 #[test]
 fn mixed_levels_all_appear_in_output() {
-    let mut d = Diagnostics::new();
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Error,
-        "err_msg",
-    ));
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Warning,
-        "warn_msg",
-    ));
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Note,
-        "note_msg",
-    ));
-    d.push(Diagnostic::spanned(
-        Span::call_site(),
-        Level::Help,
-        "help_msg",
-    ));
+    let d = zyn::mark::new()
+        .add(zyn::mark::error("err_msg"))
+        .add(zyn::mark::warning("warn_msg"))
+        .add(zyn::mark::note("note_msg"))
+        .add(zyn::mark::help("help_msg"))
+        .build();
 
     let output = format!("{d}");
     assert!(output.contains("err_msg"));
@@ -87,7 +56,7 @@ fn mixed_levels_all_appear_in_output() {
 #[test]
 fn from_syn_error_message_in_display() {
     let err = zyn::syn::Error::new(Span::call_site(), "syn error message");
-    let d = Diagnostics::from(err);
+    let d = Diagnostic::from(err);
 
     let output = format!("{d}");
     assert!(output.contains("syn error message"));
@@ -95,7 +64,7 @@ fn from_syn_error_message_in_display() {
 
 #[test]
 fn debug_output_is_nonempty_for_errors() {
-    let d = Diagnostics::error(Span::call_site(), "debug test");
+    let d = zyn::mark::error("debug test").build();
     let output = format!("{d:?}");
     assert!(!output.is_empty());
 }

@@ -172,6 +172,8 @@ pub trait FieldsExt {
     /// }
     /// ```
     fn keyed(&self) -> impl Iterator<Item = (FieldKey, &Field)>;
+    /// Returns the span of the fields.
+    fn span(&self) -> proc_macro2::Span;
 }
 
 impl FieldsExt for syn::Fields {
@@ -243,6 +245,11 @@ impl FieldsExt for syn::Fields {
             }
         }
     }
+
+    fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        Spanned::span(self)
+    }
 }
 
 macro_rules! delegate_fields_ext {
@@ -278,6 +285,11 @@ macro_rules! delegate_fields_ext {
 
             fn get(&self, key: &FieldKey) -> Option<&Field> {
                 self.$field.get(key)
+            }
+
+            fn span(&self) -> proc_macro2::Span {
+                use syn::spanned::Spanned;
+                Spanned::span(&self.$field)
             }
         }
     };

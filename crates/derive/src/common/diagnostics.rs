@@ -18,14 +18,6 @@ pub fn macros() -> TokenStream {
         /// }
         /// ```
         ///
-        /// ```text
-        /// error: reserved identifier
-        ///  --> src/lib.rs:8:24
-        ///   |
-        /// 8 |     @validated(name = forbidden)
-        ///   |                       ^^^^^^^^^
-        /// ```
-        ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
         /// error!("expected struct, found enum"; span = ident.span());
@@ -33,31 +25,18 @@ pub fn macros() -> TokenStream {
         #[allow(unused)]
         macro_rules! error {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    $span, ::zyn::Level::Error, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::error(format!($fmt $(, $arg)*)).span($span)
+                )
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    ::zyn::Span::call_site(), ::zyn::Level::Error, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::error(format!($fmt $(, $arg)*))
+                )
             };
         }
 
         /// Pushes a warning diagnostic. Accepts `format!`-style arguments.
-        ///
-        /// ```rust,ignore
-        /// #[zyn::element]
-        /// fn legacy(#[zyn(input)] ident: syn::Ident) -> zyn::TokenStream {
-        ///     warn!("this element is deprecated, use `new_api` instead");
-        ///     zyn::zyn! { fn {{ ident }}() {} }
-        /// }
-        /// ```
-        ///
-        /// ```text
-        /// warning: this element is deprecated, use `new_api` instead
-        ///  --> src/lib.rs:5:5
-        /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
@@ -66,39 +45,18 @@ pub fn macros() -> TokenStream {
         #[allow(unused)]
         macro_rules! warn {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    $span, ::zyn::Level::Warning, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::warning(format!($fmt $(, $arg)*)).span($span)
+                )
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    ::zyn::Span::call_site(), ::zyn::Level::Warning, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::warning(format!($fmt $(, $arg)*))
+                )
             };
         }
 
         /// Pushes a note diagnostic. Accepts `format!`-style arguments.
-        ///
-        /// ```rust,ignore
-        /// #[zyn::element]
-        /// fn validated(name: syn::Ident) -> zyn::TokenStream {
-        ///     if name == "forbidden" {
-        ///         error!("reserved identifier"; span = name.span());
-        ///         note!("this name is reserved by the compiler");
-        ///     }
-        ///     bail!();
-        ///     zyn::zyn! { fn {{ name }}() {} }
-        /// }
-        /// ```
-        ///
-        /// ```text
-        /// error: reserved identifier
-        ///  --> src/lib.rs:8:24
-        ///   |
-        /// 8 |     @validated(name = forbidden)
-        ///   |                       ^^^^^^^^^
-        ///   = note: this name is reserved by the compiler
-        /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
@@ -107,36 +65,18 @@ pub fn macros() -> TokenStream {
         #[allow(unused)]
         macro_rules! note {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    $span, ::zyn::Level::Note, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::note(format!($fmt $(, $arg)*)).span($span)
+                )
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    ::zyn::Span::call_site(), ::zyn::Level::Note, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::note(format!($fmt $(, $arg)*))
+                )
             };
         }
 
         /// Pushes a help diagnostic. Accepts `format!`-style arguments.
-        ///
-        /// ```rust,ignore
-        /// #[zyn::element]
-        /// fn validated(name: syn::Ident) -> zyn::TokenStream {
-        ///     if name == "bad" {
-        ///         error!("name is bad");
-        ///         help!("use a different name");
-        ///     }
-        ///     bail!();
-        ///     zyn::zyn! { fn {{ name }}() {} }
-        /// }
-        /// ```
-        ///
-        /// ```text
-        /// error: name is bad
-        ///  --> src/lib.rs:4:10
-        ///   = help: use a different name
-        /// ```
         ///
         /// Attach a span with `; span = expr`:
         /// ```rust,ignore
@@ -145,33 +85,18 @@ pub fn macros() -> TokenStream {
         #[allow(unused)]
         macro_rules! help {
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    $span, ::zyn::Level::Help, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::help(format!($fmt $(, $arg)*)).span($span)
+                )
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    ::zyn::Span::call_site(), ::zyn::Level::Help, format!($fmt $(, $arg)*)
-                ))
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::help(format!($fmt $(, $arg)*))
+                )
             };
         }
 
         /// Returns early with accumulated diagnostics.
-        ///
-        /// ```rust,ignore
-        /// #[zyn::element]
-        /// fn format_error(name: syn::Ident) -> zyn::TokenStream {
-        ///     if name == "foo" {
-        ///         bail!("field `{}` is invalid", name);
-        ///     }
-        ///     zyn::zyn! { fn {{ name }}() {} }
-        /// }
-        /// ```
-        ///
-        /// ```text
-        /// error: field `foo` is invalid
-        ///  --> src/lib.rs:4:10
-        /// ```
         ///
         /// With no arguments, returns only if errors have been pushed:
         /// ```rust,ignore
@@ -184,24 +109,26 @@ pub fn macros() -> TokenStream {
         /// ```
         #[allow(unused)]
         macro_rules! bail {
-            () => {
-                if diagnostics.has_errors() {
-                    return diagnostics.emit();
+            () => {{
+                let __built = diagnostics.build();
+                if __built.is_error() {
+                    return __built.emit();
                 }
-            };
+                diagnostics = ::zyn::DiagnosticBuilder::from(__built);
+            }};
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {{
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    $span, ::zyn::Level::Error, format!($fmt $(, $arg)*)
-                ));
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::error(format!($fmt $(, $arg)*)).span($span)
+                );
 
-                return diagnostics.emit();
+                return diagnostics.build().emit();
             }};
             ($fmt:literal $(, $arg:expr)* $(,)?) => {{
-                diagnostics.push(::zyn::Diagnostic::spanned(
-                    ::zyn::Span::call_site(), ::zyn::Level::Error, format!($fmt $(, $arg)*)
-                ));
+                diagnostics = diagnostics.add(
+                    ::zyn::mark::error(format!($fmt $(, $arg)*))
+                );
 
-                return diagnostics.emit();
+                return diagnostics.build().emit();
             }};
         }
     }

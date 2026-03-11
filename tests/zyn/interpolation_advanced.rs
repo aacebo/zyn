@@ -35,7 +35,7 @@ fn nested_field_access() {
 
 #[test]
 fn method_call() {
-    let names = vec![zyn::format_ident!("foo"), zyn::format_ident!("bar")];
+    let names = [zyn::format_ident!("foo"), zyn::format_ident!("bar")];
     let result = zyn::zyn!({ { names.len() } });
     let expected = quote!(2usize);
     assert_eq!(result.to_string(), expected.to_string());

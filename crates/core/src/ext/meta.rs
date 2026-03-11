@@ -79,6 +79,8 @@ pub trait MetaExt {
     /// // items → [Meta::Path(Clone), Meta::Path(Debug)]
     /// ```
     fn nested(&self) -> Option<Vec<Meta>>;
+    /// Returns the span of this meta item.
+    fn span(&self) -> proc_macro2::Span;
 }
 
 impl MetaExt for Meta {
@@ -133,6 +135,11 @@ impl MetaExt for Meta {
         list.parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)
             .ok()
             .map(|p| p.into_iter().collect())
+    }
+
+    fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        Spanned::span(self)
     }
 }
 

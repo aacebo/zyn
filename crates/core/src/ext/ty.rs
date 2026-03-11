@@ -45,6 +45,8 @@ pub trait TypeExt {
     /// Returns the inner type for wrapper variants (Array, Group, Paren, Ptr, Reference, Slice).
     /// Returns `None` for all other variants.
     fn inner(&self) -> Option<&Type>;
+    /// Returns the span of this type.
+    fn span(&self) -> proc_macro2::Span;
 }
 
 impl TypeExt for Type {
@@ -78,6 +80,11 @@ impl TypeExt for Type {
             _ => None,
         }
     }
+
+    fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        Spanned::span(self)
+    }
 }
 
 impl TypeExt for syn::Field {
@@ -99,6 +106,46 @@ impl TypeExt for syn::Field {
 
     fn inner(&self) -> Option<&Type> {
         self.ty.inner()
+    }
+
+    fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        Spanned::span(&self.ty)
+    }
+}
+
+trait TypeExtPrivate {
+    fn last_segment_is(&self, name: &str) -> bool;
+    fn first_type_arg(&self) -> Option<&Type>;
+}
+
+impl TypeExtPrivate for Type {
+    fn last_segment_is(&self, name: &str) -> bool {
+        match self {
+            Self::Path(tp) => tp.path.segments.last().is_some_and(|s| s.ident == name),
+            _ => false,
+        }
+    }
+
+    fn first_type_arg(&self) -> Option<&Type> {
+        let seg = match self {
+            Self::Path(tp) => tp.path.segments.last()?,
+            _ => return None,
+        };
+
+        if seg.ident != "Option" && seg.ident != "Result" {
+            return None;
+        }
+
+        match &seg.arguments {
+            syn::PathArguments::AngleBracketed(args) => {
+                args.args.first().and_then(|arg| match arg {
+                    syn::GenericArgument::Type(ty) => Some(ty),
+                    _ => None,
+                })
+            }
+            _ => None,
+        }
     }
 }
 
@@ -228,41 +275,6 @@ mod tests {
         fn inner_through_field() {
             let field = parse_field("struct Foo { x: &String }");
             assert!(field.inner().is_some());
-        }
-    }
-}
-
-trait TypeExtPrivate {
-    fn last_segment_is(&self, name: &str) -> bool;
-    fn first_type_arg(&self) -> Option<&Type>;
-}
-
-impl TypeExtPrivate for Type {
-    fn last_segment_is(&self, name: &str) -> bool {
-        match self {
-            Self::Path(tp) => tp.path.segments.last().is_some_and(|s| s.ident == name),
-            _ => false,
-        }
-    }
-
-    fn first_type_arg(&self) -> Option<&Type> {
-        let seg = match self {
-            Self::Path(tp) => tp.path.segments.last()?,
-            _ => return None,
-        };
-
-        if seg.ident != "Option" && seg.ident != "Result" {
-            return None;
-        }
-
-        match &seg.arguments {
-            syn::PathArguments::AngleBracketed(args) => {
-                args.args.first().and_then(|arg| match arg {
-                    syn::GenericArgument::Type(ty) => Some(ty),
-                    _ => None,
-                })
-            }
-            _ => None,
         }
     }
 }

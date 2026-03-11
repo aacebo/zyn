@@ -108,7 +108,7 @@ fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
             #args_binding
 
             let __zyn_result: ::zyn::proc_macro2::TokenStream = (|| {
-                let mut diagnostics = ::zyn::Diagnostics::new();
+                let mut diagnostics = ::zyn::mark::new();
 
                 #diagnostic_macros
 
@@ -116,7 +116,8 @@ fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
 
                 let __body = #body;
 
-                if diagnostics.has_errors() {
+                let diagnostics = diagnostics.build();
+                if diagnostics.is_error() {
                     return diagnostics.emit();
                 }
 

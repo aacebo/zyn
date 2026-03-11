@@ -36,17 +36,15 @@ pub fn from_args(
                             match <#ty as ::zyn::FromArg>::from_arg(arg) {
                                 ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
                                 ::std::result::Result::Err(e) => {
-                                    __diags.extend(e);
+                                    __diags = __diags.add(e);
                                     ::std::option::Option::None
                                 }
                             }
                         }
                         ::std::option::Option::None => {
-                            __diags.push(::zyn::Diagnostic::spanned(
-                                ::zyn::proc_macro2::Span::call_site(),
-                                ::zyn::Level::Error,
-                                ::std::format!("missing required positional argument [{}]", #idx),
-                            ));
+                            __diags = __diags.add(
+                                ::zyn::mark::error(::std::format!("missing required positional argument [{}]", #idx))
+                            );
                             ::std::option::Option::None
                         }
                     };
@@ -69,7 +67,7 @@ pub fn from_args(
                                 match <#inner_ty as ::zyn::FromArg>::from_arg(arg) {
                                     ::std::result::Result::Ok(v) => ::std::option::Option::Some(::std::option::Option::Some(v)),
                                     ::std::result::Result::Err(e) => {
-                                        __diags.extend(e);
+                                        __diags = __diags.add(e);
                                         ::std::option::Option::None
                                     }
                                 }
@@ -92,17 +90,15 @@ pub fn from_args(
                                     match <#ty as ::zyn::FromArg>::from_arg(arg) {
                                         ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
                                         ::std::result::Result::Err(e) => {
-                                            __diags.extend(e);
+                                            __diags = __diags.add(e);
                                             ::std::option::Option::None
                                         }
                                     }
                                 }
                                 ::std::option::Option::None => {
-                                    __diags.push(::zyn::Diagnostic::spanned(
-                                        ::zyn::proc_macro2::Span::call_site(),
-                                        ::zyn::Level::Error,
-                                        #missing_msg,
-                                    ));
+                                    __diags = __diags.add(
+                                        ::zyn::mark::error(#missing_msg)
+                                    );
                                     ::std::option::Option::None
                                 }
                             };
@@ -115,7 +111,7 @@ pub fn from_args(
                                     match <#ty as ::zyn::FromArg>::from_arg(arg) {
                                         ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
                                         ::std::result::Result::Err(e) => {
-                                            __diags.extend(e);
+                                            __diags = __diags.add(e);
                                             ::std::option::Option::None
                                         }
                                     }
@@ -131,7 +127,7 @@ pub fn from_args(
                                     match <#ty as ::zyn::FromArg>::from_arg(arg) {
                                         ::std::result::Result::Ok(v) => ::std::option::Option::Some(v),
                                         ::std::result::Result::Err(e) => {
-                                            __diags.extend(e);
+                                            __diags = __diags.add(e);
                                             ::std::option::Option::None
                                         }
                                     }
@@ -152,7 +148,7 @@ pub fn from_args(
     quote! {
         impl #impl_generics #name #ty_generics #where_clause {
             pub fn from_args(args: &::zyn::Args) -> ::zyn::Result<Self> {
-                let mut __diags = ::zyn::Diagnostics::new();
+                let mut __diags = ::zyn::mark::new();
 
                 #(#let_bindings)*
 
@@ -161,25 +157,24 @@ pub fn from_args(
                     if let ::std::option::Option::Some(__ident) = __arg.name() {
                         let __key = __ident.to_string();
                         if !__known.contains(&__key.as_str()) {
-                            let mut __d = ::zyn::Diagnostic::spanned(
-                                __ident.span(),
-                                ::zyn::Level::Error,
+                            let mut __d = ::zyn::mark::error(
                                 ::std::format!("unknown argument `{}`", __key),
-                            );
+                            ).span(__ident.span());
 
                             if let ::std::option::Option::Some(__s) = ::zyn::closest_match(&__key, __known) {
-                                __d = __d.span_help(
-                                    __ident.span(),
-                                    ::std::format!("did you mean `{}`?", __s),
+                                __d = __d.add(
+                                    ::zyn::mark::help(::std::format!("did you mean `{}`?", __s))
+                                        .span(__ident.span())
                                 );
                             }
 
-                            __diags.push(__d);
+                            __diags = __diags.add(__d);
                         }
                     }
                 }
 
-                if __diags.has_errors() {
+                let __diags = __diags.build();
+                if __diags.is_error() {
                     return ::std::result::Result::Err(__diags);
                 }
 
@@ -214,10 +209,11 @@ pub fn from_arg(
             fn from_arg(arg: &::zyn::Arg) -> ::zyn::Result<Self> {
                 match arg {
                     ::zyn::Arg::List(_, args) => Self::from_args(args),
-                    _ => ::std::result::Result::Err(::zyn::Diagnostics::error(
-                        ::zyn::proc_macro2::Span::call_site(),
-                        "expected list argument",
-                    )),
+                    _ => ::std::result::Result::Err(
+                        ::zyn::mark::error("expected list argument")
+                            .span(::zyn::syn::spanned::Spanned::span(arg))
+                            .build()
+                    ),
                 }
             }
         }
@@ -237,10 +233,9 @@ pub fn from_input(
         let msg = format!("only one #[{attr_name}(...)] allowed");
         quote! {
             if matches.len() > 1 {
-                return ::std::result::Result::Err(::zyn::Diagnostics::error(
-                    ::zyn::proc_macro2::Span::call_site(),
-                    #msg,
-                ));
+                return ::std::result::Result::Err(
+                    ::zyn::mark::error(#msg).build()
+                );
             }
         }
     } else {
@@ -251,7 +246,7 @@ pub fn from_input(
         quote! {
             match matches.first() {
                 ::std::option::Option::Some(attr) => {
-                    let args: ::zyn::Args = attr.parse_args().map_err(::zyn::Diagnostics::from)?;
+                    let args: ::zyn::Args = attr.parse_args().map_err(::zyn::Diagnostic::from)?;
                     Self::from_args(&args)
                 }
                 ::std::option::Option::None => Self::from_args(&::zyn::Args::new()),
@@ -261,7 +256,7 @@ pub fn from_input(
         quote! {
             let mut merged = ::zyn::Args::new();
             for attr in &matches {
-                let args: ::zyn::Args = attr.parse_args().map_err(::zyn::Diagnostics::from)?;
+                let args: ::zyn::Args = attr.parse_args().map_err(::zyn::Diagnostic::from)?;
                 merged.extend(args);
             }
             Self::from_args(&merged)

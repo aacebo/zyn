@@ -1,5 +1,4 @@
-use zyn_core::diagnostic::Diagnostic;
-use zyn_core::diagnostic::Level;
+use zyn_core::mark;
 use zyn_core::proc_macro2;
 use zyn_core::proc_macro2::TokenStream;
 use zyn_core::proc_macro2::TokenTree;
@@ -19,12 +18,10 @@ pub fn emit(config: &DebugConfig, label: &str, tokens: &TokenStream) {
         }
     };
 
-    let _ = Diagnostic::spanned(
-        proc_macro2::Span::call_site(),
-        Level::Note,
-        format!("{label}\n\n{text}"),
-    )
-    .emit_as_item_tokens();
+    let _ = mark::note(format!("{label}\n\n{text}"))
+        .span(proc_macro2::Span::call_site())
+        .build()
+        .emit_as_item_tokens();
 }
 
 fn strip_noise(tokens: &TokenStream) -> TokenStream {

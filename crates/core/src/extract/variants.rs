@@ -1,7 +1,7 @@
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 
-use crate::diagnostic::Diagnostics;
+use crate::mark;
 use crate::types::Input;
 
 use super::FromInput;
@@ -45,16 +45,14 @@ impl FromInput for Variants {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(Variants(e.variants.clone())),
-                _ => Err(Diagnostics::error(
-                    d.ident.span(),
-                    "expected enum input for Variants extractor",
-                )),
+                _ => Err(mark::error("expected enum input for Variants extractor")
+                    .span(d.ident.span())
+                    .build()),
             },
             Input::Item(syn::Item::Enum(e)) => Ok(Variants(e.variants.clone())),
-            _ => Err(Diagnostics::error(
-                input.span(),
-                "expected enum input for Variants extractor",
-            )),
+            _ => Err(mark::error("expected enum input for Variants extractor")
+                .span(input.span())
+                .build()),
         }
     }
 }

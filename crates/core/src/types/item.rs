@@ -1,8 +1,8 @@
 use syn::spanned::Spanned;
 
 use super::Input;
-use crate::diagnostic::Diagnostics;
 use crate::extract::FromInput;
+use crate::mark;
 
 pub fn attrs(item: &syn::Item) -> &[syn::Attribute] {
     match item {
@@ -73,7 +73,9 @@ impl FromInput for syn::Item {
     fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Item(v) => Ok(v.clone()),
-            _ => Err(Diagnostics::error(input.span(), "expected item input")),
+            _ => Err(mark::error("expected item input")
+                .span(input.span())
+                .build()),
         }
     }
 }
@@ -84,7 +86,7 @@ macro_rules! impl_from_input_item {
             fn from_input(input: &Input) -> crate::Result<Self> {
                 match input {
                     Input::Item(syn::Item::$variant(v)) => Ok(v.clone()),
-                    _ => Err(Diagnostics::error(input.span(), $msg)),
+                    _ => Err(mark::error($msg).span(input.span()).build()),
                 }
             }
         }
@@ -124,9 +126,13 @@ impl FromInput for syn::ItemStruct {
                     fields: s.fields.clone(),
                     semi_token: s.semi_token,
                 }),
-                _ => Err(Diagnostics::error(d.ident.span(), "expected struct input")),
+                _ => Err(mark::error("expected struct input")
+                    .span(d.ident.span())
+                    .build()),
             },
-            _ => Err(Diagnostics::error(input.span(), "expected struct input")),
+            _ => Err(mark::error("expected struct input")
+                .span(input.span())
+                .build()),
         }
     }
 }
@@ -145,9 +151,13 @@ impl FromInput for syn::ItemEnum {
                     brace_token: syn::token::Brace::default(),
                     variants: e.variants.clone(),
                 }),
-                _ => Err(Diagnostics::error(d.ident.span(), "expected enum input")),
+                _ => Err(mark::error("expected enum input")
+                    .span(d.ident.span())
+                    .build()),
             },
-            _ => Err(Diagnostics::error(input.span(), "expected enum input")),
+            _ => Err(mark::error("expected enum input")
+                .span(input.span())
+                .build()),
         }
     }
 }
@@ -165,9 +175,13 @@ impl FromInput for syn::ItemUnion {
                     generics: d.generics.clone(),
                     fields: u.fields.clone(),
                 }),
-                _ => Err(Diagnostics::error(d.ident.span(), "expected union input")),
+                _ => Err(mark::error("expected union input")
+                    .span(d.ident.span())
+                    .build()),
             },
-            _ => Err(Diagnostics::error(input.span(), "expected union input")),
+            _ => Err(mark::error("expected union input")
+                .span(input.span())
+                .build()),
         }
     }
 }

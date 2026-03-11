@@ -90,6 +90,8 @@ pub trait ItemExt {
     /// Returns the visibility if this variant has one.
     /// Returns `None` for `Impl`, `ForeignMod`, and `Verbatim`.
     fn vis(&self) -> Option<&syn::Visibility>;
+    /// Returns the span of this item.
+    fn span(&self) -> proc_macro2::Span;
 }
 
 impl ItemExt for Item {
@@ -277,6 +279,11 @@ impl ItemExt for Item {
             Self::Use(v) => Some(&v.vis),
             _ => None,
         }
+    }
+
+    fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        Spanned::span(self)
     }
 }
 

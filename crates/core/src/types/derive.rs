@@ -1,14 +1,16 @@
 use syn::spanned::Spanned;
 
 use super::Input;
-use crate::diagnostic::Diagnostics;
 use crate::extract::FromInput;
+use crate::mark;
 
 impl FromInput for syn::DeriveInput {
     fn from_input(input: &Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => Ok(d.clone()),
-            _ => Err(Diagnostics::error(input.span(), "expected derive input")),
+            _ => Err(mark::error("expected derive input")
+                .span(input.span())
+                .build()),
         }
     }
 }
@@ -18,12 +20,11 @@ impl FromInput for syn::DataStruct {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Struct(s) => Ok(s.clone()),
-                _ => Err(Diagnostics::error(d.ident.span(), "expected struct")),
+                _ => Err(mark::error("expected struct").span(d.ident.span()).build()),
             },
-            _ => Err(Diagnostics::error(
-                input.span(),
-                "expected derive struct input",
-            )),
+            _ => Err(mark::error("expected derive struct input")
+                .span(input.span())
+                .build()),
         }
     }
 }
@@ -33,12 +34,11 @@ impl FromInput for syn::DataEnum {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(e.clone()),
-                _ => Err(Diagnostics::error(d.ident.span(), "expected enum")),
+                _ => Err(mark::error("expected enum").span(d.ident.span()).build()),
             },
-            _ => Err(Diagnostics::error(
-                input.span(),
-                "expected derive enum input",
-            )),
+            _ => Err(mark::error("expected derive enum input")
+                .span(input.span())
+                .build()),
         }
     }
 }
@@ -48,12 +48,11 @@ impl FromInput for syn::DataUnion {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Union(u) => Ok(u.clone()),
-                _ => Err(Diagnostics::error(d.ident.span(), "expected union")),
+                _ => Err(mark::error("expected union").span(d.ident.span()).build()),
             },
-            _ => Err(Diagnostics::error(
-                input.span(),
-                "expected derive union input",
-            )),
+            _ => Err(mark::error("expected derive union input")
+                .span(input.span())
+                .build()),
         }
     }
 }

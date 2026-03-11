@@ -178,7 +178,7 @@ fn about_shows_required_status() {
     assert!(about.contains("(required)"));
 }
 
-fn expect_err<T>(result: zyn::Result<T>) -> zyn::Diagnostics {
+fn expect_err<T>(result: zyn::Result<T>) -> zyn::Diagnostic {
     match result {
         Err(e) => e,
         Ok(_) => panic!("expected error"),
@@ -251,7 +251,7 @@ fn type_mismatch_and_missing_both_reported() {
     let err = expect_err(ArgMode::from_args(&args));
     let combined = format!("{err}");
 
-    assert!(err.has_errors());
+    assert!(err.is_error());
     assert!(combined.contains("expected integer literal"));
     assert!(combined.contains("expected string literal"));
     assert_eq!(err.len(), 2);

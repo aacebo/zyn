@@ -20,11 +20,12 @@ doctest = false
 [features]
 ext = []
 pretty = ["prettyplease"]
+diagnostics = ["proc-macro2-diagnostics"]
 
 [dependencies]
 proc-macro2 = "1"
-prettyplease = { version = "0.2", optional = true }
-proc-macro2-diagnostics = "0.10"
 quote = "1"
 syn = { version = "2", features = ["full", "extra-traits", "fold"] }
+prettyplease = { version = "0.2", optional = true }
+proc-macro2-diagnostics = { version = "0.10", optional = true }
 

@@ -51,7 +51,7 @@
 use syn::Lit;
 use syn::spanned::Spanned;
 
-use crate::diagnostic::Diagnostics;
+use crate::mark;
 use crate::meta::Arg;
 use crate::meta::Args;
 use crate::types::Input;
@@ -141,7 +141,9 @@ impl FromArg for bool {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::Flag(_) => Ok(true),
-            _ => Err(Diagnostics::error(arg.span(), "expected flag for bool")),
+            _ => Err(mark::error("expected flag for bool")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -150,7 +152,9 @@ impl FromArg for String {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg.as_expr_lit() {
             Some(Lit::Str(s)) => Ok(s.value()),
-            _ => Err(Diagnostics::error(arg.span(), "expected string literal")),
+            _ => Err(mark::error("expected string literal")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -161,8 +165,8 @@ macro_rules! impl_from_arg_int {
             impl FromArg for $t {
                 fn from_arg(arg: &Arg) -> crate::Result<Self> {
                     match arg.as_expr_lit() {
-                        Some(Lit::Int(i)) => i.base10_parse::<$t>().map_err(|e| Diagnostics::error(i.span(), e.to_string())),
-                        _ => Err(Diagnostics::error(arg.span(), concat!("expected integer literal for ", stringify!($t)))),
+                        Some(Lit::Int(i)) => i.base10_parse::<$t>().map_err(|e| mark::error(e.to_string()).span(i.span()).build()),
+                        _ => Err(mark::error(concat!("expected integer literal for ", stringify!($t))).span(arg.span()).build()),
                     }
                 }
             }
@@ -178,8 +182,8 @@ macro_rules! impl_from_arg_float {
             impl FromArg for $t {
                 fn from_arg(arg: &Arg) -> crate::Result<Self> {
                     match arg.as_expr_lit() {
-                        Some(Lit::Float(f)) => f.base10_parse::<$t>().map_err(|e| Diagnostics::error(f.span(), e.to_string())),
-                        _ => Err(Diagnostics::error(arg.span(), concat!("expected float literal for ", stringify!($t)))),
+                        Some(Lit::Float(f)) => f.base10_parse::<$t>().map_err(|e| mark::error(e.to_string()).span(f.span()).build()),
+                        _ => Err(mark::error(concat!("expected float literal for ", stringify!($t))).span(arg.span()).build()),
                     }
                 }
             }
@@ -193,7 +197,9 @@ impl FromArg for char {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg.as_expr_lit() {
             Some(Lit::Char(c)) => Ok(c.value()),
-            _ => Err(Diagnostics::error(arg.span(), "expected char literal")),
+            _ => Err(mark::error("expected char literal")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -202,7 +208,7 @@ impl FromArg for syn::Ident {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::Flag(i) => Ok(i.clone()),
-            _ => Err(Diagnostics::error(arg.span(), "expected identifier")),
+            _ => Err(mark::error("expected identifier").span(arg.span()).build()),
         }
     }
 }
@@ -211,10 +217,9 @@ impl FromArg for syn::Path {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::Flag(i) => Ok(syn::Path::from(i.clone())),
-            _ => Err(Diagnostics::error(
-                arg.span(),
-                "expected identifier for path",
-            )),
+            _ => Err(mark::error("expected identifier for path")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -223,7 +228,7 @@ impl FromArg for syn::Expr {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::Expr(_, expr) => Ok(expr.clone()),
-            _ => Err(Diagnostics::error(arg.span(), "expected expression")),
+            _ => Err(mark::error("expected expression").span(arg.span()).build()),
         }
     }
 }
@@ -232,7 +237,9 @@ impl FromArg for syn::LitStr {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg.as_expr_lit() {
             Some(Lit::Str(s)) => Ok(s.clone()),
-            _ => Err(Diagnostics::error(arg.span(), "expected string literal")),
+            _ => Err(mark::error("expected string literal")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -241,7 +248,9 @@ impl FromArg for syn::LitInt {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg.as_expr_lit() {
             Some(Lit::Int(i)) => Ok(i.clone()),
-            _ => Err(Diagnostics::error(arg.span(), "expected integer literal")),
+            _ => Err(mark::error("expected integer literal")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -256,7 +265,9 @@ impl<T: FromArg> FromArg for Vec<T> {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::List(_, args) => args.iter().map(T::from_arg).collect(),
-            _ => Err(Diagnostics::error(arg.span(), "expected list argument")),
+            _ => Err(mark::error("expected list argument")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -265,7 +276,9 @@ impl FromArg for Args {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::List(_, args) => Ok(args.clone()),
-            _ => Err(Diagnostics::error(arg.span(), "expected list argument")),
+            _ => Err(mark::error("expected list argument")
+                .span(arg.span())
+                .build()),
         }
     }
 }
@@ -280,7 +293,7 @@ mod tests {
         #[test]
         fn from_flag() {
             let arg: Arg = syn::parse_str("skip").unwrap();
-            assert_eq!(bool::from_arg(&arg).unwrap(), true);
+            assert!(bool::from_arg(&arg).unwrap());
         }
 
         #[test]

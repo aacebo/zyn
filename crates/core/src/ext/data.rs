@@ -42,6 +42,8 @@ pub trait DataExt {
     fn as_enum(&self) -> Option<&syn::DataEnum>;
     /// Returns the inner `syn::DataUnion` if this is a union.
     fn as_union(&self) -> Option<&syn::DataUnion>;
+    /// Returns the span of this data item.
+    fn span(&self) -> proc_macro2::Span;
 }
 
 impl DataExt for Data {
@@ -75,6 +77,15 @@ impl DataExt for Data {
         match self {
             Self::Union(u) => Some(u),
             _ => None,
+        }
+    }
+
+    fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        match self {
+            Self::Struct(s) => s.struct_token.span,
+            Self::Enum(e) => e.enum_token.span,
+            Self::Union(u) => u.union_token.span(),
         }
     }
 }

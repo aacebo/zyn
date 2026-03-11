@@ -105,7 +105,7 @@ bail!("missing `{}`", name; span = ident.span());
 
 ## Accessing the Accumulator Directly
 
-The `diagnostics` variable is a `zyn::Diagnostics` and can be used directly:
+The `diagnostics` variable is a `zyn::DiagnosticBuilder` and can be used directly:
 
 ```rust
 #[zyn::element]
@@ -116,9 +116,7 @@ fn my_element(#[zyn(input)] fields: zyn::Fields<syn::Field>) -> zyn::TokenStream
         }
     }
 
-    if diagnostics.has_errors() {
-        return diagnostics.emit();
-    }
+    bail!();
 
     zyn::zyn! { struct Validated; }
 }

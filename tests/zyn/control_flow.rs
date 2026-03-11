@@ -17,13 +17,14 @@ fn for_classic_variable() {
 
 #[test]
 fn for_classic_method_call() {
-    let items = vec![1, 2, 3, 4];
+    let items = [1, 2, 3, 4];
     let result = zyn::zyn!(@for (items.len()) { w, });
     let expected = quote!(w, w, w, w,);
     assert_eq!(result.to_string(), expected.to_string());
 }
 
 #[test]
+#[allow(clippy::reversed_empty_ranges)]
 fn for_classic_zero() {
     let result = zyn::zyn!(@for (0) { x, });
     assert!(result.is_empty());
@@ -31,7 +32,7 @@ fn for_classic_zero() {
 
 #[test]
 fn for_range_with_wildcard() {
-    let items = vec![11, 22, 33];
+    let items = [11, 22, 33];
     let result = zyn::zyn!(@for (i in 0..items.len()) { {{ i }}, });
     let expected = quote!(0usize, 1usize, 2usize,);
     assert_eq!(result.to_string(), expected.to_string());
@@ -45,6 +46,7 @@ fn for_range_with_binding() {
 }
 
 #[test]
+#[allow(clippy::reversed_empty_ranges)]
 fn for_range_empty() {
     let result = zyn::zyn!(@for (_ in 0..0) { x, });
     assert!(result.is_empty());
