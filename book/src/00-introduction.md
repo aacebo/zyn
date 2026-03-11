@@ -8,7 +8,7 @@
     />
 </p>
 
-Zyn is a template engine and framework for Rust procedural macros. One crate replaces the patchwork of `syn`, `quote`, case-conversion libraries, diagnostic helpers, and attribute-parsing boilerplate that every proc macro project ends up assembling from scratch.
+Zyn is a proc macro framework with templates, composable elements, and built-in diagnostics.
 
 ```rust,zyn
 zyn! {

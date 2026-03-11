@@ -1,6 +1,6 @@
 [package]
 name = "zyn-core"
-description = "core ast and other type/helper implementations for zyn"
+description = "Core AST, traits, and utilities for the zyn proc macro framework"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

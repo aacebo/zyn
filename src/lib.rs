@@ -1,10 +1,6 @@
 //! ![zyn](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/banner.svg)
 //!
-//! A template engine and framework for Rust procedural macros.
-//!
-//! zyn replaces the `syn` + `quote` + `heck` + `proc-macro-error` stack with a single
-//! dependency. Write proc macros with templates, reusable elements, typed attribute
-//! parsing, and chainable pipes.
+//! A proc macro framework with templates, composable elements, and built-in diagnostics.
 //!
 //! ```sh
 //! cargo add zyn

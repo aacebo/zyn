@@ -1,6 +1,6 @@
 [package]
 name = "zyn-derive"
-description = "derive macros for the zyn crate"
+description = "Proc macros for the zyn framework"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

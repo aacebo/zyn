@@ -22,7 +22,7 @@ zyn-derive = { path = "./crates/derive", version = "=0.4.2" }
 
 [package]
 name = "zyn"
-description = "A procedural macro development framework designed to simplify and add structure to rust macro development"
+description = "A proc macro framework with templates, composable elements, and built-in diagnostics"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -91,3 +91,8 @@ path = "tests/debug/mod.rs"
 [[test]]
 name = "diagnostics"
 path = "tests/diagnostics/mod.rs"
+
+[[test]]
+name = "ext"
+path = "tests/ext/mod.rs"
+required-features = ["ext"]
