@@ -91,7 +91,7 @@ Enable the `pretty` feature in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-zyn = { version = "0.3", features = ["pretty"] }
+zyn = { version = "0.4", features = ["pretty"] }
 ```
 
 Then use `debug = "pretty"`:

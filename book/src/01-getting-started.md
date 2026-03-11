@@ -6,7 +6,7 @@ Add zyn to your proc-macro crate:
 
 ```toml
 [dependencies]
-zyn = "0.3"
+zyn = "0.4"
 ```
 
 Zyn re-exports `syn`, `quote`, and `proc-macro2` — you don't need to add them separately. Access them as `zyn::syn`, `zyn::quote`, and `zyn::proc_macro2`.
@@ -24,7 +24,7 @@ To enable optional features:
 
 ```toml
 [dependencies]
-zyn = { version = "0.3", features = ["ext", "pretty", "diagnostics"] }
+zyn = { version = "0.4", features = ["ext", "pretty", "diagnostics"] }
 ```
 
 ## Your first template

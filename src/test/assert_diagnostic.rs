@@ -133,4 +133,61 @@ mod tests {
             .build();
         assert_diagnostic_help!(output, "inner hint");
     }
+
+    #[test]
+    #[should_panic(expected = "no")]
+    fn empty_output_has_no_diagnostics() {
+        let output = Output::default();
+        assert_diagnostic_warning!(output, "anything");
+    }
+
+    #[test]
+    fn multiple_errors_same_level() {
+        let output = Output::new()
+            .diagnostic(
+                mark::new()
+                    .add(mark::error("first"))
+                    .add(mark::error("second"))
+                    .add(mark::error("third")),
+            )
+            .build();
+        assert_diagnostic_error!(output, "first");
+        assert_diagnostic_error!(output, "second");
+        assert_diagnostic_error!(output, "third");
+    }
+
+    #[test]
+    fn partial_message_match() {
+        let output = Output::new()
+            .diagnostic(mark::error("field `name` is required"))
+            .build();
+        assert_diagnostic_error!(output, "name");
+        assert_diagnostic_error!(output, "required");
+    }
+
+    #[test]
+    fn all_levels_in_one_output() {
+        let output = Output::new()
+            .diagnostic(
+                mark::new()
+                    .add(mark::error("err"))
+                    .add(mark::warning("warn"))
+                    .add(mark::note("note"))
+                    .add(mark::help("help")),
+            )
+            .build();
+        assert_diagnostic_error!(output, "err");
+        assert_diagnostic_warning!(output, "warn");
+        assert_diagnostic_note!(output, "note");
+        assert_diagnostic_help!(output, "help");
+    }
+
+    #[test]
+    #[should_panic(expected = "no")]
+    fn wrong_level_does_not_match() {
+        let output = Output::new()
+            .diagnostic(mark::warning("just a warning"))
+            .build();
+        assert_diagnostic_error!(output, "just a warning");
+    }
 }
