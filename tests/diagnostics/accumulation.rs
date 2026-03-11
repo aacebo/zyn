@@ -111,3 +111,62 @@ fn bail_with_errors_stops() {
         "body should not appear, got: {output}"
     );
 }
+
+#[zyn::element]
+fn warn_with_output(name: syn::Ident) -> zyn::TokenStream {
+    warn!("deprecated");
+    zyn::zyn!(fn {{ name }}() {})
+}
+
+#[test]
+fn warn_does_not_block_body() {
+    let output = WarnWithOutput {
+        name: zyn::format_ident!("my_fn"),
+    }
+    .render(&dummy_input())
+    .to_string();
+    assert!(output.contains("my_fn"), "expected body, got: {output}");
+}
+
+#[zyn::element]
+fn note_and_help_with_output(name: syn::Ident) -> zyn::TokenStream {
+    note!("processing `{}`", name);
+    help!("consider adding #[derive(Debug)]");
+    zyn::zyn!(fn {{ name }}() {})
+}
+
+#[test]
+fn note_and_help_do_not_block_body() {
+    let output = NoteAndHelpWithOutput {
+        name: zyn::format_ident!("my_fn"),
+    }
+    .render(&dummy_input())
+    .to_string();
+    assert!(output.contains("my_fn"), "expected body, got: {output}");
+}
+
+#[zyn::element]
+fn mixed_non_errors_with_output(name: syn::Ident) -> zyn::TokenStream {
+    warn!("field will be removed");
+    note!("see migration guide");
+    help!("use `new_field` instead");
+    zyn::zyn!(
+        impl {{ name }} {
+            fn validate(&self) -> bool { true }
+        }
+    )
+}
+
+#[test]
+fn mixed_non_errors_do_not_block_body() {
+    let output = MixedNonErrorsWithOutput {
+        name: zyn::format_ident!("MyStruct"),
+    }
+    .render(&dummy_input())
+    .to_string();
+    assert!(output.contains("MyStruct"), "expected body, got: {output}");
+    assert!(
+        output.contains("validate"),
+        "expected body method, got: {output}"
+    );
+}
