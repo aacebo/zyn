@@ -22,6 +22,11 @@ ZYN_DEBUG="*" cargo build
 
 Without `ZYN_DEBUG` set, the `debug` argument is inert — no output, no overhead. This makes it safe to leave in source code during development.
 
+> [!NOTE]
+> An element annotated with `debug` — the argument is inert until `ZYN_DEBUG` is set.
+
+![Element with debug arg](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-2.png)
+
 ## Supported macros
 
 | Macro | Syntax |
@@ -68,6 +73,16 @@ note: zyn::element ─── Greeting
 
 The raw format is useful for quick checks and when you want to see the exact tokens being generated.
 
+> [!NOTE]
+> Raw debug output shown as an inline compiler diagnostic in the editor.
+
+![Raw debug output — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-3.png)
+
+> [!NOTE]
+> The same raw output surfaced in the Problems panel for easy navigation.
+
+![Raw debug output — Problems panel](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-4.png)
+
 ### Pretty (feature-gated)
 
 The `pretty` format uses [`prettyplease`](https://crates.io/crates/prettyplease) to produce properly formatted Rust code with indentation and line breaks.
@@ -111,6 +126,11 @@ note: zyn::element ─── Greeting
       }
   --> src/lib.rs:1:1
 ```
+
+> [!NOTE]
+> Pretty-printed debug output — formatted with `prettyplease` for readable, indented Rust code.
+
+![Pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-5.png)
 
 If `debug = "pretty"` is used without the `pretty` feature enabled, you'll get a helpful compile error:
 

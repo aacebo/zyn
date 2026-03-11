@@ -31,7 +31,7 @@ pub fn macros() -> TokenStream {
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
                 diagnostics = diagnostics.add(
-                    ::zyn::mark::error(format!($fmt $(, $arg)*))
+                    ::zyn::mark::error(format!($fmt $(, $arg)*)).span(input.span())
                 )
             };
         }
@@ -51,7 +51,7 @@ pub fn macros() -> TokenStream {
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
                 diagnostics = diagnostics.add(
-                    ::zyn::mark::warning(format!($fmt $(, $arg)*))
+                    ::zyn::mark::warning(format!($fmt $(, $arg)*)).span(input.span())
                 )
             };
         }
@@ -71,7 +71,7 @@ pub fn macros() -> TokenStream {
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
                 diagnostics = diagnostics.add(
-                    ::zyn::mark::note(format!($fmt $(, $arg)*))
+                    ::zyn::mark::note(format!($fmt $(, $arg)*)).span(input.span())
                 )
             };
         }
@@ -91,7 +91,7 @@ pub fn macros() -> TokenStream {
             };
             ($fmt:literal $(, $arg:expr)* $(,)?) => {
                 diagnostics = diagnostics.add(
-                    ::zyn::mark::help(format!($fmt $(, $arg)*))
+                    ::zyn::mark::help(format!($fmt $(, $arg)*)).span(input.span())
                 )
             };
         }
@@ -125,7 +125,7 @@ pub fn macros() -> TokenStream {
             }};
             ($fmt:literal $(, $arg:expr)* $(,)?) => {{
                 diagnostics = diagnostics.add(
-                    ::zyn::mark::error(format!($fmt $(, $arg)*))
+                    ::zyn::mark::error(format!($fmt $(, $arg)*)).span(input.span())
                 );
 
                 return diagnostics.build().emit();

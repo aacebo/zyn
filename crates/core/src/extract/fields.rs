@@ -1,6 +1,3 @@
-use proc_macro2::Span;
-use syn::spanned::Spanned;
-
 use crate::mark;
 use crate::types::Input;
 
@@ -11,29 +8,35 @@ use super::FromInput;
 /// Implementations exist for `syn::Fields` (any kind), `syn::FieldsNamed`
 /// (named only), and `syn::FieldsUnnamed` (tuple only).
 pub trait FromFields: Sized {
-    fn from_fields(fields: syn::Fields, span: Span) -> crate::Result<Self>;
+    fn from_fields(fields: syn::Fields) -> crate::Result<Self>;
 }
 
 impl FromFields for syn::Fields {
-    fn from_fields(fields: syn::Fields, _span: Span) -> crate::Result<Self> {
+    fn from_fields(fields: syn::Fields) -> crate::Result<Self> {
         Ok(fields)
     }
 }
 
 impl FromFields for syn::FieldsNamed {
-    fn from_fields(fields: syn::Fields, span: Span) -> crate::Result<Self> {
+    fn from_fields(fields: syn::Fields) -> crate::Result<Self> {
         match fields {
             syn::Fields::Named(f) => Ok(f),
-            _ => Err(mark::error("expected named fields").span(span).build()),
+            syn::Fields::Unnamed(f) => Err(mark::error("expected named fields")
+                .span(f.paren_token.span.join())
+                .build()),
+            syn::Fields::Unit => Err(mark::error("expected named fields").build()),
         }
     }
 }
 
 impl FromFields for syn::FieldsUnnamed {
-    fn from_fields(fields: syn::Fields, span: Span) -> crate::Result<Self> {
+    fn from_fields(fields: syn::Fields) -> crate::Result<Self> {
         match fields {
             syn::Fields::Unnamed(f) => Ok(f),
-            _ => Err(mark::error("expected unnamed fields").span(span).build()),
+            syn::Fields::Named(f) => Err(mark::error("expected unnamed fields")
+                .span(f.brace_token.span.join())
+                .build()),
+            syn::Fields::Unit => Err(mark::error("expected unnamed fields").build()),
         }
     }
 }
@@ -92,11 +95,6 @@ impl<T: FromFields> FromInput for Fields<T> {
             }
         };
 
-        let span = match input {
-            Input::Derive(d) => d.ident.span(),
-            _ => input.span(),
-        };
-
-        T::from_fields(raw, span).map(Fields)
+        T::from_fields(raw).map(Fields)
     }
 }

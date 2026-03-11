@@ -46,7 +46,7 @@ impl FromInput for Variants {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(Variants(e.variants.clone())),
                 _ => Err(mark::error("expected enum input for Variants extractor")
-                    .span(d.ident.span())
+                    .span(d.span())
                     .build()),
             },
             Input::Item(syn::Item::Enum(e)) => Ok(Variants(e.variants.clone())),

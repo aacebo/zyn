@@ -1,5 +1,3 @@
-use syn::spanned::Spanned;
-
 use super::Input;
 use crate::extract::FromInput;
 use crate::mark;

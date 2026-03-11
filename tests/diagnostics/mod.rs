@@ -7,3 +7,8 @@ mod iterator;
 mod levels;
 mod macros;
 mod syntax;
+
+#[cfg(not(feature = "diagnostics"))]
+mod disabled;
+#[cfg(feature = "diagnostics")]
+mod enabled;

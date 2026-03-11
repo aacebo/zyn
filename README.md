@@ -43,6 +43,10 @@ cargo add zyn
 
 ## Templates
 
+> Templates are fully type-checked at compile time — errors appear inline, just like regular Rust code.
+
+![Compile-time type safety](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-1.png)
+
 The `zyn!` macro is the core of zyn. Write token output as if it were source code,
 with `{{ }}` interpolation and `@` control flow directives.
 
@@ -309,6 +313,10 @@ note: zyn::element ─── my_element
         }
     }
 ```
+
+> Pretty-printed debug output — formatted with `prettyplease` for readable, indented Rust code.
+
+![Pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-5.png)
 
 ### diagnostics
 

@@ -120,12 +120,21 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
         .map(|name| quote! { let #name = &self.#name; })
         .collect();
 
-    let output = quote! {
-        #vis struct #struct_name {
-            #(pub #prop_names: #prop_types,)*
+    let struct_def = if prop_names.is_empty() {
+        quote! { #vis struct #struct_name; }
+    } else {
+        quote! {
+            #vis struct #struct_name {
+                #(pub #prop_names: #prop_types,)*
+            }
         }
+    };
+
+    let output = quote! {
+        #struct_def
 
         impl ::zyn::Render for #struct_name {
+            #[allow(unreachable_code)]
             fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
                 let mut diagnostics = ::zyn::mark::new();
 

@@ -151,6 +151,7 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
 
     let output = quote! {
         #derive_attr
+        #[allow(unreachable_code)]
         pub fn #fn_name(__zyn_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let input = ::zyn::parse_input!(__zyn_input as ::zyn::syn::DeriveInput);
 

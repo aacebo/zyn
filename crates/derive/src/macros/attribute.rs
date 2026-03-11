@@ -100,6 +100,7 @@ fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
 
     let output = quote! {
         #[proc_macro_attribute]
+        #[allow(unreachable_code)]
         pub fn #fn_name(
             __zyn_args: proc_macro::TokenStream,
             __zyn_input: proc_macro::TokenStream,

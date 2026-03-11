@@ -101,6 +101,14 @@ impl Input {
             Self::Item(i) => item::vis(i),
         }
     }
+
+    pub fn span(&self) -> proc_macro2::Span {
+        use syn::spanned::Spanned;
+        match self {
+            Self::Derive(d) => d.span(),
+            Self::Item(i) => i.span(),
+        }
+    }
 }
 
 impl Default for Input {

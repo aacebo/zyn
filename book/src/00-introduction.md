@@ -20,6 +20,11 @@ zyn! {
 }
 ```
 
+> [!NOTE]
+> Templates are fully type-checked at compile time — errors appear inline, just like regular Rust code.
+
+![Compile-time type safety](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-1.png)
+
 ---
 
 ## Why?

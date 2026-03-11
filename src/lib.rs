@@ -73,6 +73,10 @@
 //!
 //! See [`zyn!`] for the full syntax reference.
 //!
+//! > Templates are fully type-checked at compile time — errors appear inline, just like regular Rust code.
+//!
+//! ![Compile-time type safety](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-1.png)
+//!
 //! ---
 //!
 //! # Elements
@@ -302,6 +306,22 @@
 //!         }
 //!     }
 //! ```
+//!
+//! > An element annotated with `debug` — the argument is inert until `ZYN_DEBUG` is set.
+//!
+//! ![Element with debug arg](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-2.png)
+//!
+//! > Raw debug output shown as an inline compiler diagnostic in the editor.
+//!
+//! ![Raw debug output — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-3.png)
+//!
+//! > The same raw output surfaced in the Problems panel for easy navigation.
+//!
+//! ![Raw debug output — Problems panel](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-4.png)
+//!
+//! > Pretty-printed debug output — formatted with `prettyplease` for readable, indented Rust code.
+//!
+//! ![Pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-5.png)
 //!
 //! See the [`debug`] module for programmatic access via `DebugExt`.
 //!
