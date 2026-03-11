@@ -69,7 +69,7 @@ fn element_renders_struct_kind() {
             name = input.ident().clone(),
         )
     );
-    assert!(output.to_string().contains("struct"), "got: {}", output);
+    zyn::assert_tokens_contain!(output, "struct");
 }
 
 #[test]
@@ -83,5 +83,5 @@ fn element_renders_enum_kind() {
             name = input.ident().clone(),
         )
     );
-    assert!(output.to_string().contains("enum"), "got: {}", output);
+    zyn::assert_tokens_contain!(output, "enum");
 }

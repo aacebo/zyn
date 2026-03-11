@@ -65,7 +65,7 @@ fn element_uses_attr_ext_to_conditionally_render() {
             name = input.ident().clone(),
         )
     );
-    assert!(output.to_string().contains("is_serde"), "got: {}", output);
+    zyn::assert_tokens_contain!(output, "is_serde");
 }
 
 #[test]
@@ -79,5 +79,5 @@ fn element_skips_when_no_serde() {
             name = input.ident().clone(),
         )
     );
-    assert!(!output.to_string().contains("is_serde"), "got: {}", output);
+    zyn::assert_tokens_empty!(output);
 }

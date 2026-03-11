@@ -100,11 +100,7 @@ fn element_renders_option_aware_getters() {
     };
 
     let output = zyn::zyn!(@option_getters(fields = fields));
-    assert!(output.to_string().contains("get_name"), "got: {}", output);
-    assert!(output.to_string().contains("get_email"), "got: {}", output);
-    assert!(
-        output.to_string().contains("as_ref"),
-        "expected Option handling, got: {}",
-        output
-    );
+    zyn::assert_tokens_contain!(output, "get_name");
+    zyn::assert_tokens_contain!(output, "get_email");
+    zyn::assert_tokens_contain!(output, "as_ref");
 }

@@ -15,10 +15,9 @@ fn emit_error() -> zyn::TokenStream {
 
 #[test]
 fn fallback_emits_compile_error() {
-    let tokens = EmitError.render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("compile_error"), "got: {output}");
-    assert!(output.contains("broken input"), "got: {output}");
+    let output = EmitError.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "broken input");
+    zyn::assert_tokens_contain!(output, "compile_error");
 }
 
 #[zyn::element]
@@ -30,10 +29,9 @@ fn emit_warning() -> zyn::TokenStream {
 
 #[test]
 fn fallback_warning_prefixes_message() {
-    let tokens = EmitWarning.render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("warning:"), "got: {output}");
-    assert!(output.contains("deprecated usage"), "got: {output}");
+    let output = EmitWarning.render(&dummy_input());
+    zyn::assert_diagnostic_warning!(output, "deprecated usage");
+    zyn::assert_tokens_contain!(output, "warning:");
 }
 
 #[zyn::element]
@@ -45,10 +43,9 @@ fn emit_note() -> zyn::TokenStream {
 
 #[test]
 fn fallback_note_prefixes_message() {
-    let tokens = EmitNote.render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("note:"), "got: {output}");
-    assert!(output.contains("see documentation"), "got: {output}");
+    let output = EmitNote.render(&dummy_input());
+    zyn::assert_diagnostic_note!(output, "see documentation");
+    zyn::assert_tokens_contain!(output, "note:");
 }
 
 #[zyn::element]
@@ -60,10 +57,9 @@ fn emit_help() -> zyn::TokenStream {
 
 #[test]
 fn fallback_help_prefixes_message() {
-    let tokens = EmitHelp.render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("help:"), "got: {output}");
-    assert!(output.contains("try this instead"), "got: {output}");
+    let output = EmitHelp.render(&dummy_input());
+    zyn::assert_diagnostic_help!(output, "try this instead");
+    zyn::assert_tokens_contain!(output, "help:");
 }
 
 #[zyn::element]
@@ -76,8 +72,7 @@ fn emit_multiple() -> zyn::TokenStream {
 
 #[test]
 fn fallback_multiple_errors() {
-    let tokens = EmitMultiple.render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("first"), "got: {output}");
-    assert!(output.contains("second"), "got: {output}");
+    let output = EmitMultiple.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "first");
+    zyn::assert_diagnostic_error!(output, "second");
 }

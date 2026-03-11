@@ -18,18 +18,14 @@ pub fn enabled_bail(name: syn::Ident) -> zyn::TokenStream {
 fn bail_emits_error() {
     let input: zyn::Input = dummy_input();
     let output = zyn::zyn!(@enabled_bail(name = zyn::format_ident!("bad")));
-    assert!(
-        output.to_string().contains("not allowed"),
-        "got: {}",
-        output
-    );
+    zyn::assert_tokens_contain!(output, "not allowed");
 }
 
 #[test]
 fn bail_allows_valid() {
     let input: zyn::Input = dummy_input();
     let output = zyn::zyn!(@enabled_bail(name = zyn::format_ident!("good")));
-    assert!(output.to_string().contains("good"), "got: {}", output);
+    zyn::assert_tokens_contain!(output, "good");
 }
 
 #[zyn::element]
@@ -46,9 +42,8 @@ pub fn enabled_multi(name: syn::Ident) -> zyn::TokenStream {
 fn error_and_help_accumulate() {
     let input: zyn::Input = dummy_input();
     let output = zyn::zyn!(@enabled_multi(name = zyn::format_ident!("bad")));
-    let output = output.to_string();
-    assert!(output.contains("name is bad"), "got: {output}");
-    assert!(output.contains("use a different name"), "got: {output}");
+    zyn::assert_tokens_contain!(output, "name is bad");
+    zyn::assert_tokens_contain!(output, "use a different name");
 }
 
 #[zyn::element]
@@ -61,11 +56,7 @@ pub fn warn_with_template(name: syn::Ident) -> zyn::TokenStream {
 fn warn_does_not_block_body() {
     let input: zyn::Input = dummy_input();
     let output = zyn::zyn!(@warn_with_template(name = zyn::format_ident!("my_fn")));
-    assert!(
-        output.to_string().contains("my_fn"),
-        "expected body, got: {}",
-        output
-    );
+    zyn::assert_tokens_contain!(output, "my_fn");
 }
 
 #[zyn::element]
@@ -79,11 +70,7 @@ pub fn note_and_help_with_template(name: syn::Ident) -> zyn::TokenStream {
 fn note_and_help_do_not_block_body() {
     let input: zyn::Input = dummy_input();
     let output = zyn::zyn!(@note_and_help_with_template(name = zyn::format_ident!("my_fn")));
-    assert!(
-        output.to_string().contains("my_fn"),
-        "expected body, got: {}",
-        output
-    );
+    zyn::assert_tokens_contain!(output, "my_fn");
 }
 
 #[zyn::element]
@@ -102,10 +89,6 @@ pub fn mixed_non_errors_with_template(name: syn::Ident) -> zyn::TokenStream {
 fn mixed_non_errors_do_not_block_body() {
     let input: zyn::Input = dummy_input();
     let output = zyn::zyn!(@mixed_non_errors_with_template(name = zyn::format_ident!("MyStruct")));
-    let output = output.to_string();
-    assert!(output.contains("MyStruct"), "expected body, got: {output}");
-    assert!(
-        output.contains("validate"),
-        "expected body method, got: {output}"
-    );
+    zyn::assert_tokens_contain!(output, "MyStruct");
+    zyn::assert_tokens_contain!(output, "validate");
 }

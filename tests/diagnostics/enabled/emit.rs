@@ -15,10 +15,9 @@ fn emit_error() -> zyn::TokenStream {
 
 #[test]
 fn error_emits_tokens() {
-    let tokens = (EmitError {}).render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(!output.is_empty(), "expected non-empty token output");
-    assert!(output.contains("broken input"), "got: {output}");
+    let output = (EmitError {}).render(&dummy_input());
+    assert!(!output.to_string().is_empty());
+    zyn::assert_diagnostic_error!(output, "broken input");
 }
 
 #[zyn::element]
@@ -30,9 +29,8 @@ fn emit_warning() -> zyn::TokenStream {
 
 #[test]
 fn warning_emits_tokens() {
-    let tokens = (EmitWarning {}).render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("deprecated usage"), "got: {output}");
+    let output = (EmitWarning {}).render(&dummy_input());
+    zyn::assert_diagnostic_warning!(output, "deprecated usage");
 }
 
 #[zyn::element]
@@ -45,10 +43,9 @@ fn emit_multiple() -> zyn::TokenStream {
 
 #[test]
 fn multiple_errors_all_emit() {
-    let tokens = (EmitMultiple {}).render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("first"), "got: {output}");
-    assert!(output.contains("second"), "got: {output}");
+    let output = (EmitMultiple {}).render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "first");
+    zyn::assert_diagnostic_error!(output, "second");
 }
 
 #[zyn::element]
@@ -58,10 +55,9 @@ fn emit_nothing(name: syn::Ident) -> zyn::TokenStream {
 
 #[test]
 fn no_diagnostics_passes_through() {
-    let tokens = EmitNothing {
+    let output = EmitNothing {
         name: zyn::format_ident!("my_fn"),
     }
     .render(&dummy_input());
-    let output = tokens.to_string();
-    assert!(output.contains("my_fn"), "got: {output}");
+    zyn::assert_tokens_contain!(output, "my_fn");
 }

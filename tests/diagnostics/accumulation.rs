@@ -18,10 +18,10 @@ fn three_levels() -> zyn::TokenStream {
 
 #[test]
 fn preserves_insertion_order() {
-    let output = ThreeLevels.render(&dummy_input()).to_string();
-    assert!(output.contains("first"), "got: {output}");
-    assert!(output.contains("second"), "got: {output}");
-    assert!(output.contains("third"), "got: {output}");
+    let output = ThreeLevels.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "first");
+    zyn::assert_diagnostic_warning!(output, "second");
+    zyn::assert_diagnostic_note!(output, "third");
 }
 
 #[zyn::element]
@@ -36,11 +36,11 @@ fn all_four_levels() -> zyn::TokenStream {
 
 #[test]
 fn all_four_levels_accumulate() {
-    let output = AllFourLevels.render(&dummy_input()).to_string();
-    assert!(output.contains("err"), "got: {output}");
-    assert!(output.contains("warn"), "got: {output}");
-    assert!(output.contains("note"), "got: {output}");
-    assert!(output.contains("help"), "got: {output}");
+    let output = AllFourLevels.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "err");
+    zyn::assert_diagnostic_warning!(output, "warn");
+    zyn::assert_diagnostic_note!(output, "note");
+    zyn::assert_diagnostic_help!(output, "help");
 }
 
 #[zyn::element]
@@ -53,9 +53,9 @@ fn error_and_warning() -> zyn::TokenStream {
 
 #[test]
 fn merges_in_order() {
-    let output = ErrorAndWarning.render(&dummy_input()).to_string();
-    assert!(output.contains("from_a"), "got: {output}");
-    assert!(output.contains("from_b"), "got: {output}");
+    let output = ErrorAndWarning.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "from_a");
+    zyn::assert_diagnostic_warning!(output, "from_b");
 }
 
 #[zyn::element]
@@ -69,10 +69,10 @@ fn multiple_errors() -> zyn::TokenStream {
 
 #[test]
 fn accumulate_multiple_error_sources() {
-    let output = MultipleErrors.render(&dummy_input()).to_string();
-    assert!(output.contains("missing field `x`"), "got: {output}");
-    assert!(output.contains("missing field `y`"), "got: {output}");
-    assert!(output.contains("unknown argument `z`"), "got: {output}");
+    let output = MultipleErrors.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "missing field `x`");
+    zyn::assert_diagnostic_error!(output, "missing field `y`");
+    zyn::assert_diagnostic_error!(output, "unknown argument `z`");
 }
 
 #[zyn::element]
@@ -86,11 +86,8 @@ fn warn_only() -> zyn::TokenStream {
 
 #[test]
 fn bail_without_errors_does_not_stop() {
-    let output = WarnOnly.render(&dummy_input()).to_string();
-    assert!(
-        output.contains("Foo"),
-        "expected body output, got: {output}"
-    );
+    let output = WarnOnly.render(&dummy_input());
+    zyn::assert_tokens_contain!(output, "Foo");
 }
 
 #[zyn::element]
@@ -104,12 +101,9 @@ fn error_then_bail() -> zyn::TokenStream {
 
 #[test]
 fn bail_with_errors_stops() {
-    let output = ErrorThenBail.render(&dummy_input()).to_string();
-    assert!(output.contains("fatal"), "got: {output}");
-    assert!(
-        !output.contains("Foo"),
-        "body should not appear, got: {output}"
-    );
+    let output = ErrorThenBail.render(&dummy_input());
+    zyn::assert_diagnostic_error!(output, "fatal");
+    assert!(output.tokens().is_empty());
 }
 
 #[zyn::element]
@@ -124,11 +118,7 @@ fn warn_does_not_block_body() {
     let output = zyn::zyn!(
         @warn_with_output(name = zyn::format_ident!("my_fn"))
     );
-    assert!(
-        output.to_string().contains("my_fn"),
-        "expected body, got: {}",
-        output
-    );
+    zyn::assert_tokens_contain!(output, "my_fn");
 }
 
 #[zyn::element]
@@ -144,11 +134,7 @@ fn note_and_help_do_not_block_body() {
     let output = zyn::zyn!(
         @note_and_help_with_output(name = zyn::format_ident!("my_fn"))
     );
-    assert!(
-        output.to_string().contains("my_fn"),
-        "expected body, got: {}",
-        output
-    );
+    zyn::assert_tokens_contain!(output, "my_fn");
 }
 
 #[zyn::element]
@@ -169,10 +155,6 @@ fn mixed_non_errors_do_not_block_body() {
     let output = zyn::zyn!(
         @mixed_non_errors_with_output(name = zyn::format_ident!("MyStruct"))
     );
-    let output = output.to_string();
-    assert!(output.contains("MyStruct"), "expected body, got: {output}");
-    assert!(
-        output.contains("validate"),
-        "expected body method, got: {output}"
-    );
+    zyn::assert_tokens_contain!(output, "MyStruct");
+    zyn::assert_tokens_contain!(output, "validate");
 }
