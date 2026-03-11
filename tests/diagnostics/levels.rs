@@ -1,4 +1,4 @@
-use zyn::Level;
+use zyn::mark::Level;
 
 #[test]
 fn level_empty_is_none() {

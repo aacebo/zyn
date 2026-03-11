@@ -1,5 +1,5 @@
 use zyn::Diagnostic;
-use zyn::Level;
+use zyn::mark::Level;
 
 #[test]
 fn iter_yields_in_push_order() {

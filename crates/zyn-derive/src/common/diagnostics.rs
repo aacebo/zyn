@@ -112,23 +112,29 @@ pub fn macros() -> TokenStream {
             () => {{
                 let __built = diagnostics.build();
                 if __built.is_error() {
-                    return __built.emit();
+                    return ::zyn::Output::new()
+                        .diagnostic(::zyn::mark::Builder::from(__built))
+                        .build();
                 }
-                diagnostics = ::zyn::DiagnosticBuilder::from(__built);
+                diagnostics = ::zyn::mark::Builder::from(__built);
             }};
             ($fmt:literal $(, $arg:expr)* ; span = $span:expr) => {{
                 diagnostics = diagnostics.add(
                     ::zyn::mark::error(format!($fmt $(, $arg)*)).span($span)
                 );
 
-                return diagnostics.build().emit();
+                return ::zyn::Output::new()
+                    .diagnostic(diagnostics)
+                    .build();
             }};
             ($fmt:literal $(, $arg:expr)* $(,)?) => {{
                 diagnostics = diagnostics.add(
                     ::zyn::mark::error(format!($fmt $(, $arg)*)).span(input.span())
                 );
 
-                return diagnostics.build().emit();
+                return ::zyn::Output::new()
+                    .diagnostic(diagnostics)
+                    .build();
             }};
         }
     }

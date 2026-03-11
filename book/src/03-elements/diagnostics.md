@@ -105,7 +105,7 @@ bail!("missing `{}`", name; span = ident.span());
 
 ## Accessing the Accumulator Directly
 
-The `diagnostics` variable is a `zyn::DiagnosticBuilder` and can be used directly:
+The `diagnostics` variable is a `zyn::mark::Builder` and can be used directly:
 
 ```rust
 #[zyn::element]

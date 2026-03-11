@@ -17,6 +17,7 @@ categories = ["development-tools::procedural-macro-helpers", "rust-patterns", "n
 [workspace.dependencies]
 zyn-core = { path = "./crates/zyn-core", version = "=0.4.2" }
 zyn-derive = { path = "./crates/zyn-derive", version = "=0.4.2" }
+zyn-test = { path = "./crates/zyn-test", version = "=0.4.2" }
 
 # ----------- Package ----------- #
 
@@ -50,6 +51,7 @@ diagnostics = ["zyn-core/diagnostics", "zyn-derive/diagnostics"]
 [dependencies]
 zyn-core = { workspace = true }
 zyn-derive = { workspace = true, optional = true }
+zyn-test = { workspace = true, optional = true }
 
 [dev-dependencies]
 zyn-core = { workspace = true }

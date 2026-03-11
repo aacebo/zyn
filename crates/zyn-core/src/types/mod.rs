@@ -29,6 +29,10 @@
 
 mod derive;
 mod item;
+mod output;
+
+pub use output::Output;
+pub use output::OutputBuilder;
 
 use quote::ToTokens;
 
@@ -70,35 +74,80 @@ impl Input {
 }
 
 impl Input {
-    /// Returns the attributes on the input item.
     pub fn attrs(&self) -> &[syn::Attribute] {
         match self {
             Self::Derive(d) => &d.attrs,
-            Self::Item(i) => item::attrs(i),
+            Self::Item(i) => match i {
+                syn::Item::Const(v) => &v.attrs,
+                syn::Item::Enum(v) => &v.attrs,
+                syn::Item::ExternCrate(v) => &v.attrs,
+                syn::Item::Fn(v) => &v.attrs,
+                syn::Item::ForeignMod(v) => &v.attrs,
+                syn::Item::Impl(v) => &v.attrs,
+                syn::Item::Mod(v) => &v.attrs,
+                syn::Item::Static(v) => &v.attrs,
+                syn::Item::Struct(v) => &v.attrs,
+                syn::Item::Trait(v) => &v.attrs,
+                syn::Item::Type(v) => &v.attrs,
+                syn::Item::Union(v) => &v.attrs,
+                syn::Item::Use(v) => &v.attrs,
+                _ => &[],
+            },
         }
     }
 
-    /// Returns the identifier of the input item.
     pub fn ident(&self) -> &syn::Ident {
         match self {
             Self::Derive(d) => &d.ident,
-            Self::Item(i) => item::ident(i),
+            Self::Item(i) => match i {
+                syn::Item::Const(v) => &v.ident,
+                syn::Item::Enum(v) => &v.ident,
+                syn::Item::ExternCrate(v) => &v.ident,
+                syn::Item::Fn(v) => &v.sig.ident,
+                syn::Item::Mod(v) => &v.ident,
+                syn::Item::Static(v) => &v.ident,
+                syn::Item::Struct(v) => &v.ident,
+                syn::Item::Trait(v) => &v.ident,
+                syn::Item::Type(v) => &v.ident,
+                syn::Item::Union(v) => &v.ident,
+                _ => panic!("item variant has no ident"),
+            },
         }
     }
 
-    /// Returns the generics of the input item.
     pub fn generics(&self) -> &syn::Generics {
         match self {
             Self::Derive(d) => &d.generics,
-            Self::Item(i) => item::generics(i),
+            Self::Item(i) => match i {
+                syn::Item::Enum(v) => &v.generics,
+                syn::Item::Fn(v) => &v.sig.generics,
+                syn::Item::Impl(v) => &v.generics,
+                syn::Item::Struct(v) => &v.generics,
+                syn::Item::Trait(v) => &v.generics,
+                syn::Item::Type(v) => &v.generics,
+                syn::Item::Union(v) => &v.generics,
+                _ => panic!("item variant has no generics"),
+            },
         }
     }
 
-    /// Returns the visibility of the input item.
     pub fn vis(&self) -> &syn::Visibility {
         match self {
             Self::Derive(d) => &d.vis,
-            Self::Item(i) => item::vis(i),
+            Self::Item(i) => match i {
+                syn::Item::Const(v) => &v.vis,
+                syn::Item::Enum(v) => &v.vis,
+                syn::Item::ExternCrate(v) => &v.vis,
+                syn::Item::Fn(v) => &v.vis,
+                syn::Item::Mod(v) => &v.vis,
+                syn::Item::Static(v) => &v.vis,
+                syn::Item::Struct(v) => &v.vis,
+                syn::Item::Trait(v) => &v.vis,
+                syn::Item::Type(v) => &v.vis,
+                syn::Item::Union(v) => &v.vis,
+                syn::Item::Use(v) => &v.vis,
+                _ => panic!("item variant has no visibility"),
+            },
         }
     }
 

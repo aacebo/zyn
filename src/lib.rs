@@ -297,7 +297,7 @@
 //!         pub name: zyn::syn::Ident,
 //!     }
 //!     impl ::zyn::Render for MyElement {
-//!         fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+//!         fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
 //!             ...
 //!         }
 //!     }
@@ -377,7 +377,7 @@ pub use zyn_derive::*;
 /// The zyn prelude. Re-exports all built-in pipes, core traits, and proc macros.
 pub mod prelude {
     pub use crate::pipes::*;
-    pub use crate::{Pipe, Render};
+    pub use crate::{Diagnostic, Output, Pipe, Render};
 
     #[cfg(feature = "derive")]
     pub use zyn_derive::*;

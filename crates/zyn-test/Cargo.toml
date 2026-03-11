@@ -1,0 +1,24 @@
+[package]
+name = "zyn-test"
+description = "Test utilities for the zyn proc macro framework"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lib]
+doctest = false
+
+[features]
+pretty = ["zyn-core/pretty"]
+
+[dependencies]
+zyn-core = { workspace = true }

@@ -1,5 +1,5 @@
 use zyn::Diagnostic;
-use zyn::Level;
+use zyn::mark::Level;
 use zyn::proc_macro2::Span;
 
 #[test]

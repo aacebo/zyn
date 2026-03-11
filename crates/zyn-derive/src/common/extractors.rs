@@ -16,7 +16,9 @@ pub fn bindings(
                     ::std::result::Result::Ok(v) => v,
                     ::std::result::Result::Err(e) => {
                         diagnostics = diagnostics.add(e);
-                        return diagnostics.build().emit();
+                        return ::zyn::Output::new()
+                            .diagnostic(diagnostics)
+                            .build();
                     }
                 };
             }

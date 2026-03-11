@@ -114,7 +114,7 @@ note: zyn::element ─── Greeting
           pub name: zyn::syn::Ident,
       }
       impl ::zyn::Render for Greeting {
-          fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+          fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
               let mut diagnostics = ::zyn::Diagnostics::new();
               let name = &self.name;
               let __body = { zyn::zyn!(fn {{ name }}() {}) };
@@ -206,7 +206,7 @@ note: zyn::element ─── FieldGetter
           pub ty: syn::Type,
       }
       impl ::zyn::Render for FieldGetter {
-          fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+          fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
               let mut diagnostics = ::zyn::Diagnostics::new();
               let name = &self.name;
               let ty = &self.ty;

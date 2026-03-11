@@ -4,7 +4,7 @@
 
 ```rust
 pub trait Render {
-    fn render(&self, input: &Input) -> zyn::TokenStream;
+    fn render(&self, input: &Input) -> zyn::Output;
 }
 ```
 

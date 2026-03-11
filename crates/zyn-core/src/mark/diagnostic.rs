@@ -6,7 +6,7 @@ use crate::mark::MultiSpan;
 
 /// A compiler diagnostic (error, warning, note, or help message).
 ///
-/// Immutable once built. Create instances via [`DiagnosticBuilder`] or the
+/// Immutable once built. Create instances via [`Builder`] or the
 /// free functions in [`crate::mark`].
 #[derive(Debug, Clone, Default)]
 pub struct Diagnostic {
@@ -41,14 +41,14 @@ impl Diagnostic {
             .max(self.level)
     }
 
-    /// Returns an iterator over the direct children of this diagnostic.
-    pub fn children(&self) -> impl Iterator<Item = &Diagnostic> {
+    pub fn iter(&self) -> impl Iterator<Item = &Self> {
         self.children.iter()
     }
 
-    /// Alias for [`children`](Self::children).
-    pub fn iter(&self) -> impl Iterator<Item = &Diagnostic> {
-        self.children()
+    pub fn walk(&self) -> Walk<'_> {
+        Walk {
+            stack: self.children.iter().rev().collect(),
+        }
     }
 
     /// Returns `true` if the highest severity level is [`Level::Error`] or above.
@@ -199,21 +199,21 @@ impl<'a> IntoIterator for &'a Diagnostic {
     }
 }
 
-// ── DiagnosticBuilder ──────────────────────────────────────────────────
+// ── Builder ──────────────────────────────────────────────────
 
 /// Builder for constructing [`Diagnostic`] instances.
 ///
 /// All methods are builder-pattern (consume and return `Self`).
 /// Call [`build`](Self::build) to finalize into an immutable `Diagnostic`.
 #[derive(Debug, Clone, Default)]
-pub struct DiagnosticBuilder {
+pub struct Builder {
     level: Level,
     message: String,
     spans: Vec<Span>,
     children: Vec<Diagnostic>,
 }
 
-impl DiagnosticBuilder {
+impl Builder {
     /// Sets the severity level.
     pub fn level(mut self, level: Level) -> Self {
         self.level = level;
@@ -232,10 +232,10 @@ impl DiagnosticBuilder {
         self
     }
 
-    /// Adds a child diagnostic. Accepts a `DiagnosticBuilder` (built automatically)
-    /// or a `Diagnostic` (via `Into<DiagnosticBuilder>`).
+    /// Adds a child diagnostic. Accepts a `Builder` (built automatically)
+    /// or a `Diagnostic` (via `Into<Builder>`).
     #[allow(clippy::should_implement_trait)]
-    pub fn add(mut self, child: impl Into<DiagnosticBuilder>) -> Self {
+    pub fn add(mut self, child: impl Into<Builder>) -> Self {
         self.children.push(child.into().build());
         self
     }
@@ -251,7 +251,7 @@ impl DiagnosticBuilder {
     }
 }
 
-impl From<Diagnostic> for DiagnosticBuilder {
+impl From<Diagnostic> for Builder {
     fn from(d: Diagnostic) -> Self {
         Self {
             level: d.level,
@@ -259,5 +259,21 @@ impl From<Diagnostic> for DiagnosticBuilder {
             spans: d.spans,
             children: d.children,
         }
+    }
+}
+
+// ── Walk ─────────────────────────────────────────────────────────────
+
+pub struct Walk<'a> {
+    stack: Vec<&'a Diagnostic>,
+}
+
+impl<'a> Iterator for Walk<'a> {
+    type Item = &'a Diagnostic;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let diag = self.stack.pop()?;
+        self.stack.extend(diag.children.iter().rev());
+        Some(diag)
     }
 }

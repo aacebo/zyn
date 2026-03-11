@@ -25,7 +25,7 @@ pub struct FieldDecl {
 }
 
 impl zyn::Render for FieldDecl {
-    fn render(&self, input: &zyn::Input) -> zyn::TokenStream {
+    fn render(&self, input: &zyn::Input) -> zyn::Output {
         let vis = &self.vis;
         let name = &self.name;
         let ty = &self.ty;

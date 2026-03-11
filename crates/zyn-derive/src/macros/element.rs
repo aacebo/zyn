@@ -135,7 +135,7 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
 
         impl ::zyn::Render for #struct_name {
             #[allow(unreachable_code)]
-            fn render(&self, input: &::zyn::Input) -> ::zyn::proc_macro2::TokenStream {
+            fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
                 let mut diagnostics = ::zyn::mark::new();
 
                 #diagnostic_macros
@@ -144,12 +144,10 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
                 #(#prop_bindings)*
                 let __body = #body;
 
-                let diagnostics = diagnostics.build();
-                if diagnostics.is_error() {
-                    return diagnostics.emit();
-                }
-
-                __body
+                ::zyn::Output::new()
+                    .tokens(__body)
+                    .diagnostic(diagnostics)
+                    .build()
             }
         }
 

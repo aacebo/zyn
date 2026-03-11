@@ -18,20 +18,19 @@ pub mod meta;
 pub mod path;
 /// Built-in pipe types for template value transforms.
 pub mod pipes;
-/// Template parsing and expansion.
-pub mod template;
-/// Proc macro input types.
-pub mod types;
+mod template;
+mod types;
 
 /// Extension traits for common `syn` AST types.
 #[cfg(feature = "ext")]
 pub mod ext;
 
 pub use extract::*;
-pub use mark::*;
+pub use mark::Diagnostic;
+pub use mark::Result;
 pub use meta::*;
-pub use template::Template;
-pub use types::Input;
+pub use template::*;
+pub use types::*;
 
 /// Parses tokens or string literals into a type. Wraps `syn::parse_str` and `syn::parse2`.
 #[macro_export]
@@ -74,7 +73,7 @@ pub trait Expand {
 
 /// Implemented by `#[zyn::element]` types. Renders the element with the given `Input` context.
 pub trait Render {
-    fn render(&self, input: &types::Input) -> proc_macro2::TokenStream;
+    fn render(&self, input: &types::Input) -> types::Output;
 }
 
 /// Implemented by `#[zyn::pipe]` types. Transforms a value in a pipe chain.
