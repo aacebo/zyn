@@ -99,8 +99,8 @@ pub struct OutputBuilder {
 
 impl OutputBuilder {
     /// Sets the generated token output.
-    pub fn tokens(mut self, tokens: impl ToTokens) -> Self {
-        self.tokens = tokens.to_token_stream();
+    pub fn tokens(mut self, tokens: impl Into<TokenStream>) -> Self {
+        self.tokens = tokens.into();
         self
     }
 
