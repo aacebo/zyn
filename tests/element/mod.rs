@@ -21,7 +21,7 @@ fn basic_element() {
     let expected = quote!(
         fn hello() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -46,7 +46,7 @@ fn element_with_children() {
             x: i32,
         }
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element("say_hello")]
@@ -67,7 +67,7 @@ fn custom_name_override() {
     let expected = quote!(
         fn world() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -93,7 +93,7 @@ fn zero_param_no_parens() {
     let expected = quote!(
         const DIVIDER: &str = "---";
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn zero_param_with_parens() {
     let expected = quote!(
         const DIVIDER: &str = "---";
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -127,7 +127,7 @@ fn children_without_parens() {
             struct Inner;
         }
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 fn derive_for_greeting(tokens: &str) -> zyn::TokenStream {
@@ -147,5 +147,5 @@ fn element_inside_for_loop() {
         fn foo() {}
         fn bar() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

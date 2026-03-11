@@ -17,7 +17,7 @@ fn field_access() {
     };
     let result = zyn::zyn!({{ field.name }}: {{ field.ty }});
     let expected = quote!(age: u32);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn nested_field_access() {
     };
     let result = zyn::zyn!({{ item.field.name }}: {{ item.field.ty }});
     let expected = quote!(age: u32);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -38,7 +38,7 @@ fn method_call() {
     let names = [zyn::format_ident!("foo"), zyn::format_ident!("bar")];
     let result = zyn::zyn!({ { names.len() } });
     let expected = quote!(2usize);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn chained_method_call() {
     let result =
         zyn::zyn!({ { zyn::syn::Ident::new(&name.to_uppercase(), zyn::Span::call_site()) } });
     let expected = quote!(HELLO_WORLD);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn method_call_in_for() {
         }
     );
     let expected = quote!(1usize, 2usize,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -75,7 +75,7 @@ fn method_call_in_condition() {
     let expected = quote!(
         struct NonEmpty;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -88,5 +88,5 @@ fn nested_field_with_pipe() {
     };
     let result = zyn::zyn!({ { item.field.name | upper } });
     let expected = quote!(HELLO);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

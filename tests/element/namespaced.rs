@@ -21,5 +21,5 @@ fn derive_field_decl(tokens: &str) -> zyn::TokenStream {
 fn namespaced_element() {
     let result = derive_field_decl("struct Foo;");
     let expected = quote!(age: u32,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

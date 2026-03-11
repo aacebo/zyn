@@ -4,7 +4,7 @@ use zyn::quote::quote;
 fn for_classic_literal() {
     let result = zyn::zyn!(@for (3) { x, });
     let expected = quote!(x, x, x,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -12,7 +12,7 @@ fn for_classic_variable() {
     let count = 2;
     let result = zyn::zyn!(@for (count) { z, });
     let expected = quote!(z, z,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -20,14 +20,14 @@ fn for_classic_method_call() {
     let items = [1, 2, 3, 4];
     let result = zyn::zyn!(@for (items.len()) { w, });
     let expected = quote!(w, w, w, w,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
 #[allow(clippy::reversed_empty_ranges)]
 fn for_classic_zero() {
     let result = zyn::zyn!(@for (0) { x, });
-    assert!(result.is_empty());
+    zyn::assert_tokens_empty!(result);
 }
 
 #[test]
@@ -35,21 +35,21 @@ fn for_range_with_wildcard() {
     let items = [11, 22, 33];
     let result = zyn::zyn!(@for (i in 0..items.len()) { {{ i }}, });
     let expected = quote!(0usize, 1usize, 2usize,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
 fn for_range_with_binding() {
     let result = zyn::zyn!(@for (i in 0..3usize) { {{ i }}, });
     let expected = quote!(0usize, 1usize, 2usize,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
 #[allow(clippy::reversed_empty_ranges)]
 fn for_range_empty() {
     let result = zyn::zyn!(@for (_ in 0..0) { x, });
-    assert!(result.is_empty());
+    zyn::assert_tokens_empty!(result);
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn for_range_with_interpolation() {
         }
     );
     let expected = quote!(a, b, c,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -71,14 +71,14 @@ fn if_true() {
     let expected = quote!(
         struct Foo;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
 fn if_false() {
     let flag = false;
     let result = zyn::zyn!(@if (flag) { struct Foo; });
-    assert!(result.is_empty());
+    zyn::assert_tokens_empty!(result);
 }
 
 #[test]
@@ -91,7 +91,7 @@ fn if_else() {
     let expected = quote!(
         struct Bar;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -99,7 +99,7 @@ fn for_loop() {
     let names = vec![zyn::format_ident!("a"), zyn::format_ident!("b")];
     let result = zyn::zyn!(@for (name in names) { {{ name }}, });
     let expected = quote!(a, b,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -114,7 +114,7 @@ fn match_directive() {
     let expected = quote!(
         struct Foo;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -128,14 +128,14 @@ fn else_if_chain() {
     let expected = quote!(
         struct Two;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
 fn for_empty_iterable() {
     let items: Vec<zyn::syn::Ident> = vec![];
     let result = zyn::zyn!(@for (item in items) { {{ item }} });
-    assert!(result.is_empty());
+    zyn::assert_tokens_empty!(result);
 }
 
 #[test]
@@ -146,7 +146,7 @@ fn for_inline_iterator() {
         }
     );
     let expected = quote!(pub x: f64, pub y: f64, pub z: f64,);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -163,7 +163,7 @@ fn match_multiple_arms() {
     let expected = quote!(
         enum Bar {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn match_wildcard_only() {
     let expected = quote!(
         struct Fallback;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -193,7 +193,7 @@ fn match_wildcard_catches() {
     let expected = quote!(
         struct Other;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -212,7 +212,7 @@ fn nested_if_inside_for() {
     let expected = quote!(
         fn a() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn nested_field_in_condition() {
     let expected = quote!(
         pub fn foo() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -243,5 +243,5 @@ fn method_call_in_match() {
     let expected = quote!(
         struct Five;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

@@ -1,22 +1,20 @@
 //! Test utilities for the zyn proc macro framework.
 //!
 //! Provides assertion macros for comparing token streams and inspecting
-//! diagnostics produced by [`Output`](zyn_core::Output).
+//! diagnostics produced by [`Output`](crate::Output).
 //!
 //! # Quick reference
 //!
 //! ```ignore
-//! use zyn_test::*;
-//!
-//! // Token comparison (clean-formatted diff on failure)
-//! assert_tokens!(output, expected);
-//! assert_tokens_empty!(output);
-//! assert_tokens_contain!(output, "struct Foo");
+//! // Token comparison (raw-formatted diff on failure)
+//! zyn::assert_tokens!(output, expected);
+//! zyn::assert_tokens_empty!(output);
+//! zyn::assert_tokens_contain!(output, "struct Foo");
 //!
 //! // Diagnostic assertions (works on zyn::Output)
-//! assert_diagnostic_error!(output, "field not found");
-//! assert_diagnostic_warning!(output, "unused");
-//! assert_compile_error!(output, "missing field");
+//! zyn::assert_diagnostic_error!(output, "field not found");
+//! zyn::assert_diagnostic_warning!(output, "unused");
+//! zyn::assert_compile_error!(output, "missing field");
 //! ```
 //!
 //! # Features

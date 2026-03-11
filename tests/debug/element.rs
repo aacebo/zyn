@@ -17,7 +17,7 @@ fn element_with_debug() {
     let expected = quote!(
         fn hello() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -27,7 +27,7 @@ fn element_with_debug_and_name() {
     let expected = quote!(
         fn hello() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[cfg(feature = "pretty")]
@@ -51,7 +51,7 @@ mod pretty {
         let expected = quote!(
             fn hello() {}
         );
-        assert_eq!(result.to_string(), expected.to_string());
+        zyn::assert_tokens!(result, expected);
     }
 
     #[test]
@@ -61,6 +61,6 @@ mod pretty {
         let expected = quote!(
             fn hello() {}
         );
-        assert_eq!(result.to_string(), expected.to_string());
+        zyn::assert_tokens!(result, expected);
     }
 }

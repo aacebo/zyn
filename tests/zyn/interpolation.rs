@@ -7,5 +7,5 @@ fn simple_variable() {
     let expected = quote!(
         fn foo() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

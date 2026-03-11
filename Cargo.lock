@@ -142,7 +142,6 @@ dependencies = [
  "syn",
  "zyn-core",
  "zyn-derive",
- "zyn-test",
 ]
 
 [[package]]
@@ -158,13 +157,6 @@ dependencies = [
 
 [[package]]
 name = "zyn-derive"
-version = "0.4.2"
-dependencies = [
- "zyn-core",
-]
-
-[[package]]
-name = "zyn-test"
 version = "0.4.2"
 dependencies = [
  "zyn-core",

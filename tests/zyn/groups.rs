@@ -5,7 +5,7 @@ fn parenthesized() {
     let ty = zyn::format_ident!("i32");
     let result = zyn::zyn!(fn foo(x: {{ ty }}));
     let expected = quote!(fn foo(x: i32));
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -15,5 +15,5 @@ fn bracketed() {
     let expected = quote!(
         type Foo = [u8; 4];
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

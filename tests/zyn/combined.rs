@@ -11,5 +11,5 @@ fn if_with_pipe_and_braces() {
     let expected = quote!(
         pub fn hello_world() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

@@ -28,7 +28,7 @@ fn attr_with_matching_attribute() {
     let expected = quote!(
         fn hello_custom() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn attr_absent_uses_default() {
     let expected = quote!(
         fn hello_default() {}
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -59,7 +59,7 @@ fn extract_ident() {
     let expected = quote!(
         const NAME: &str = "Foo";
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -77,7 +77,7 @@ fn fields() {
     let expected = quote!(
         const COUNT: usize = 2usize;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -97,7 +97,7 @@ fn fields_named() {
     let expected = quote!(
         const COUNT: usize = 1usize;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -115,7 +115,7 @@ fn variants() {
     let expected = quote!(
         const COUNT: usize = 3usize;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -133,7 +133,7 @@ fn data_struct() {
     let expected = quote!(
         const COUNT: usize = 2usize;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -151,7 +151,7 @@ fn derive_input() {
     let expected = quote!(
         const NAME: &str = "Point";
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -169,7 +169,7 @@ fn data_enum() {
     let expected = quote!(
         const COUNT: usize = 2usize;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -187,7 +187,7 @@ fn data_union() {
     let expected = quote!(
         const COUNT: usize = 2usize;
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -205,7 +205,7 @@ fn item_fn() {
     let expected = quote!(
         const NAME: &str = "hello_world";
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::element]
@@ -226,5 +226,5 @@ fn item() {
     let expected = quote!(
         const NAME: &str = "hello";
     );
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }

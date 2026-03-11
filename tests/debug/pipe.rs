@@ -21,7 +21,7 @@ fn pipe_with_debug() {
     let name = zyn::format_ident!("hello");
     let result = zyn::zyn!({ { name | shout_debug } });
     let expected = quote!(HELLO_DEBUG);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn pipe_with_debug_and_name() {
     let name = zyn::format_ident!("hello");
     let result = zyn::zyn!({ { name | yell_debug } });
     let expected = quote!(HELLO__DEBUG);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[cfg(feature = "pretty")]
@@ -57,7 +57,7 @@ mod pretty {
         let name = zyn::format_ident!("hello");
         let result = zyn::zyn!({ { name | shout_pretty } });
         let expected = quote!(HELLO_PRETTY);
-        assert_eq!(result.to_string(), expected.to_string());
+        zyn::assert_tokens!(result, expected);
     }
 
     #[test]
@@ -65,6 +65,6 @@ mod pretty {
         let name = zyn::format_ident!("hello");
         let result = zyn::zyn!({ { name | yell_pretty } });
         let expected = quote!(HELLO__PRETTY);
-        assert_eq!(result.to_string(), expected.to_string());
+        zyn::assert_tokens!(result, expected);
     }
 }

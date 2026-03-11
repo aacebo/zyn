@@ -374,10 +374,7 @@ pub use zyn_core::*;
 #[cfg(feature = "derive")]
 pub use zyn_derive::*;
 
-#[cfg(feature = "test")]
-pub mod test {
-    pub use zyn_test::*;
-}
+pub mod test;
 
 /// The zyn prelude. Re-exports all built-in pipes, core traits, and proc macros.
 pub mod prelude {

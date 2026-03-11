@@ -13,7 +13,7 @@ fn custom_pipe() {
     let name = zyn::format_ident!("hello");
     let result = zyn::zyn!({ { name | shout } });
     let expected = quote!(HELLO_BANG);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
 
 #[zyn::pipe("yell")]
@@ -29,5 +29,5 @@ fn custom_name_override() {
     let name = zyn::format_ident!("hello");
     let result = zyn::zyn!({ { name | yell } });
     let expected = quote!(HELLO__LOUD);
-    assert_eq!(result.to_string(), expected.to_string());
+    zyn::assert_tokens!(result, expected);
 }
