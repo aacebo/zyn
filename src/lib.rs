@@ -297,32 +297,44 @@
 //! zyn = { features = ["diagnostics"] }
 //! ```
 //!
+//! Inside any `#[zyn::element]`, `#[zyn::derive]`, or `#[zyn::attribute]` body, use the
+//! built-in diagnostic macros directly — no setup required:
+//!
 //! ```ignore
-//! use zyn::mark;
-//!
-//! let mut diags = mark::new();
-//!
-//! for field in &item.fields {
-//!     if field.ident.is_none() {
-//!         diags = diags.add(mark::error("unnamed fields are not supported").span(field));
+//! #[zyn::element]
+//! fn my_element(name: zyn::syn::Ident) -> zyn::TokenStream {
+//!     if name == "forbidden" {
+//!         bail!("reserved identifier `{}`", name);
 //!     }
-//! }
 //!
-//! let result = diags.build();
-//! if result.is_error() {
-//!     return result.emit();
+//!     if name.to_string().starts_with('_') {
+//!         warn!("identifiers starting with `_` are conventionally unused");
+//!     }
+//!
+//!     zyn::zyn!(fn {{ name }}() {})
 //! }
 //! ```
+//!
+//! | Macro | Level | Behaviour |
+//! |-------|-------|-----------|
+//! | `error!(msg)` | error | accumulates, does not stop execution |
+//! | `warn!(msg)` | warning | accumulates, does not stop execution |
+//! | `note!(msg)` | note | accumulates, does not stop execution |
+//! | `help!(msg)` | help | accumulates, does not stop execution |
+//! | `bail!(msg)` | error | accumulates and immediately returns |
+//!
+//! All accumulated diagnostics are emitted together at the end of the element or macro body,
+//! so users see every error at once instead of fixing them one by one.
 //!
 //! ```text
-//! error: unnamed fields are not supported
-//!  --> src/main.rs:3:5
+//! error: reserved identifier `forbidden`
+//!  --> src/main.rs:3:1
 //!
-//! error: unnamed fields are not supported
-//!  --> src/main.rs:4:5
+//! error: reserved identifier `forbidden`
+//!  --> src/main.rs:7:1
 //! ```
 //!
-//! See the [`mark`] module for the full diagnostic API.
+//! See the [`mark`] module for the lower-level diagnostic builder API.
 
 pub use zyn_core::*;
 

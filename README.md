@@ -36,6 +36,7 @@ cargo add zyn
   - [ext](#ext)
   - [pretty](#pretty)
   - [diagnostics](#diagnostics)
+- [Performance](./BENCH.md)
 
 ---
 
@@ -299,29 +300,41 @@ errors before aborting, so users see all problems at once instead of one at a ti
 zyn = { features = ["diagnostics"] }
 ```
 
+Inside any `#[zyn::element]`, `#[zyn::derive]`, or `#[zyn::attribute]` body, use the
+built-in diagnostic macros directly — no setup required:
+
 ```rust
-use zyn::mark;
-
-let mut diags = mark::new();
-
-for field in &item.fields {
-    if field.ident.is_none() {
-        diags = diags.add(mark::error("unnamed fields are not supported").span(field));
+#[zyn::element]
+fn my_element(name: zyn::syn::Ident) -> zyn::TokenStream {
+    if name == "forbidden" {
+        bail!("reserved identifier `{}`", name);
     }
-}
 
-let result = diags.build();
-if result.is_error() {
-    return result.emit();
+    if name.to_string().starts_with('_') {
+        warn!("identifiers starting with `_` are conventionally unused");
+    }
+
+    zyn::zyn!(fn {{ name }}() {})
 }
 ```
 
-```text
-error: unnamed fields are not supported
- --> src/main.rs:3:5
+| Macro | Level | Behaviour |
+|-------|-------|-----------|
+| `error!(msg)` | error | accumulates, does not stop execution |
+| `warn!(msg)` | warning | accumulates, does not stop execution |
+| `note!(msg)` | note | accumulates, does not stop execution |
+| `help!(msg)` | help | accumulates, does not stop execution |
+| `bail!(msg)` | error | accumulates and immediately returns |
 
-error: unnamed fields are not supported
- --> src/main.rs:4:5
+All accumulated diagnostics are emitted together at the end of the element or macro body,
+so users see every error at once instead of fixing them one by one.
+
+```text
+error: reserved identifier `forbidden`
+ --> src/main.rs:3:1
+
+error: reserved identifier `forbidden`
+ --> src/main.rs:7:1
 ```
 
 ---
