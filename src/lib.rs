@@ -1,17 +1,111 @@
+//! ![zyn](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/banner.svg)
+//!
 //! A template engine and framework for Rust procedural macros.
 //!
-//! zyn replaces the typical `syn` + `quote` + `heck` + `proc-macro-error` stack with
-//! a single dependency. It provides a `zyn!` template macro with interpolation, control
-//! flow, and pipes — plus reusable elements, typed attribute parsing, and proc macro
-//! entry points.
-//!
-//! # Quick start
+//! zyn replaces the `syn` + `quote` + `heck` + `proc-macro-error` stack with a single
+//! dependency. Write proc macros with templates, reusable elements, typed attribute
+//! parsing, and chainable pipes.
 //!
 //! ```sh
 //! cargo add zyn
 //! ```
 //!
-//! A derive macro that generates getters:
+//! # Table of Contents
+//!
+//! - [Templates](#templates)
+//! - [Elements](#elements)
+//! - [Pipes](#pipes)
+//! - [Attributes](#attributes)
+//! - [Features](#features)
+//!   - [ext](#ext)
+//!   - [pretty](#pretty)
+//!   - [diagnostics](#diagnostics)
+//!
+//! ---
+//!
+//! # Templates
+//!
+//! The [`zyn!`] macro is the core of zyn. Write token output as if it were source code,
+//! with `{{ }}` interpolation and `@` control flow directives.
+//!
+//! **Interpolation** — any [`quote::ToTokens`] value:
+//!
+//! ```ignore
+//! let name = zyn::format_ident!("hello_world");
+//! zyn::zyn!(fn {{ name }}() {})
+//! // → fn hello_world() {}
+//! ```
+//!
+//! **Pipes** — transform values inline:
+//!
+//! ```ignore
+//! zyn::zyn!(fn {{ name | pascal }}() {})
+//! // name = "hello_world" → fn HelloWorld() {}
+//! ```
+//!
+//! **Control flow:**
+//!
+//! ```ignore
+//! zyn::zyn!(
+//!     @if (is_pub) { pub }
+//!     @for (field in fields.named.iter()) {
+//!         fn {{ field.ident }}(&self) -> &{{ field.ty }} {
+//!             &self.{{ field.ident }}
+//!         }
+//!     }
+//! )
+//! ```
+//!
+//! **Full template syntax:**
+//!
+//! | Syntax | Purpose |
+//! |--------|---------|
+//! | `{{ expr }}` | Interpolate any [`quote::ToTokens`] value |
+//! | `{{ expr \| pipe }}` | Transform value through a [pipe](#pipes) before inserting |
+//! | `@if (cond) { ... }` | Conditional token emission |
+//! | `@else { ... }` | Else branch |
+//! | `@else if (cond) { ... }` | Else-if branch |
+//! | `@for (x in iter) { ... }` | Loop over an iterator |
+//! | `@for (N) { ... }` | Repeat N times |
+//! | `@match (expr) { pat => { ... } }` | Pattern-based emission |
+//! | `@element_name(prop = val)` | Invoke a [`#[element]`](macro@element) component |
+//!
+//! See [`zyn!`] for the full syntax reference.
+//!
+//! ---
+//!
+//! # Elements
+//!
+//! Elements are reusable template components defined with [`#[zyn::element]`](macro@element).
+//! They encapsulate a fragment of token output and accept typed props.
+//!
+//! **Define an element:**
+//!
+//! ```ignore
+//! #[zyn::element]
+//! fn getter(name: zyn::syn::Ident, ty: zyn::syn::Type) -> zyn::TokenStream {
+//!     zyn::zyn! {
+//!         pub fn {{ name | snake | ident:"get_{}" }}(&self) -> &{{ ty }} {
+//!             &self.{{ name }}
+//!         }
+//!     }
+//! }
+//! ```
+//!
+//! **Invoke it inside any template with `@`:**
+//!
+//! ```ignore
+//! zyn::zyn! {
+//!     impl {{ ident }} {
+//!         @for (field in fields.named.iter()) {
+//!             @getter(name = field.ident.clone().unwrap(), ty = field.ty.clone())
+//!         }
+//!     }
+//! }
+//! ```
+//!
+//! Elements can also receive **extractors** — values resolved automatically from proc macro
+//! input — by marking a param with `#[zyn(input)]`:
 //!
 //! ```ignore
 //! #[zyn::derive]
@@ -29,60 +123,69 @@
 //!         }
 //!     }
 //! }
+//! // Applied to: struct User { first_name: String, age: u32 }
+//! // Generates:
+//! // impl User {
+//! //     pub fn get_first_name(&self) -> &String { &self.first_name }
+//! //     pub fn get_age(&self) -> &u32 { &self.age }
+//! // }
 //! ```
 //!
-//! Applied to `struct User { first_name: String, age: u32 }` generates:
+//! See [`element`](macro@element) and [`derive`](macro@derive) for the full reference.
 //!
-//! ```ignore
-//! impl User {
-//!     pub fn get_first_name(&self) -> &String { &self.first_name }
-//!     pub fn get_age(&self) -> &u32 { &self.age }
-//! }
-//! ```
-//!
-//! # Template syntax
-//!
-//! | Syntax | Purpose |
-//! |--------|---------|
-//! | `{{ expr }}` | Interpolate any [`quote::ToTokens`] value |
-//! | `{{ expr \| pipe }}` | Transform value through a pipe before inserting |
-//! | `@if (cond) { ... }` | Conditional token emission |
-//! | `@for (x in iter) { ... }` | Loop over an iterator |
-//! | `@for (N) { ... }` | Repeat N times |
-//! | `@match (expr) { pat => { ... }}` | Pattern-based code generation |
-//! | `@element_name(prop = val)` | Invoke a `#[zyn::element]` component |
-//!
-//! See [`zyn!`] for the full syntax reference with examples.
+//! ---
 //!
 //! # Pipes
 //!
-//! 13 built-in pipes: `snake`, `pascal`, `camel`, `screaming`, `kebab`, `upper`,
-//! `lower`, `str`, `trim`, `plural`, `singular`, `ident`, `fmt`. They chain:
+//! Pipes transform interpolated values: `{{ expr | pipe }}`. They chain left to right:
 //!
 //! ```ignore
-//! zyn::zyn! { fn {{ name | snake | ident:"get_{}" }}() {} }
+//! zyn::zyn!(fn {{ name | snake | ident:"get_{}" }}() {})
 //! // name = "HelloWorld" → fn get_hello_world() {}
 //! ```
 //!
-//! Custom pipes via [`pipe`].
+//! **Built-in pipes:**
 //!
-//! # Elements
+//! | Pipe | Input example | Output |
+//! |------|--------------|--------|
+//! | `snake` | `HelloWorld` | `hello_world` |
+//! | `pascal` | `hello_world` | `HelloWorld` |
+//! | `camel` | `hello_world` | `helloWorld` |
+//! | `screaming` | `HelloWorld` | `HELLO_WORLD` |
+//! | `kebab` | `HelloWorld` | `"hello-world"` |
+//! | `upper` | `hello` | `HELLO` |
+//! | `lower` | `HELLO` | `hello` |
+//! | `str` | `hello` | `"hello"` |
+//! | `trim` | `__foo__` | `foo` |
+//! | `plural` | `user` | `users` |
+//! | `singular` | `users` | `user` |
+//! | `ident:"pattern_{}"` | `hello` | `pattern_hello` (ident) |
+//! | `fmt:"pattern_{}"` | `hello` | `"pattern_hello"` (string) |
+//!
+//! All built-in pipes are in the [`pipes`] module and re-exported by [`prelude`].
+//!
+//! **Custom pipes** via [`#[zyn::pipe]`](macro@pipe):
 //!
 //! ```ignore
-//! #[zyn::element]
-//! fn getter(name: syn::Ident, ty: syn::Type) -> zyn::TokenStream {
-//!     zyn::zyn! {
-//!         pub fn {{ name | snake | ident:"get_{}" }}(&self) -> &{{ ty }} {
-//!             &self.{{ name }}
-//!         }
-//!     }
+//! #[zyn::pipe]
+//! fn shout(input: String) -> zyn::syn::Ident {
+//!     zyn::syn::Ident::new(&format!("{}_BANG", input.to_uppercase()), zyn::Span::call_site())
 //! }
 //!
-//! // invoked as:
-//! zyn::zyn! { @getter(name = field.ident.clone().unwrap(), ty = field.ty.clone()) }
+//! zyn::zyn!(fn {{ name | shout }}() {})
+//! // name = "hello" → fn HELLO_BANG() {}
 //! ```
 //!
-//! # Typed attribute parsing
+//! See [`pipe`](macro@pipe) and the [`Pipe`] trait for the full reference.
+//!
+//! ---
+//!
+//! # Attributes
+//!
+//! zyn provides two tools for attribute handling: a derive macro for typed parsing and a
+//! proc macro attribute for writing attribute macros.
+//!
+//! **Typed attribute structs** via [`#[derive(Attribute)]`](derive@Attribute):
 //!
 //! ```ignore
 //! #[derive(zyn::Attribute)]
@@ -95,6 +198,114 @@
 //! }
 //! // users write: #[builder(skip)] or #[builder(method = "create")]
 //! ```
+//!
+//! The derive generates `from_args`, `FromArg`, and `FromInput` implementations, as well as
+//! a human-readable `about()` string for error messages.
+//!
+//! **Attribute proc macros** via [`#[zyn::attribute]`](macro@attribute):
+//!
+//! ```ignore
+//! #[zyn::attribute]
+//! fn my_attr(#[zyn(input)] item: zyn::syn::ItemFn, args: zyn::Args) -> zyn::TokenStream {
+//!     // args: parsed key=value arguments from the attribute invocation
+//!     zyn::zyn!({ { item } })
+//! }
+//! ```
+//!
+//! See [`Attribute`](derive@Attribute) and [`attribute`](macro@attribute) for the full reference.
+//!
+//! ---
+//!
+//! # Features
+//!
+//! | Feature | Default | Description |
+//! |---------|:-------:|-------------|
+//! | `derive` | ✓ | All proc macro attributes: [`element`](macro@element), [`pipe`](macro@pipe), [`derive`](macro@derive), [`attribute`](macro@attribute), and [`Attribute`](derive@Attribute) |
+//! | `ext` | | Extension traits for common `syn` AST types (`AttrExt`, `FieldExt`, `TypeExt`, etc.) — see [`ext`] |
+//! | `pretty` | | Pretty-printed token output in debug mode — see [`debug`] |
+//! | `diagnostics` | | Error accumulation — collect multiple errors before aborting — see [`mark`] |
+//!
+//! ## ext
+//!
+//! The [`ext`] module adds ergonomic extension traits for navigating `syn` AST types.
+//!
+//! ```toml
+//! zyn = { features = ["ext"] }
+//! ```
+//!
+//! ```ignore
+//! use zyn::ext::{AttrExt, TypeExt};
+//!
+//! // check and read attribute arguments
+//! if attr.is("serde") {
+//!     let rename: Option<_> = attr.get("rename"); // → Some(Meta::NameValue)
+//!     let skip: bool = attr.exists("skip");
+//! }
+//!
+//! // inspect field types
+//! if field.is_option() {
+//!     let inner = field.inner_type().unwrap();
+//! }
+//! ```
+//!
+//! See the [`ext`] module for all available traits.
+//!
+//! ## pretty
+//!
+//! The `pretty` feature enables pretty-printed output in [`debug`] mode, formatting
+//! generated token streams as readable Rust source code via `prettyplease`.
+//!
+//! ```toml
+//! zyn = { features = ["pretty"] }
+//! ```
+//!
+//! Enable debug output per-element with the `debug` or `debug = "pretty"` argument,
+//! then set `ZYN_DEBUG="*"` at build time:
+//!
+//! ```ignore
+//! #[zyn::element(debug = "pretty")]
+//! fn my_element(name: zyn::syn::Ident) -> zyn::TokenStream {
+//!     zyn::zyn!(struct {{ name }} {})
+//! }
+//! ```
+//!
+//! ```sh
+//! ZYN_DEBUG="*" cargo build
+//! ```
+//!
+//! ![pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/pretty.png)
+//!
+//! See the [`debug`] module for programmatic access via `DebugExt`.
+//!
+//! ## diagnostics
+//!
+//! The `diagnostics` feature enables error accumulation — collecting multiple compiler
+//! errors before aborting, so users see all problems at once instead of one at a time.
+//!
+//! ```toml
+//! zyn = { features = ["diagnostics"] }
+//! ```
+//!
+//! ```ignore
+//! use zyn::mark;
+//!
+//! let mut diags = mark::new();
+//!
+//! for field in &item.fields {
+//!     if field.ident.is_none() {
+//!         diags = diags.add(mark::error("unnamed fields are not supported").span(field));
+//!     }
+//! }
+//!
+//! let result = diags.build();
+//! if result.is_error() {
+//!     return result.emit();
+//! }
+//! ```
+//!
+//! ![diagnostics in editor](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/diagnostics.png)
+//!
+//! See the [`mark`] module for the full diagnostic API.
 
 pub use zyn_core::*;
 
