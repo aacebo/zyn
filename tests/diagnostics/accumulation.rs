@@ -1,72 +1,113 @@
-use zyn::Level;
+use zyn::Render;
+use zyn::syn;
 
-#[test]
-fn push_preserves_insertion_order() {
-    let d = zyn::mark::new()
-        .add(zyn::mark::error("first"))
-        .add(zyn::mark::warning("second"))
-        .add(zyn::mark::note("third"))
-        .build();
+fn dummy_input() -> zyn::Input {
+    zyn::parse!("struct Test;" => syn::DeriveInput)
+        .unwrap()
+        .into()
+}
 
-    let levels: Vec<Level> = d.iter().map(|diag| diag.level()).collect();
-    assert_eq!(levels, vec![Level::Error, Level::Warning, Level::Note]);
+#[zyn::element]
+fn three_levels() -> zyn::TokenStream {
+    error!("first");
+    warn!("second");
+    note!("third");
+    bail!();
+    zyn::TokenStream::new()
 }
 
 #[test]
-fn push_all_four_levels() {
-    let d = zyn::mark::new()
-        .add(zyn::mark::error("err"))
-        .add(zyn::mark::warning("warn"))
-        .add(zyn::mark::note("note"))
-        .add(zyn::mark::help("help"))
-        .build();
-    assert_eq!(d.len(), 4);
+fn preserves_insertion_order() {
+    let output = ThreeLevels.render(&dummy_input()).to_string();
+    assert!(output.contains("first"), "got: {output}");
+    assert!(output.contains("second"), "got: {output}");
+    assert!(output.contains("third"), "got: {output}");
+}
 
-    let output = format!("{d}");
-    assert!(output.contains("err"));
-    assert!(output.contains("warn"));
-    assert!(output.contains("note"));
-    assert!(output.contains("help"));
+#[zyn::element]
+fn all_four_levels() -> zyn::TokenStream {
+    error!("err");
+    warn!("warn");
+    note!("note");
+    help!("help");
+    bail!();
+    zyn::TokenStream::new()
 }
 
 #[test]
-fn add_merges_in_order() {
-    let a = zyn::mark::new()
-        .add(zyn::mark::error("from_a"))
-        .add(zyn::mark::warning("from_b"))
-        .build();
+fn all_four_levels_accumulate() {
+    let output = AllFourLevels.render(&dummy_input()).to_string();
+    assert!(output.contains("err"), "got: {output}");
+    assert!(output.contains("warn"), "got: {output}");
+    assert!(output.contains("note"), "got: {output}");
+    assert!(output.contains("help"), "got: {output}");
+}
 
-    assert_eq!(a.len(), 2);
-
-    let levels: Vec<Level> = a.iter().map(|diag| diag.level()).collect();
-    assert_eq!(levels, vec![Level::Error, Level::Warning]);
+#[zyn::element]
+fn error_and_warning() -> zyn::TokenStream {
+    error!("from_a");
+    warn!("from_b");
+    bail!();
+    zyn::TokenStream::new()
 }
 
 #[test]
-fn add_diagnostic_via_into() {
-    let existing = zyn::mark::error("only one").build();
-    let d = zyn::mark::new().add(existing).build();
-    assert!(d.is_error());
+fn merges_in_order() {
+    let output = ErrorAndWarning.render(&dummy_input()).to_string();
+    assert!(output.contains("from_a"), "got: {output}");
+    assert!(output.contains("from_b"), "got: {output}");
 }
 
-#[test]
-fn add_builder_into_builder() {
-    let d = zyn::mark::new().add(zyn::mark::error("added")).build();
-    assert!(d.is_error());
+#[zyn::element]
+fn multiple_errors() -> zyn::TokenStream {
+    error!("missing field `x`");
+    error!("missing field `y`");
+    error!("unknown argument `z`");
+    bail!();
+    zyn::TokenStream::new()
 }
 
 #[test]
 fn accumulate_multiple_error_sources() {
-    let d = zyn::mark::new()
-        .add(zyn::mark::error("missing field `x`"))
-        .add(zyn::mark::error("missing field `y`"))
-        .add(zyn::mark::error("unknown argument `z`"))
-        .build();
+    let output = MultipleErrors.render(&dummy_input()).to_string();
+    assert!(output.contains("missing field `x`"), "got: {output}");
+    assert!(output.contains("missing field `y`"), "got: {output}");
+    assert!(output.contains("unknown argument `z`"), "got: {output}");
+}
 
-    assert!(d.is_error());
+#[zyn::element]
+fn warn_only() -> zyn::TokenStream {
+    warn!("just a warning");
+    bail!();
+    zyn::zyn!(
+        struct Foo {}
+    )
+}
 
-    let output = format!("{d}");
-    assert!(output.contains("missing field `x`"));
-    assert!(output.contains("missing field `y`"));
-    assert!(output.contains("unknown argument `z`"));
+#[test]
+fn bail_without_errors_does_not_stop() {
+    let output = WarnOnly.render(&dummy_input()).to_string();
+    assert!(
+        output.contains("Foo"),
+        "expected body output, got: {output}"
+    );
+}
+
+#[zyn::element]
+fn error_then_bail() -> zyn::TokenStream {
+    error!("fatal");
+    bail!();
+    zyn::zyn!(
+        struct Foo {}
+    )
+}
+
+#[test]
+fn bail_with_errors_stops() {
+    let output = ErrorThenBail.render(&dummy_input()).to_string();
+    assert!(output.contains("fatal"), "got: {output}");
+    assert!(
+        !output.contains("Foo"),
+        "body should not appear, got: {output}"
+    );
 }
