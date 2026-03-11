@@ -47,6 +47,7 @@ derive = ["zyn-derive"]
 ext = ["zyn-core/ext"]
 pretty = ["zyn-core/pretty", "zyn-derive/pretty"]
 diagnostics = ["zyn-core/diagnostics", "zyn-derive/diagnostics"]
+test = ["zyn-test"]
 
 [dependencies]
 zyn-core = { workspace = true }
