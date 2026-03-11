@@ -331,7 +331,7 @@ zyn! {
 | **Reusable codegen** | `#[zyn::element]` — composable template components invoked with `@name(props)` |
 | **Value transforms** | `#[zyn::pipe]` — custom pipes that chain with built-ins |
 | **Proc macro entry points** | `#[zyn::derive]` and `#[zyn::attribute]` — replace `#[proc_macro_derive]`/`#[proc_macro_attribute]` with auto-parsed `Input` and diagnostics |
-| **Debugging** | `debug` / `debug = "pretty"` + `ZYN_DEBUG` env var — inspect generated code as compiler diagnostics (raw by default, `pretty` feature for formatted output) |
+| **Debugging** | [`debug` / `debug = "pretty"`](./07-testing/debugging.md) + `ZYN_DEBUG` env var — inspect generated code as compiler diagnostics |
 | **String output** | `{{ name \| str }}` — stringify to a `LitStr` without ceremony |
 
 One dependency. No runtime cost. Everything expands at compile time into the same `TokenStream`-building code you'd write by hand — just without the boilerplate.
@@ -347,6 +347,6 @@ One dependency. No runtime cost. Everything expands at compile time into the sam
 - **Elements** — reusable template components via `#[zyn::element]`
 - **Custom pipes** — define transforms with `#[zyn::pipe]`
 - **Proc macro entry points** — `#[zyn::derive]` and `#[zyn::attribute]` with auto-parsed input, extractors, and diagnostics
-- **Debugging** — `debug` / `debug = "pretty"` with `ZYN_DEBUG` env var — raw output by default, `pretty` feature for formatted output
+- **Debugging** — [`debug` / `debug = "pretty"`](./07-testing/debugging.md) with `ZYN_DEBUG` env var
 - **Attribute parsing** — `#[derive(Attribute)]` for typed attribute structs
 - **Case conversion** — `snake`, `camel`, `pascal`, `screaming`, `kebab`, `upper`, `lower`, `trim`, `plural`, `singular`

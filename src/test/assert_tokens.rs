@@ -46,37 +46,148 @@ macro_rules! assert_tokens_pretty {
 
 #[cfg(test)]
 mod tests {
+    use crate::Output;
+    use crate::mark;
     use crate::quote::quote;
 
     #[test]
-    fn matching_tokens() {
+    fn impl_block() {
         let a = quote!(
-            fn hello() {}
+            impl Foo {
+                fn validate(&self) -> bool {
+                    self.x > 0
+                }
+                fn name(&self) -> &str {
+                    &self.name
+                }
+            }
         );
         let b = quote!(
-            fn hello() {}
+            impl Foo {
+                fn validate(&self) -> bool {
+                    self.x > 0
+                }
+                fn name(&self) -> &str {
+                    &self.name
+                }
+            }
         );
         assert_tokens!(a, b);
+    }
+
+    #[test]
+    fn struct_with_generics() {
+        let a = quote!(
+            struct Builder<T: Clone + Default>
+            where
+                T: Send,
+            {
+                value: T,
+                ready: bool,
+            }
+        );
+        let b = quote!(
+            struct Builder<T: Clone + Default>
+            where
+                T: Send,
+            {
+                value: T,
+                ready: bool,
+            }
+        );
+        assert_tokens!(a, b);
+    }
+
+    #[test]
+    fn output_includes_diagnostic_tokens() {
+        let tokens = quote!(
+            impl Foo {
+                fn validate(&self) -> bool { true }
+            }
+        );
+        let output = Output::new()
+            .tokens(tokens)
+            .diagnostic(mark::warning("deprecated"))
+            .build();
+        crate::assert_tokens_contain!(output, "fn validate");
+        crate::assert_tokens_contain!(output, "deprecated");
     }
 
     #[test]
     #[should_panic]
-    fn mismatched_tokens() {
+    fn mismatched_method_body() {
         let a = quote!(
-            fn hello() {}
+            impl Foo {
+                fn validate(&self) -> bool { self.x > 0 }
+            }
         );
         let b = quote!(
-            fn world() {}
+            impl Foo {
+                fn validate(&self) -> bool { self.y > 0 }
+            }
         );
         assert_tokens!(a, b);
     }
 
-    #[test]
-    fn output_vs_token_stream() {
-        let tokens = quote!(
-            struct Foo;
-        );
-        let output = crate::Output::from(tokens.clone());
-        assert_tokens!(output, tokens);
+    #[cfg(feature = "pretty")]
+    mod pretty {
+        use crate::Output;
+        use crate::mark;
+        use crate::quote::quote;
+
+        #[test]
+        fn impl_block() {
+            let a = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool {
+                        self.x > 0
+                    }
+                    fn name(&self) -> &str {
+                        &self.name
+                    }
+                }
+            );
+            let b = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool {
+                        self.x > 0
+                    }
+                    fn name(&self) -> &str {
+                        &self.name
+                    }
+                }
+            );
+            assert_tokens_pretty!(a, b);
+        }
+
+        #[test]
+        fn output_includes_diagnostic_tokens() {
+            let tokens = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool { true }
+                }
+            );
+            let output = Output::new()
+                .tokens(tokens)
+                .diagnostic(mark::warning("deprecated"))
+                .build();
+            crate::assert_tokens_contain_pretty!(output, "fn validate");
+        }
+
+        #[test]
+        #[should_panic]
+        fn mismatched_method_body() {
+            let a = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool { self.x > 0 }
+                }
+            );
+            let b = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool { self.y > 0 }
+                }
+            );
+            assert_tokens_pretty!(a, b);
+        }
     }
 }

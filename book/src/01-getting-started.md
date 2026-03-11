@@ -185,4 +185,4 @@ See [Proc Macro Entry Points](./06-macros/index.html) for `#[zyn::attribute]`, c
 - [Diagnostics](./03-elements/diagnostics.md) — `error!`, `warn!`, `note!`, `help!`, `bail!`
 - [derive(Attribute)](./04-attributes/index.html) — typed attribute parsing with `#[derive(Attribute)]`
 - [Proc Macro Entry Points](./06-macros/index.html) — `#[zyn::derive]` and `#[zyn::attribute]`
-- [Debugging](./05-reference/debugging.md) — `debug` attribute arg with `ZYN_DEBUG` env var
+- [Debugging](./07-testing/debugging.md) — `debug` attribute arg with `ZYN_DEBUG` env var

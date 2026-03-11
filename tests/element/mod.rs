@@ -1,5 +1,7 @@
 mod extract;
 mod namespaced;
+#[cfg(feature = "pretty")]
+mod pretty;
 
 use zyn::quote::quote;
 

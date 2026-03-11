@@ -49,24 +49,98 @@ macro_rules! assert_tokens_contain_pretty {
 
 #[cfg(test)]
 mod tests {
+    use crate::Output;
+    use crate::mark;
     use crate::quote::quote;
 
     #[test]
-    fn contains_substring() {
+    fn finds_method_in_impl() {
         let ts = quote!(
-            struct Foo {
-                x: u32,
+            impl Foo {
+                fn validate(&self) -> bool { self.x > 0 }
+                fn name(&self) -> &str { &self.name }
             }
         );
-        assert_tokens_contain!(ts, "struct Foo");
+        assert_tokens_contain!(ts, "fn validate");
+        assert_tokens_contain!(ts, "fn name");
+    }
+
+    #[test]
+    fn finds_return_type() {
+        let ts = quote!(
+            impl Foo {
+                fn validate(&self) -> bool { true }
+            }
+        );
+        assert_tokens_contain!(ts, "-> bool");
     }
 
     #[test]
     #[should_panic(expected = "token stream does not contain")]
-    fn missing_substring() {
+    fn does_not_find_absent_method() {
         let ts = quote!(
-            struct Foo;
+            impl Foo {
+                fn validate(&self) -> bool { true }
+            }
         );
-        assert_tokens_contain!(ts, "struct Bar");
+        assert_tokens_contain!(ts, "fn missing_method");
+    }
+
+    #[test]
+    fn output_with_diagnostics_searches_tokens() {
+        let tokens = quote!(
+            impl Foo {
+                fn validate(&self) -> bool { true }
+            }
+        );
+        let output = Output::new()
+            .tokens(tokens)
+            .diagnostic(mark::error("something went wrong"))
+            .build();
+        assert_tokens_contain!(output, "fn validate");
+    }
+
+    #[cfg(feature = "pretty")]
+    mod pretty {
+        use crate::Output;
+        use crate::mark;
+        use crate::quote::quote;
+
+        #[test]
+        fn finds_indented_method() {
+            let ts = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool { self.x > 0 }
+                    fn name(&self) -> &str { &self.name }
+                }
+            );
+            assert_tokens_contain_pretty!(ts, "fn validate");
+            assert_tokens_contain_pretty!(ts, "fn name");
+        }
+
+        #[test]
+        #[should_panic(expected = "token stream does not contain")]
+        fn does_not_find_absent_method() {
+            let ts = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool { true }
+                }
+            );
+            assert_tokens_contain_pretty!(ts, "fn missing_method");
+        }
+
+        #[test]
+        fn output_with_diagnostics_searches_tokens() {
+            let tokens = quote!(
+                impl Foo {
+                    fn validate(&self) -> bool { true }
+                }
+            );
+            let output = Output::new()
+                .tokens(tokens)
+                .diagnostic(mark::error("something went wrong"))
+                .build();
+            assert_tokens_contain_pretty!(output, "fn validate");
+        }
     }
 }

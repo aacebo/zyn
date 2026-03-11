@@ -83,6 +83,11 @@ The raw format is useful for quick checks and when you want to see the exact tok
 
 ![Raw debug output — Problems panel](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-4.png)
 
+> [!NOTE]
+> Pretty-printed debug output in the console for a pipe.
+
+![Pretty debug console output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-6.png)
+
 ### Pretty (feature-gated)
 
 The `pretty` format uses [`prettyplease`](https://crates.io/crates/prettyplease) to produce properly formatted Rust code with indentation and line breaks.
@@ -148,24 +153,20 @@ The `ZYN_DEBUG` environment variable controls which items produce debug output. 
 
 For an element defined as `fn greeting(...)`, the generated type is `Greeting`. For a pipe `fn shout(...)`, the type is `Shout`.
 
+| Pattern | Matches |
+|---------|---------|
+| `*` | Everything |
+| `Greeting` | Exact match only |
+| `Greet*` | `Greeting`, `GreetingElement`, etc. |
+| `*Element` | `FieldElement`, `GreetingElement`, etc. |
+| `Greeting,Shout` | `Greeting` and `Shout` |
+| `Greet*,Shout,*Pipe` | Mix wildcards and exact |
+
 ```bash
-# Match everything
 ZYN_DEBUG="*" cargo build
-
-# Exact match
 ZYN_DEBUG="Greeting" cargo build
-
-# Prefix wildcard
 ZYN_DEBUG="Greet*" cargo build
-
-# Suffix wildcard
-ZYN_DEBUG="*Element" cargo build
-
-# Multiple patterns
 ZYN_DEBUG="Greeting,Shout" cargo build
-
-# Mix wildcards and exact
-ZYN_DEBUG="Greet*,Shout,*Pipe" cargo build
 ```
 
 ## Noise stripping

@@ -36,31 +36,58 @@ mod pretty {
 
     #[zyn::element(debug = "pretty")]
     fn greeting_pretty(name: zyn::syn::Ident) -> zyn::TokenStream {
-        zyn::zyn!(fn {{ name }}() {})
+        zyn::zyn!(
+            impl {{ name }} {
+                fn greet(&self) -> &str {
+                    "hello"
+                }
+            }
+        )
     }
 
     #[zyn::element("pretty_alias", debug = "pretty")]
     fn greeting_pretty_named(name: zyn::syn::Ident) -> zyn::TokenStream {
-        zyn::zyn!(fn {{ name }}() {})
+        zyn::zyn!(
+            impl {{ name }} {
+                fn greet(&self) -> &str {
+                    "hello"
+                }
+            }
+        )
     }
 
     #[test]
     fn element_with_pretty() {
         let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
-        let result = zyn::zyn!(@greeting_pretty(name = zyn::format_ident!("hello")));
+        let result = zyn::zyn!(@greeting_pretty(name = zyn::format_ident!("Foo")));
         let expected = quote!(
-            fn hello() {}
+            impl Foo {
+                fn greet(&self) -> &str {
+                    "hello"
+                }
+            }
         );
-        zyn::assert_tokens!(result, expected);
+        zyn::assert_tokens_pretty!(result, expected);
     }
 
     #[test]
     fn element_with_pretty_and_name() {
         let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
-        let result = zyn::zyn!(@pretty_alias(name = zyn::format_ident!("hello")));
+        let result = zyn::zyn!(@pretty_alias(name = zyn::format_ident!("Foo")));
         let expected = quote!(
-            fn hello() {}
+            impl Foo {
+                fn greet(&self) -> &str {
+                    "hello"
+                }
+            }
         );
-        zyn::assert_tokens!(result, expected);
+        zyn::assert_tokens_pretty!(result, expected);
+    }
+
+    #[test]
+    fn element_pretty_contain() {
+        let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
+        let result = zyn::zyn!(@greeting_pretty(name = zyn::format_ident!("Foo")));
+        zyn::assert_tokens_contain_pretty!(result, "fn greet");
     }
 }

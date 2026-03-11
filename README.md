@@ -30,6 +30,8 @@ cargo add zyn
 - [Attributes](#attributes)
   - [Auto-suggest](#auto-suggest)
 - [Testing](#testing)
+  - [Assertions](#assertions)
+  - [Debugging](#debugging)
 - [Features](#features)
   - [ext](#ext)
   - [pretty](#pretty)
@@ -245,6 +247,8 @@ fn my_attr(#[zyn(input)] item: zyn::syn::ItemFn, args: zyn::Args) -> zyn::TokenS
 
 ## Testing
 
+### Assertions
+
 `zyn!` returns [`Output`](https://docs.rs/zyn/latest/zyn/struct.Output.html) — test both tokens and diagnostics directly:
 
 ```rust
@@ -260,11 +264,29 @@ fn generates_function() {
 Diagnostic assertions check error messages from `error!`, `warn!`, `bail!`:
 
 ```rust
+#[zyn::element]
+fn validated(name: zyn::syn::Ident) -> zyn::TokenStream {
+    if name == "forbidden" {
+        bail!("reserved identifier `{}`", name);
+    }
+    zyn::zyn!(fn {{ name }}() {})
+}
+
 #[test]
 fn rejects_forbidden_name() {
     let input: zyn::Input = zyn::parse!("struct Foo;" => zyn::syn::DeriveInput).unwrap().into();
     let output = zyn::zyn!(@validated(name = zyn::format_ident!("forbidden")));
     zyn::assert_diagnostic_error!(output, "reserved identifier");
+    zyn::assert_tokens_empty!(output);
+    // ✓ error diagnostic present, no tokens produced
+}
+
+#[test]
+fn accepts_valid_name() {
+    let input: zyn::Input = zyn::parse!("struct Foo;" => zyn::syn::DeriveInput).unwrap().into();
+    let output = zyn::zyn!(@validated(name = zyn::format_ident!("hello")));
+    zyn::assert_tokens_contain!(output, "fn hello");
+    // ✓ tokens contain "fn hello"
 }
 ```
 
@@ -278,6 +300,67 @@ fn rejects_forbidden_name() {
 | `assert_diagnostic_note!` | Assert note diagnostic |
 | `assert_diagnostic_help!` | Assert help diagnostic |
 | `assert_compile_error!` | Alias for `assert_diagnostic_error!` |
+
+With the `pretty` feature:
+
+| Macro | Purpose |
+|-------|---------|
+| `assert_tokens_pretty!` | Compare using `prettyplease`-formatted output |
+| `assert_tokens_contain_pretty!` | Substring check on pretty-printed output |
+
+### Debugging
+
+Add `debug` (or `debug = "pretty"`) to any zyn attribute macro and set `ZYN_DEBUG` to inspect generated code at compile time:
+
+```rust
+#[zyn::element(debug)]
+fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+```sh
+ZYN_DEBUG="*" cargo build
+```
+
+```text
+note: zyn::element ─── Greeting
+
+      struct Greeting { pub name : zyn :: syn :: Ident , } impl :: zyn :: Render
+      for Greeting { fn render (& self , input : & :: zyn :: Input) -> :: zyn ::
+      proc_macro2 :: TokenStream { ... } }
+```
+
+With the `pretty` feature, use `debug = "pretty"` for formatted output:
+
+```rust
+#[zyn::element(debug = "pretty")]
+fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+```text
+note: zyn::element ─── Greeting
+
+      struct Greeting {
+          pub name: zyn::syn::Ident,
+      }
+      impl ::zyn::Render for Greeting {
+          fn render(&self, input: &::zyn::Input) -> ::zyn::Output { ... }
+      }
+```
+
+All macros support `debug`: `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`.
+
+`ZYN_DEBUG` accepts comma-separated `*`-wildcard patterns matched against the generated PascalCase type name:
+
+```sh
+ZYN_DEBUG="Greeting" cargo build     # exact match
+ZYN_DEBUG="Greet*" cargo build       # prefix wildcard
+ZYN_DEBUG="*Element" cargo build     # suffix wildcard
+ZYN_DEBUG="Greeting,Shout" cargo build  # multiple patterns
+```
 
 ---
 
@@ -315,41 +398,11 @@ if field.is_option() {
 
 ### pretty
 
-The `pretty` feature enables pretty-printed output in debug mode, formatting
-generated token streams as readable Rust source code via `prettyplease`.
+Pretty-printed debug output and `assert_tokens_pretty!` / `assert_tokens_contain_pretty!` assertion macros via `prettyplease`. See [Debugging](#debugging) for usage.
 
 ```toml
 zyn = { features = ["pretty"] }
 ```
-
-Enable debug output per-element with the `debug` or `debug = "pretty"` argument,
-then set `ZYN_DEBUG="*"` at build time:
-
-```rust
-#[zyn::element(debug = "pretty")]
-fn my_element(name: zyn::syn::Ident) -> zyn::TokenStream {
-    zyn::zyn!(struct {{ name }} {})
-}
-```
-
-```sh
-ZYN_DEBUG="*" cargo build
-```
-
-```text
-note: zyn::element ─── my_element
-
-    struct MyElement {
-        pub name: zyn::syn::Ident,
-    }
-    impl ::zyn::Render for MyElement {
-        fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
-            ...
-        }
-    }
-```
-
-> Pretty-printed debug output — formatted with `prettyplease` for readable, indented Rust code.
 
 ![Pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-5.png)
 
