@@ -32,7 +32,7 @@ homepage.workspace = true
 repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
-exclude = ["assets", "book"]
+exclude = ["assets", "book", "examples"]
 
 [package.metadata.docs.rs]
 all-features = true

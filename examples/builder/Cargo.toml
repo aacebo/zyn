@@ -1,0 +1,18 @@
+[package]
+name = "builder"
+publish = false
+version = "0.0.0"
+edition = "2024"
+
+[package.metadata.release]
+release = false
+
+[lib]
+doctest = false
+proc-macro = true
+
+[dependencies]
+zyn = { path = "../..", version = "0.5.0", features = ["ext", "diagnostics"] }
+
+[dev-dependencies]
+zyn = { path = "../..", version = "0.5.0", features = ["ext", "pretty", "diagnostics"] }
