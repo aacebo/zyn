@@ -144,9 +144,6 @@ version = "0.5.0"
 dependencies = [
  "darling",
  "heck",
- "proc-macro2",
- "quote",
- "syn",
  "zyn-core",
  "zyn-derive",
 ]

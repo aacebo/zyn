@@ -55,9 +55,6 @@ zyn-derive = { workspace = true, optional = true }
 zyn-core = { workspace = true }
 darling = "0.23"
 heck = "0.5"
-syn = { version = "2", features = ["full"] }
-quote = "1"
-proc-macro2 = "1"
 
 [[bench]]
 name = "expand"

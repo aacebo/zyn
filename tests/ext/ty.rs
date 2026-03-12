@@ -35,7 +35,7 @@ fn is_result() {
 fn inner_type_extracts_from_option() {
     let ty: syn::Type = zyn::parse!("Option<String>" => syn::Type).unwrap();
     let inner = ty.inner_type().unwrap();
-    let inner_str = quote::quote!(#inner).to_string();
+    let inner_str = zyn::quote::quote!(#inner).to_string();
     assert_eq!(inner_str, "String");
 }
 
@@ -43,7 +43,7 @@ fn inner_type_extracts_from_option() {
 fn inner_type_extracts_from_result() {
     let ty: syn::Type = zyn::parse!("Result<u32, Error>" => syn::Type).unwrap();
     let inner = ty.inner_type().unwrap();
-    let inner_str = quote::quote!(#inner).to_string();
+    let inner_str = zyn::quote::quote!(#inner).to_string();
     assert_eq!(inner_str, "u32");
 }
 
