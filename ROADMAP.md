@@ -133,7 +133,7 @@ Compatibility layers and migration guides are therefore a core part of the roadm
 
 # Roadmap
 
-## Phase 1 — Formalize the product thesis
+## Phase 1 — Formalize the product thesis `🔄 In Progress`
 
 The first step is to explicitly define what zyn is.
 
@@ -156,7 +156,7 @@ This prevents feature drift and clarifies the project's direction.
 
 ---
 
-## Phase 2 — Define the stable zyn surface area
+## Phase 2 — Define the stable zyn surface area `🔄 In Progress`
 
 Before replacing internals, I need to define the **public conceptual model** that macro authors interact with.
 
@@ -182,7 +182,7 @@ Initially these may simply delegate to `proc_macro2`, `syn`, and `quote`, but ov
 
 ---
 
-## Phase 3 — Restructure the workspace around capabilities
+## Phase 3 — Restructure the workspace around capabilities `🔄 In Progress`
 
 Currently the project contains:
 
@@ -217,7 +217,7 @@ This forces all dependencies on `syn` and `quote` to pass through clearly define
 
 ---
 
-## Phase 4 — Build a first-class diagnostics subsystem
+## Phase 4 — Build a first-class diagnostics subsystem `🔄 In Progress`
 
 Diagnostics are one of the fastest ways to make macro development feel more professional.
 
@@ -245,7 +245,7 @@ Backends may include:
 
 ---
 
-## Phase 5 — Expand testing into a full macro QA system
+## Phase 5 — Expand testing into a full macro QA system `🔄 In Progress`
 
 Testing macro output today typically involves ad-hoc combinations of tools.
 
@@ -265,7 +265,7 @@ Zyn should provide a unified testing system supporting:
 
 ---
 
-## Phase 6 — Introduce structured builders
+## Phase 6 — Introduce structured builders `🔄 In Progress`
 
 At this stage, the framework should provide APIs for constructing Rust syntax programmatically.
 
@@ -289,7 +289,7 @@ Templates (`zyn!`) should remain available but should compile into or interopera
 
 ---
 
-## Phase 7 — Introduce a zyn syntax facade
+## Phase 7 — Introduce a zyn syntax facade `⬜ Not Started`
 
 Replacing `syn` entirely would be extremely expensive and unnecessary.
 
@@ -305,7 +305,7 @@ Initially this facade will delegate to `syn`. Over time it may diverge where app
 
 ---
 
-## Phase 8 — Introduce context-driven macro APIs
+## Phase 8 — Introduce context-driven macro APIs `⬜ Not Started`
 
 Zyn currently supports extractors for macro inputs.
 
@@ -328,7 +328,7 @@ These contexts provide structured access to macro inputs while extractors remain
 
 ---
 
-## Phase 9 — Build the migration path
+## Phase 9 — Build the migration path `⬜ Not Started`
 
 Adoption requires a clear migration story.
 
@@ -347,7 +347,7 @@ Compatibility traits and conversions should make it easy to interoperate with ex
 
 ---
 
-## Phase 10 — Dogfood the framework internally
+## Phase 10 — Dogfood the framework internally `⬜ Not Started`
 
 Once the abstractions exist, the zyn codebase should begin using them extensively.
 
@@ -367,7 +367,7 @@ Key components to migrate include:
 
 ---
 
-## Phase 11 — Evaluate internal dependency replacement
+## Phase 11 — Evaluate internal dependency replacement `⬜ Not Started`
 
 Only after the previous phases are complete does it make sense to consider replacing internal dependencies.
 
