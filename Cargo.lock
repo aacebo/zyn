@@ -140,7 +140,7 @@ checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "zyn"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "darling",
  "heck",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "zyn-core"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "zyn-derive"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "zyn-core",
 ]
