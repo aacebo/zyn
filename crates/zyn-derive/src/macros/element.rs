@@ -59,6 +59,7 @@ pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
 fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
+    let (impl_generics, ty_generics, where_clause) = &item.sig.generics.split_for_impl();
 
     if matches!(item.sig.output, ReturnType::Default) {
         return zyn_core::syn::Error::new(
@@ -124,7 +125,7 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
         quote! { #vis struct #struct_name; }
     } else {
         quote! {
-            #vis struct #struct_name {
+            #vis struct #struct_name #impl_generics #where_clause {
                 #(pub #prop_names: #prop_types,)*
             }
         }
@@ -133,7 +134,7 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
     let output = quote! {
         #struct_def
 
-        impl ::zyn::Render for #struct_name {
+        impl #impl_generics ::zyn::Render for #struct_name #ty_generics #where_clause {
             #[allow(unreachable_code)]
             fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
                 let mut diagnostics = ::zyn::mark::new();

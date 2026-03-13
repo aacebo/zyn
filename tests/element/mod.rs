@@ -3,7 +3,7 @@ mod namespaced;
 #[cfg(feature = "pretty")]
 mod pretty;
 
-use zyn::quote::quote;
+use zyn::{format_ident, quote::quote};
 
 #[zyn::element]
 fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
@@ -148,6 +148,86 @@ fn element_inside_for_loop() {
     let expected = quote!(
         fn foo() {}
         fn bar() {}
+    );
+    zyn::assert_tokens!(result, expected);
+}
+
+#[zyn::element]
+fn generics<T: zyn::ToTokens>(children: T) -> zyn::TokenStream {
+    zyn::quote::quote!(#children)
+}
+
+fn derive_generics(tokens: &str) -> zyn::Output {
+    let input: zyn::Input = zyn::syn::parse_str(tokens).unwrap();
+    zyn::zyn!(
+        fn gen() {
+            @generics {
+                {{ input }}
+            }
+        }
+    )
+}
+
+#[test]
+fn element_with_generics() {
+    let result = derive_generics("struct Foo;");
+    let expected = quote!(
+        fn gen() {
+            struct Foo;
+        }
+    );
+    zyn::assert_tokens!(result, expected);
+}
+
+#[zyn::element]
+fn generics_with_where_clause<T>(children: T) -> zyn::TokenStream
+where
+    T: zyn::ToTokens,
+{
+    zyn::quote::quote!(#children)
+}
+
+fn derive_generics_with_where_clause(tokens: &str) -> zyn::Output {
+    let input: zyn::Input = zyn::syn::parse_str(tokens).unwrap();
+    zyn::zyn!(
+        fn gen() {
+            @generics_with_where_clause {
+                {{ input }}
+            }
+        }
+    )
+}
+
+#[test]
+fn element_with_generics_with_where_clause() {
+    let result = derive_generics_with_where_clause("struct Foo;");
+    let expected = quote!(
+        fn gen() {
+            struct Foo;
+        }
+    );
+    zyn::assert_tokens!(result, expected);
+}
+
+#[zyn::element]
+fn lifetimes<'a>(ident: &'a zyn::syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(struct {{ ident }};)
+}
+
+fn derive_lifetimes(tokens: &str) -> zyn::Output {
+    let input: zyn::Input = zyn::syn::parse_str(tokens).unwrap();
+    let ident = format_ident!("Bar");
+    let ident_ref = &ident;
+    zyn::zyn!(
+        @lifetimes(ident = ident_ref)
+    )
+}
+
+#[test]
+fn element_with_lifetimes() {
+    let result = derive_lifetimes("struct Foo;");
+    let expected = quote!(
+        struct Bar;
     );
     zyn::assert_tokens!(result, expected);
 }
