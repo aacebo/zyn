@@ -9,7 +9,7 @@
 - [Roadmap](#roadmap)
   - [Phase 1 — 🎯 Formalize the product thesis](#phase-1---formalize-the-product-thesis--in-progress)
   - [Phase 2 — 🧱 Define the stable zyn surface area](#phase-2---define-the-stable-zyn-surface-area--in-progress)
-  - [Phase 3 — 🗂️ Restructure the workspace around capabilities](#phase-3---restructure-the-workspace-around-capabilities--in-progress)
+  - [Phase 3 — 🗂️ Restructure the workspace around capabilities](#phase-3--️-restructure-the-workspace-around-capabilities--in-progress)
   - [Phase 4 — 🩺 Build a first-class diagnostics subsystem](#phase-4---build-a-first-class-diagnostics-subsystem--in-progress)
   - [Phase 5 — 🧪 Expand testing into a full macro QA system](#phase-5---expand-testing-into-a-full-macro-qa-system--in-progress)
   - [Phase 6 — 🔨 Introduce structured builders](#phase-6---introduce-structured-builders--in-progress)
@@ -147,22 +147,36 @@ Compatibility layers and migration guides are therefore a core part of the roadm
 # Roadmap
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#fabd2f', 'primaryTextColor': '#282828', 'primaryBorderColor': '#d79921', 'lineColor': '#83a598', 'background': '#282828', 'cScale0': '#fabd2f', 'cScale1': '#3c3836', 'titleColor': '#ebdbb2'}}}%%
-timeline
-    title zyn Roadmap
-    section 🔄 In Progress
-        Phase 1 : Formalize product thesis
-        Phase 2 : Stable surface area
-        Phase 3 : Workspace restructure
-        Phase 4 : Diagnostics subsystem
-        Phase 5 : Macro QA system
-        Phase 6 : Structured builders
-    section ⬜ Not Started
-        Phase 7 : Syntax facade
-        Phase 8 : Context-driven APIs
-        Phase 9 : Migration path
-        Phase 10 : Dogfood internally
-        Phase 11 : Dependency replacement
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#fabd2f', 'primaryTextColor': '#282828', 'primaryBorderColor': '#d79921', 'lineColor': '#83a598', 'background': '#282828', 'nodeBorder': '#504945', 'textColor': '#ebdbb2'}}}%%
+graph TD
+    classDef active fill:#fabd2f,color:#282828,stroke:#d79921,font-weight:bold
+    classDef pending fill:#3c3836,color:#ebdbb2,stroke:#504945
+
+    P1["1 · Product thesis"] --> P2["2 · Stable surface area"]
+    P2 --> P3["3 · Workspace restructure"]
+    P3 --> P4["4 · Diagnostics subsystem"]
+    P4 --> P5["5 · Macro QA system"]
+    P5 --> P6["6 · Structured builders"]
+    P6 --> P7["7 · Syntax facade"]
+    P7 --> P8["8 · Context-driven APIs"]
+    P8 --> P9["9 · Migration path"]
+    P9 --> P10["10 · Dogfood internally"]
+    P10 --> P11["11 · Dependency replacement"]
+
+    click P1 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-1---formalize-the-product-thesis--in-progress"
+    click P2 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-2---define-the-stable-zyn-surface-area--in-progress"
+    click P3 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-3--️-restructure-the-workspace-around-capabilities--in-progress"
+    click P4 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-4---build-a-first-class-diagnostics-subsystem--in-progress"
+    click P5 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-5---expand-testing-into-a-full-macro-qa-system--in-progress"
+    click P6 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-6---introduce-structured-builders--in-progress"
+    click P7 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-7---introduce-a-zyn-syntax-facade--not-started"
+    click P8 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-8---introduce-context-driven-macro-apis--not-started"
+    click P9 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-9---build-the-migration-path--not-started"
+    click P10 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-10---dogfood-the-framework-internally--not-started"
+    click P11 "https://github.com/aacebo/zyn/blob/main/ROADMAP.md#phase-11---evaluate-internal-dependency-replacement--not-started"
+
+    class P1,P2,P3,P4,P5,P6 active
+    class P7,P8,P9,P10,P11 pending
 ```
 
 ## Phase 1 — 🎯 Formalize the product thesis `🔄 In Progress`
