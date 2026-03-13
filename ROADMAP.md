@@ -7,17 +7,17 @@
   - [4. Diagnostics must be first-class](#4-diagnostics-must-be-first-class)
   - [5. Incremental adoption is essential](#5-incremental-adoption-is-essential)
 - [Roadmap](#roadmap)
-  - [Phase 1 — Formalize the product thesis](#phase-1--formalize-the-product-thesis)
-  - [Phase 2 — Define the stable zyn surface area](#phase-2--define-the-stable-zyn-surface-area)
-  - [Phase 3 — Restructure the workspace around capabilities](#phase-3--restructure-the-workspace-around-capabilities)
-  - [Phase 4 — Build a first-class diagnostics subsystem](#phase-4--build-a-first-class-diagnostics-subsystem)
-  - [Phase 5 — Expand testing into a full macro QA system](#phase-5--expand-testing-into-a-full-macro-qa-system)
-  - [Phase 6 — Introduce structured builders](#phase-6--introduce-structured-builders)
-  - [Phase 7 — Introduce a zyn syntax facade](#phase-7--introduce-a-zyn-syntax-facade)
-  - [Phase 8 — Introduce context-driven macro APIs](#phase-8--introduce-context-driven-macro-apis)
-  - [Phase 9 — Build the migration path](#phase-9--build-the-migration-path)
-  - [Phase 10 — Dogfood the framework internally](#phase-10--dogfood-the-framework-internally)
-  - [Phase 11 — Evaluate internal dependency replacement](#phase-11--evaluate-internal-dependency-replacement)
+  - [Phase 1 — 🎯 Formalize the product thesis](#phase-1---formalize-the-product-thesis--in-progress)
+  - [Phase 2 — 🧱 Define the stable zyn surface area](#phase-2---define-the-stable-zyn-surface-area--in-progress)
+  - [Phase 3 — 🗂️ Restructure the workspace around capabilities](#phase-3---restructure-the-workspace-around-capabilities--in-progress)
+  - [Phase 4 — 🩺 Build a first-class diagnostics subsystem](#phase-4---build-a-first-class-diagnostics-subsystem--in-progress)
+  - [Phase 5 — 🧪 Expand testing into a full macro QA system](#phase-5---expand-testing-into-a-full-macro-qa-system--in-progress)
+  - [Phase 6 — 🔨 Introduce structured builders](#phase-6---introduce-structured-builders--in-progress)
+  - [Phase 7 — 🪟 Introduce a zyn syntax facade](#phase-7---introduce-a-zyn-syntax-facade--not-started)
+  - [Phase 8 — 🧭 Introduce context-driven macro APIs](#phase-8---introduce-context-driven-macro-apis--not-started)
+  - [Phase 9 — 🚚 Build the migration path](#phase-9---build-the-migration-path--not-started)
+  - [Phase 10 — 🐶 Dogfood the framework internally](#phase-10---dogfood-the-framework-internally--not-started)
+  - [Phase 11 — 🔬 Evaluate internal dependency replacement](#phase-11---evaluate-internal-dependency-replacement--not-started)
 - [Long-Term Outcome](#long-term-outcome)
 
 When I started **zyn**, my goal was not simply to build a nicer templating system for Rust procedural macros. The real goal is much larger:
@@ -26,15 +26,15 @@ When I started **zyn**, my goal was not simply to build a nicer templating syste
 
 Today, Rust macro development is powerful but fragmented. The typical stack looks like this:
 
-```
-proc_macro
-proc_macro2
-syn
-quote
-proc_macro2_diagnostics
-prettyplease
-trybuild
-cargo expand
+```mermaid
+graph TD
+    A[proc_macro] --> B[proc_macro2]
+    B --> C[syn]
+    B --> D[quote]
+    B --> E[proc_macro2_diagnostics]
+    B --> F[prettyplease]
+    G[trybuild]
+    H[cargo-expand]
 ```
 
 Each of these tools solves a specific problem well, but together they create a developer experience that feels **stitched together rather than designed**.
@@ -87,8 +87,9 @@ Today these areas are fragmented across multiple crates.
 
 In zyn they should feel like **parts of a single pipeline**:
 
-```
-parse → inspect → transform/build → emit → test/debug
+```mermaid
+flowchart LR
+    Parse --> Inspect --> Transform --> Emit --> Test
 ```
 
 ---
@@ -133,7 +134,25 @@ Compatibility layers and migration guides are therefore a core part of the roadm
 
 # Roadmap
 
-## Phase 1 — Formalize the product thesis `🔄 In Progress`
+```mermaid
+timeline
+    title zyn Roadmap
+    section 🔄 In Progress
+        Phase 1 : Formalize product thesis
+        Phase 2 : Stable surface area
+        Phase 3 : Workspace restructure
+        Phase 4 : Diagnostics subsystem
+        Phase 5 : Macro QA system
+        Phase 6 : Structured builders
+    section ⬜ Not Started
+        Phase 7 : Syntax facade
+        Phase 8 : Context-driven APIs
+        Phase 9 : Migration path
+        Phase 10 : Dogfood internally
+        Phase 11 : Dependency replacement
+```
+
+## Phase 1 — 🎯 Formalize the product thesis `🔄 In Progress`
 
 The first step is to explicitly define what zyn is.
 
@@ -156,7 +175,7 @@ This prevents feature drift and clarifies the project's direction.
 
 ---
 
-## Phase 2 — Define the stable zyn surface area `🔄 In Progress`
+## Phase 2 — 🧱 Define the stable zyn surface area `🔄 In Progress`
 
 Before replacing internals, I need to define the **public conceptual model** that macro authors interact with.
 
@@ -182,7 +201,7 @@ Initially these may simply delegate to `proc_macro2`, `syn`, and `quote`, but ov
 
 ---
 
-## Phase 3 — Restructure the workspace around capabilities `🔄 In Progress`
+## Phase 3 — 🗂️ Restructure the workspace around capabilities `🔄 In Progress`
 
 Currently the project contains:
 
@@ -196,16 +215,16 @@ As the framework grows, the workspace should instead reflect **capabilities** ra
 
 Target structure:
 
-```
-zyn
-zyn-macro
-zyn-syntax
-zyn-build
-zyn-template
-zyn-diag
-zyn-test
-zyn-compat-syn
-zyn-compat-quote
+```mermaid
+graph TD
+    zyn --> zyn-macro
+    zyn --> zyn-syntax
+    zyn --> zyn-build
+    zyn --> zyn-template
+    zyn --> zyn-diag
+    zyn --> zyn-test
+    zyn-syntax --> zyn-compat-syn
+    zyn-build --> zyn-compat-quote
 ```
 
 This forces all dependencies on `syn` and `quote` to pass through clearly defined compatibility layers.
@@ -217,7 +236,7 @@ This forces all dependencies on `syn` and `quote` to pass through clearly define
 
 ---
 
-## Phase 4 — Build a first-class diagnostics subsystem `🔄 In Progress`
+## Phase 4 — 🩺 Build a first-class diagnostics subsystem `🔄 In Progress`
 
 Diagnostics are one of the fastest ways to make macro development feel more professional.
 
@@ -245,7 +264,7 @@ Backends may include:
 
 ---
 
-## Phase 5 — Expand testing into a full macro QA system `🔄 In Progress`
+## Phase 5 — 🧪 Expand testing into a full macro QA system `🔄 In Progress`
 
 Testing macro output today typically involves ad-hoc combinations of tools.
 
@@ -265,7 +284,7 @@ Zyn should provide a unified testing system supporting:
 
 ---
 
-## Phase 6 — Introduce structured builders `🔄 In Progress`
+## Phase 6 — 🔨 Introduce structured builders `🔄 In Progress`
 
 At this stage, the framework should provide APIs for constructing Rust syntax programmatically.
 
@@ -289,7 +308,7 @@ Templates (`zyn!`) should remain available but should compile into or interopera
 
 ---
 
-## Phase 7 — Introduce a zyn syntax facade `⬜ Not Started`
+## Phase 7 — 🪟 Introduce a zyn syntax facade `⬜ Not Started`
 
 Replacing `syn` entirely would be extremely expensive and unnecessary.
 
@@ -305,7 +324,7 @@ Initially this facade will delegate to `syn`. Over time it may diverge where app
 
 ---
 
-## Phase 8 — Introduce context-driven macro APIs `⬜ Not Started`
+## Phase 8 — 🧭 Introduce context-driven macro APIs `⬜ Not Started`
 
 Zyn currently supports extractors for macro inputs.
 
@@ -328,7 +347,7 @@ These contexts provide structured access to macro inputs while extractors remain
 
 ---
 
-## Phase 9 — Build the migration path `⬜ Not Started`
+## Phase 9 — 🚚 Build the migration path `⬜ Not Started`
 
 Adoption requires a clear migration story.
 
@@ -347,7 +366,7 @@ Compatibility traits and conversions should make it easy to interoperate with ex
 
 ---
 
-## Phase 10 — Dogfood the framework internally `⬜ Not Started`
+## Phase 10 — 🐶 Dogfood the framework internally `⬜ Not Started`
 
 Once the abstractions exist, the zyn codebase should begin using them extensively.
 
@@ -367,7 +386,7 @@ Key components to migrate include:
 
 ---
 
-## Phase 11 — Evaluate internal dependency replacement `⬜ Not Started`
+## Phase 11 — 🔬 Evaluate internal dependency replacement `⬜ Not Started`
 
 Only after the previous phases are complete does it make sense to consider replacing internal dependencies.
 
@@ -387,12 +406,16 @@ The primary goal is to ensure that **users of zyn never need to care about the u
 
 If this roadmap succeeds, zyn will evolve from a templating system into a **true macro development platform**.
 
-Instead of learning a patchwork of tools, macro authors will work within a single coherent framework that provides:
+Instead of learning a patchwork of tools, macro authors will work within a single coherent framework:
 
-* structured syntax inspection
-* ergonomic code generation
-* first-class diagnostics
-* integrated testing and debugging
+```mermaid
+mindmap
+  root((zyn))
+    Syntax Inspection
+    Code Generation
+    First-class Diagnostics
+    Testing & Debugging
+```
 
 In other words, the experience of writing macros in Rust will feel like using a **designed system rather than an ecosystem workaround**.
 
