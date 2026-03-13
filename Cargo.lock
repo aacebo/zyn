@@ -165,3 +165,7 @@ version = "0.5.2"
 dependencies = [
  "zyn-core",
 ]
+
+[[package]]
+name = "zyn-token"
+version = "0.5.2"
