@@ -83,6 +83,7 @@ impl SourceFile {
         let mut char_index = ci;
         let mut byte_index = bi;
 
+        #[allow(clippy::explicit_counter_loop)]
         for ch in self.text[bi..].chars() {
             if char_index == index {
                 cache.insert(index, byte_index);
