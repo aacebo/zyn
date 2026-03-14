@@ -2,41 +2,14 @@
   <rect fill="#23241f" width="464" height="104"/>
 
   <g fill="#F92672">
-    <rect x="100" y="24" width="8" height="56"/>
-    <rect x="116" y="24" width="8" height="56"/>
-    <rect x="92" y="40" width="40" height="8"/>
-    <rect x="92" y="56" width="40" height="8"/>
-
-    <rect x="140" y="24" width="24" height="8"/>
-    <rect x="140" y="32" width="8" height="40"/>
-    <rect x="140" y="72" width="24" height="8"/>
-
-    <rect x="348" y="24" width="24" height="8"/>
-    <rect x="364" y="32" width="8" height="40"/>
-    <rect x="348" y="72" width="24" height="8"/>
+    <path d="m100 24v16h-8v8h8v8h-8v8h8v16h8v-16h8v16h8v-16h8v-8h-8v-8h8v-8h-8v-16h-8v16h-8v-16h-8zm8 24h8v8h-8v-8z"/>
+    <path d="m140 24v8 40 8h24v-8h-16v-40h16v-8h-24z"/>
+    <path d="m348 24v8h16v40h-16v8h24v-8-40-8h-24z"/>
   </g>
 
   <g fill="#E6DB74">
-    <rect x="172" y="24" width="48" height="8"/>
-    <rect x="204" y="32" width="16" height="8"/>
-    <rect x="196" y="40" width="16" height="8"/>
-    <rect x="188" y="48" width="16" height="8"/>
-    <rect x="180" y="56" width="16" height="8"/>
-    <rect x="172" y="64" width="16" height="8"/>
-    <rect x="172" y="72" width="48" height="8"/>
-
-    <rect x="232" y="24" width="8" height="16"/>
-    <rect x="272" y="24" width="8" height="16"/>
-    <rect x="240" y="40" width="8" height="8"/>
-    <rect x="264" y="40" width="8" height="8"/>
-    <rect x="248" y="48" width="16" height="8"/>
-    <rect x="252" y="56" width="8" height="24"/>
-
-    <rect x="292" y="24" width="8" height="56"/>
-    <rect x="332" y="24" width="8" height="56"/>
-    <rect x="300" y="24" width="8" height="16"/>
-    <rect x="308" y="40" width="8" height="8"/>
-    <rect x="316" y="48" width="8" height="8"/>
-    <rect x="324" y="56" width="8" height="16"/>
+    <path d="m172 24v8h32v8h-8v8h-8v8h-8v8h-8v8 8h48v-8h-32v-8h8v-8h8v-8h8v-8h8v-8-8h-48z"/>
+    <path d="m232 24v16h8v-16h-8zm8 16v8h8v-8h-8zm8 8v8h4v24h8v-24h4v-8h-16zm16 0h8v-8h-8v8zm8-8h8v-16h-8v16z"/>
+    <path d="m292 24v56h8v-40h8v-16h-8-8zm16 16v8h8v-8h-8zm8 8v8h8v-8h-8zm8 8v16h8v8h8v-56h-8v32h-8z"/>
   </g>
 </svg>
