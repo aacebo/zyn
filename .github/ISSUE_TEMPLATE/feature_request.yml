@@ -4,19 +4,18 @@ title: "[Feature]: "
 labels: ["enhancement"]
 body:
   - type: textarea
-    id: problem
+    id: description
     attributes:
-      label: Problem
-      description: Is your feature request related to a problem? Describe it.
-      placeholder: I'm always frustrated when...
+      label: Description
+      description: A clear and concise description of the feature or improvement.
     validations:
       required: true
 
   - type: textarea
-    id: solution
+    id: motivation
     attributes:
-      label: Proposed Solution
-      description: Describe the solution you'd like.
+      label: Motivation
+      description: Why would this feature be useful?
     validations:
       required: true
 

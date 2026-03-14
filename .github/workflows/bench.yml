@@ -1,4 +1,4 @@
-name: Benchmarks
+name: Benchmark
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
   schedule:
     # Run once per hour at the beginning of the hour (UTC)
     - cron: "0 * * * *"
-  pull_request:
   workflow_dispatch:
   workflow_call:
 
@@ -15,8 +14,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  bench-main:
-    if: github.event_name != 'pull_request'
+  bench:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,29 +32,4 @@ jobs:
           --threshold-measure latency \
           --threshold-test t_test \
           --threshold-upper-boundary 0.95 \
-          cargo bench -p zyn
-
-  bench-pr:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: bencherdev/bencher@main
-
-      - name: Run benchmarks
-        run: |
-          bencher run \
-          --project zyn \
-          --token '${{ secrets.BENCHER_API_TOKEN }}' \
-          --branch '${{ github.head_ref }}' \
-          --start-point main \
-          --start-point-clone-thresholds \
-          --testbed ubuntu-latest \
-          --adapter rust_bench \
-          --threshold-measure latency \
-          --threshold-test t_test \
-          --threshold-upper-boundary 0.95 \
-          --github-actions '${{ secrets.GITHUB_TOKEN }}' \
-          --err \
           cargo bench -p zyn

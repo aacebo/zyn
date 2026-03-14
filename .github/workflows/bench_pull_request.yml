@@ -1,0 +1,31 @@
+name: Benchmark Pull Request
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+    paths:
+      - benches/**
+      - crates/**
+      - src/**
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: bencherdev/bencher@main
+
+      - name: Run benchmarks
+        run: cargo bench -p zyn | tee output.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench_results
+          path: output.txt
+
+      - name: Upload PR event
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr_event
+          path: ${{ github.event_path }}
