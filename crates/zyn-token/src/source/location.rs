@@ -1,5 +1,5 @@
 /// 0 indexed char based location
-#[derive(Debug, Default, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct SourceLocation {
     index: usize,
     line: usize,

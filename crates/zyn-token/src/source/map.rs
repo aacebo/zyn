@@ -1,11 +1,11 @@
 use crate::{SourceFile, Span};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct SourceMap(Vec<SourceFile>);
 
 impl SourceMap {
     pub fn new() -> Self {
-        Self::default()
+        Self(vec![])
     }
 
     pub fn files(&self) -> &[SourceFile] {

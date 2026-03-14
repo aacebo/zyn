@@ -20,7 +20,7 @@ pub struct SourceFile {
 }
 
 impl SourceFile {
-    pub fn new(start: usize, src: impl Into<String>) -> Self {
+    pub(crate) fn new(start: usize, src: impl Into<String>) -> Self {
         let text = src.into();
         let mut lines = vec![0];
         let mut total = 0usize;
