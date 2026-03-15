@@ -35,6 +35,20 @@ impl MatchNode {
     pub fn span(&self) -> Span {
         self.span
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let expr = &self.expr;
+        let arms: Vec<TokenStream> = self
+            .arms
+            .iter()
+            .map(|(pattern, body)| {
+                let body_display = body.to_display_stream(injections);
+                quote! { #pattern => { #body_display } }
+            })
+            .collect();
+
+        quote! { match #expr { #(#arms),* } }
+    }
 }
 
 impl Parse for MatchNode {

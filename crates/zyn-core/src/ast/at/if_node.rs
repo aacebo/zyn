@@ -38,6 +38,27 @@ impl IfNode {
     pub fn span(&self) -> Span {
         self.span
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let mut result = TokenStream::new();
+
+        for (i, (cond, body)) in self.branches.iter().enumerate() {
+            let body_display = body.to_display_stream(injections);
+
+            if i == 0 {
+                result = quote! { if #cond { #body_display } };
+            } else {
+                result = quote! { #result else if #cond { #body_display } };
+            }
+        }
+
+        if let Some(else_body) = &self.else_body {
+            let else_display = else_body.to_display_stream(injections);
+            result = quote! { #result else { #else_display } };
+        }
+
+        result
+    }
 }
 
 impl Parse for IfNode {

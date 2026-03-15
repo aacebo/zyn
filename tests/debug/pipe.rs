@@ -36,7 +36,7 @@ fn pipe_with_debug_and_name() {
 mod pretty {
     use zyn::quote::quote;
 
-    #[zyn::pipe(debug = "pretty")]
+    #[zyn::pipe(debug(pretty))]
     fn shout_pretty(input: String) -> zyn::syn::Ident {
         zyn::syn::Ident::new(
             &format!("{}_PRETTY", input.to_uppercase()),
@@ -44,7 +44,7 @@ mod pretty {
         )
     }
 
-    #[zyn::pipe("yell_pretty", debug = "pretty")]
+    #[zyn::pipe("yell_pretty", debug(pretty))]
     fn make_loud_pretty(input: String) -> zyn::syn::Ident {
         zyn::syn::Ident::new(
             &format!("{}__PRETTY", input.to_uppercase()),
@@ -65,6 +65,43 @@ mod pretty {
         let name = zyn::format_ident!("hello");
         let result = zyn::zyn!({ { name | yell_pretty } });
         let expected = quote!(HELLO__PRETTY);
+        zyn::assert_tokens!(result, expected);
+    }
+}
+
+mod inject {
+    use zyn::quote::quote;
+
+    #[zyn::pipe(debug(input = "hello"))]
+    fn shout_inject(input: String) -> zyn::syn::Ident {
+        zyn::syn::Ident::new(&input.to_uppercase(), zyn::Span::call_site())
+    }
+
+    #[test]
+    fn pipe_with_string_injection() {
+        let name = zyn::format_ident!("hello");
+        let result = zyn::zyn!({ { name | shout_inject } });
+        let expected = quote!(HELLO);
+        zyn::assert_tokens!(result, expected);
+    }
+}
+
+mod full {
+    use zyn::quote::quote;
+
+    #[zyn::pipe(debug(full))]
+    fn shout_full(input: String) -> zyn::syn::Ident {
+        zyn::syn::Ident::new(
+            &format!("{}_FULL", input.to_uppercase()),
+            zyn::Span::call_site(),
+        )
+    }
+
+    #[test]
+    fn pipe_with_full() {
+        let name = zyn::format_ident!("hello");
+        let result = zyn::zyn!({ { name | shout_full } });
+        let expected = quote!(HELLO_FULL);
         zyn::assert_tokens!(result, expected);
     }
 }

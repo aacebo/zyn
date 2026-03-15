@@ -118,6 +118,15 @@ impl Node {
             Self::Group(v) => v.span(),
         }
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        match self {
+            Self::Tokens(v) => v.to_display_stream(injections),
+            Self::Interp(v) => v.to_display_stream(injections),
+            Self::At(v) => v.to_display_stream(injections),
+            Self::Group(v) => v.to_display_stream(injections),
+        }
+    }
 }
 
 impl From<TokensNode> for Node {

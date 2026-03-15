@@ -55,6 +55,22 @@ impl Template {
             .unwrap_or_else(Span::call_site)
     }
 
+    /// Returns a flat `TokenStream` representing the template's output pattern.
+    /// Unlike [`to_token_stream`](Self::to_token_stream), which produces builder code,
+    /// this produces the structural output: literal tokens pass through, interpolations
+    /// emit their expression or a substituted value, and control flow emits its body structure.
+    ///
+    /// `injections` is a slice of `(key, tokens)` pairs. When an interpolation expression
+    /// matches a key, the corresponding tokens are substituted. Unmatched interpolations
+    /// render as `{{ expr }}` placeholders.
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let mut result = TokenStream::new();
+        for node in &self.nodes {
+            result.extend(node.to_display_stream(injections));
+        }
+        result
+    }
+
     /// Expands the template into a `TokenStream` without an `Input` binding.
     pub fn to_token_stream(&self) -> TokenStream {
         let mut idents = ident::Iter::new();

@@ -38,6 +38,13 @@ impl ForNode {
     pub fn span(&self) -> Span {
         self.span
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let binding = &self.binding;
+        let iter = &self.iter;
+        let body_display = self.body.to_display_stream(injections);
+        quote! { for #binding in #iter { #body_display } }
+    }
 }
 
 impl Parse for ForNode {

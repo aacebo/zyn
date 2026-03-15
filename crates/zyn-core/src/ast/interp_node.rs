@@ -31,6 +31,18 @@ impl InterpNode {
     pub fn span(&self) -> Span {
         self.span
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let key = self.expr.to_string();
+
+        if let Some((_, val)) = injections.iter().find(|(k, _)| *k == key) {
+            return val.clone();
+        }
+
+        // fallback: render as {{ expr }} placeholder
+        let expr = &self.expr;
+        quote::quote! { {{ #expr }} }
+    }
 }
 
 impl Parse for InterpNode {

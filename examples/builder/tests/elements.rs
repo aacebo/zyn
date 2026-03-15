@@ -1,6 +1,6 @@
 use zyn::quote::quote;
 
-#[zyn::element(debug = "pretty")]
+#[zyn::element(debug(pretty))]
 fn setter(name: zyn::syn::Ident, ty: zyn::syn::Type) -> zyn::TokenStream {
     zyn::zyn! {
         fn {{ name }}(mut self, value: {{ ty }}) -> Self {

@@ -312,7 +312,7 @@ With the `pretty` feature:
 
 ### Debugging
 
-Add `debug` (or `debug = "pretty"`) to any zyn attribute macro and set `ZYN_DEBUG` to inspect generated code at compile time:
+Inspect generated code by adding `debug` to any zyn attribute macro. Set `ZYN_DEBUG` to the generated type name (or `*` for all) to enable output:
 
 ```rust
 #[zyn::element(debug)]
@@ -328,15 +328,14 @@ ZYN_DEBUG="*" cargo build
 ```text
 note: zyn::element ─── Greeting
 
-      struct Greeting { pub name : zyn :: syn :: Ident , } impl :: zyn :: Render
-      for Greeting { fn render (& self , input : & :: zyn :: Input) -> :: zyn ::
-      proc_macro2 :: TokenStream { ... } }
+      fn name () { }
+  --> src/lib.rs:1:1
 ```
 
-With the `pretty` feature, use `debug = "pretty"` for formatted output:
+With the `pretty` feature, use `debug(pretty)` for formatted output:
 
 ```rust
-#[zyn::element(debug = "pretty")]
+#[zyn::element(debug(pretty))]
 fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
@@ -345,22 +344,31 @@ fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
 ```text
 note: zyn::element ─── Greeting
 
-      struct Greeting {
-          pub name: zyn::syn::Ident,
-      }
-      impl ::zyn::Render for Greeting {
-          fn render(&self, input: &::zyn::Input) -> ::zyn::Output { ... }
-      }
+      fn name() {}
+  --> src/lib.rs:1:1
 ```
+
+Use `debug(full)` to emit the full generated struct + impl instead of just the body. Combine with `pretty`: `debug(pretty, full)`.
+
+Supply `key = "value"` injection pairs to substitute static values for props — useful when the real value isn't known at proc-macro time:
+
+```rust
+#[zyn::element(debug(name = "Foo", ty = "String"))]
+fn setter(name: zyn::syn::Ident, ty: zyn::syn::Type) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}(value: {{ ty }}) -> Self { self })
+}
+```
+
+Output: `fn Foo (value : String) -> Self { self }`. Without injection, props show as `{{ name }}`, `{{ ty }}`.
 
 All macros support `debug`: `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`.
 
 `ZYN_DEBUG` accepts comma-separated `*`-wildcard patterns matched against the generated PascalCase type name:
 
 ```sh
-ZYN_DEBUG="Greeting" cargo build     # exact match
-ZYN_DEBUG="Greet*" cargo build       # prefix wildcard
-ZYN_DEBUG="*Element" cargo build     # suffix wildcard
+ZYN_DEBUG="Greeting" cargo build        # exact match
+ZYN_DEBUG="Greet*" cargo build          # prefix wildcard
+ZYN_DEBUG="*Element" cargo build        # suffix wildcard
 ZYN_DEBUG="Greeting,Shout" cargo build  # multiple patterns
 ```
 
