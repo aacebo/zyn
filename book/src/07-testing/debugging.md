@@ -6,7 +6,7 @@ Inspect generated code by adding the `debug` argument to any zyn attribute macro
 
 Two conditions must be met for debug output:
 
-1. Add `debug` (or `debug = "pretty"`) to the macro attribute
+1. Add `debug` (or `debug(pretty)`) to the macro attribute
 2. Set the `ZYN_DEBUG` environment variable to match the generated type name
 
 ```rust
@@ -36,14 +36,94 @@ Without `ZYN_DEBUG` set, the `debug` argument is inert — no output, no overhea
 | `#[zyn::derive]` | `#[zyn::derive("Name", debug)]`, `#[zyn::derive("Name", attributes(skip), debug)]` |
 | `#[zyn::attribute]` | `#[zyn::attribute(debug)]` |
 
-All macros also accept `debug = "pretty"` in place of `debug`:
+## Options
 
-| Macro | Pretty syntax |
-|-------|---------------|
-| `#[zyn::element]` | `#[zyn::element(debug = "pretty")]`, `#[zyn::element("name", debug = "pretty")]` |
-| `#[zyn::pipe]` | `#[zyn::pipe(debug = "pretty")]`, `#[zyn::pipe("name", debug = "pretty")]` |
-| `#[zyn::derive]` | `#[zyn::derive("Name", debug = "pretty")]` |
-| `#[zyn::attribute]` | `#[zyn::attribute(debug = "pretty")]` |
+Options are passed as a comma-separated list inside parentheses:
+
+| Syntax | Output | Format |
+|--------|--------|--------|
+| `debug` | Body only, `{{ prop }}` placeholders | Raw |
+| `debug(pretty)` | Body only, `{{ prop }}` placeholders | Pretty-printed |
+| `debug(full)` | Full struct + impl | Raw |
+| `debug(pretty, full)` | Full struct + impl | Pretty-printed |
+| `debug(key = "val", ...)` | Body only, matched props substituted | Raw |
+| `debug(pretty, key = "val", ...)` | Body only, matched props substituted | Pretty-printed |
+
+Options can be combined in any order: `debug(full, pretty)` is equivalent to `debug(pretty, full)`. Injection pairs can be mixed with `pretty` and `full` freely.
+
+## Static injection
+
+Debug output runs at proc-macro time — runtime values don't exist yet. When a prop like `name` or `ty` appears in a `{{ name }}` interpolation, the debug note shows `{{ name }}` as a placeholder. Static injection lets you supply a representative value so the output shows something meaningful.
+
+### Syntax
+
+```rust
+// No injection — placeholders in output
+#[zyn::element(debug)]
+
+// Inject a single prop
+#[zyn::element(debug(name = "Foo"))]
+
+// Inject multiple props
+#[zyn::element(debug(name = "Foo", ty = "String"))]
+
+// Combine with pretty
+#[zyn::element(debug(pretty, name = "Foo", ty = "Vec<u8>"))]
+```
+
+All injection values are **string literals**. The string content is parsed as a `proc_macro2::TokenStream` — any valid Rust token sequence works: identifiers, types, expressions, literals.
+
+### Example
+
+```rust
+#[zyn::element(debug(pretty, name = "Foo", ty = "String"))]
+fn setter(name: zyn::syn::Ident, ty: zyn::syn::Type) -> zyn::TokenStream {
+    zyn::zyn! {
+        fn {{ name }}(mut self, value: {{ ty }}) -> Self {
+            self.{{ name }} = Some(value);
+            self
+        }
+    }
+}
+```
+
+`ZYN_DEBUG="Setter" cargo build`:
+
+```text
+note: zyn::element ─── Setter
+
+      fn Foo(mut self, value: String) -> Self {
+          self.Foo = Some(value);
+          self
+      }
+  --> src/lib.rs:1:1
+```
+
+Without injection:
+
+```text
+note: zyn::element ─── Setter
+
+      fn {{ name }}(mut self, value: {{ ty }}) -> Self {
+          self.{{ name }} = Some(value);
+          self
+      }
+  --> src/lib.rs:1:1
+```
+
+> [!NOTE]
+> Injected prop resolved at proc-macro time — the output shows the real value instead of a placeholder.
+
+![Static injection — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-10.png)
+
+> [!NOTE]
+> Injection with a pipe transform applied — `name = "HelloWorld"` piped through `snake` produces `hello_world`.
+
+![Static injection with pipe — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-7.png)
+
+### Uninjected props
+
+Any prop without a matching injection key renders as `{{ prop_name }}`. This is intentional — it makes unresolved placeholders visually distinct from real tokens.
 
 ## Output formats
 
@@ -65,9 +145,7 @@ ZYN_DEBUG="Greeting" cargo build
 ```text
 note: zyn::element ─── Greeting
 
-      struct Greeting { pub name : zyn :: syn :: Ident , } impl :: zyn :: Render
-      for Greeting { fn render (& self , input : & :: zyn :: Input) -> :: zyn ::
-      proc_macro2 :: TokenStream { ... } }
+      fn {{ name }}() {}
   --> src/lib.rs:1:1
 ```
 
@@ -90,7 +168,7 @@ The raw format is useful for quick checks and when you want to see the exact tok
 
 ### Pretty (feature-gated)
 
-The `pretty` format uses [`prettyplease`](https://crates.io/crates/prettyplease) to produce properly formatted Rust code with indentation and line breaks.
+The `pretty` option uses [`prettyplease`](https://crates.io/crates/prettyplease) to produce properly formatted Rust code with indentation and line breaks.
 
 Enable the `pretty` feature in your `Cargo.toml`:
 
@@ -99,10 +177,10 @@ Enable the `pretty` feature in your `Cargo.toml`:
 zyn = { version = "0.4", features = ["pretty"] }
 ```
 
-Then use `debug = "pretty"`:
+Then use `debug(pretty)`:
 
 ```rust
-#[zyn::element(debug = "pretty")]
+#[zyn::element(debug(pretty))]
 fn greeting(name: syn::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
@@ -115,20 +193,7 @@ ZYN_DEBUG="Greeting" cargo build
 ```text
 note: zyn::element ─── Greeting
 
-      struct Greeting {
-          pub name: zyn::syn::Ident,
-      }
-      impl ::zyn::Render for Greeting {
-          fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
-              let mut diagnostics = ::zyn::mark::new();
-              let name = &self.name;
-              let __body = { zyn::zyn!(fn {{ name }}() {}) };
-              ::zyn::Output::new()
-                  .tokens(__body)
-                  .diagnostic(diagnostics)
-                  .build()
-          }
-      }
+      fn {{ name }}() {}
   --> src/lib.rs:1:1
 ```
 
@@ -137,15 +202,52 @@ note: zyn::element ─── Greeting
 
 ![Pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-5.png)
 
-If `debug = "pretty"` is used without the `pretty` feature enabled, you'll get a helpful compile error:
+If `debug(pretty)` is used without the `pretty` feature enabled, you'll get a helpful compile error:
 
 ```text
-error: enable the `pretty` feature to use `debug = "pretty"`
- --> src/lib.rs:1:24
+error: enable the `pretty` feature to use `debug(pretty)`
+ --> src/lib.rs:1:16
   |
-1 | #[zyn::element(debug = "pretty")]
-  |                        ^^^^^^^^
+1 | #[zyn::element(debug(pretty))]
+  |                ^^^^^^^^^^^^^^
 ```
+
+### Full output
+
+Use `debug(full)` to emit the entire generated struct and impl instead of just the body:
+
+```rust
+#[zyn::element(debug(full))]
+fn greeting(name: syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+```text
+note: zyn::element ─── Greeting
+
+      struct Greeting { pub name : syn :: Ident , } impl ::zyn::Render for Greeting { fn render(&self, input : &::zyn::Input) -> ::zyn::Output { ... } }
+  --> src/lib.rs:1:1
+```
+
+> [!NOTE]
+> `debug(full)` shows the entire generated struct and `impl` block as a raw inline diagnostic.
+
+![Full output — raw inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-8.png)
+
+Combine with `pretty` for formatted full output:
+
+```rust
+#[zyn::element(debug(pretty, full))]
+fn greeting(name: syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(fn {{ name }}() {})
+}
+```
+
+> [!NOTE]
+> `debug(pretty, full)` formats the full struct + impl with `prettyplease` for readable, indented output.
+
+![Full output — pretty-printed](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-9.png)
 
 ## ZYN_DEBUG environment variable
 
@@ -177,14 +279,14 @@ Before formatting (in both raw and pretty modes), zyn strips internal boilerplat
 - **`#[allow(...)]` attributes** — removes `#[allow(unused)]` and similar
 - **`macro_rules!` definitions** — removes the internal `error!`, `warn!`, `note!`, `help!`, and `bail!` macro definitions
 
-This keeps the debug output focused on the code you care about: the generated struct and its `Render` / `Pipe` implementation.
+This keeps the debug output focused on the code you care about.
 
 ## Full example
 
 Given this element:
 
 ```rust
-#[zyn::element(debug = "pretty")]
+#[zyn::element(debug(pretty))]
 fn field_getter(
     name: syn::Ident,
     ty: syn::Type,
@@ -197,32 +299,37 @@ fn field_getter(
 }
 ```
 
-Running with `ZYN_DEBUG="FieldGetter" cargo build` produces:
+Running with `ZYN_DEBUG="FieldGetter" cargo build` (no injection — props show as placeholders):
 
 ```text
 note: zyn::element ─── FieldGetter
 
-      struct FieldGetter {
-          pub name: syn::Ident,
-          pub ty: syn::Type,
+      pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
+          &self.{{ name }}
       }
-      impl ::zyn::Render for FieldGetter {
-          fn render(&self, input: &::zyn::Input) -> ::zyn::Output {
-              let mut diagnostics = ::zyn::mark::new();
-              let name = &self.name;
-              let ty = &self.ty;
-              let __body = {
-                  zyn::zyn!(
-                      pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
-                          &self.{{ name }}
-                      }
-                  )
-              };
-              ::zyn::Output::new()
-                  .tokens(__body)
-                  .diagnostic(diagnostics)
-                  .build()
-          }
+```
+
+With static injection to see realistic output:
+
+```rust
+#[zyn::element(debug(pretty, name = "title", ty = "String"))]
+fn field_getter(
+    name: syn::Ident,
+    ty: syn::Type,
+) -> zyn::TokenStream {
+    zyn::zyn!(
+        pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
+            &self.{{ name }}
+        }
+    )
+}
+```
+
+```text
+note: zyn::element ─── FieldGetter
+
+      pub fn get_title(&self) -> &String {
+          &self.title
       }
 ```
 

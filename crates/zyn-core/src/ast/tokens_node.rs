@@ -23,6 +23,12 @@ impl TokensNode {
     }
 }
 
+impl TokensNode {
+    pub fn to_display_stream(&self, _injections: &[(String, TokenStream)]) -> TokenStream {
+        self.stream.clone()
+    }
+}
+
 impl Expand for TokensNode {
     fn expand(&self, output: &Ident, _idents: &mut crate::ident::Iter) -> TokenStream {
         let stream = &self.stream;

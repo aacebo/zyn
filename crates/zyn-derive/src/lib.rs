@@ -206,9 +206,13 @@ pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 /// name (supports `*` wildcards, e.g., `ZYN_DEBUG="*"`).
 ///
 /// ```ignore
-/// #[zyn::element(debug)]
-/// #[zyn::element(debug = "pretty")]   // requires `pretty` feature
-/// #[zyn::element("alias", debug)]
+/// #[zyn::element(debug)]                              // body only, raw
+/// #[zyn::element(debug(pretty))]                      // body only, pretty-printed (requires `pretty` feature)
+/// #[zyn::element(debug(full))]                        // full struct + impl, raw
+/// #[zyn::element(debug(pretty, full))]                // full struct + impl, pretty-printed
+/// #[zyn::element(debug(name = "Foo"))]                // inject prop, raw
+/// #[zyn::element(debug(pretty, name = "Foo"))]        // inject prop, pretty-printed
+/// #[zyn::element("alias", debug)]                     // with custom name alias
 /// ```
 ///
 /// ```bash
@@ -220,7 +224,7 @@ pub fn zyn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 /// The `pretty` format uses `prettyplease` for formatted output. Enable it with:
 ///
 /// ```toml
-/// zyn = { version = "0.3", features = ["pretty"] }
+/// zyn = { version = "0.4", features = ["pretty"] }
 /// ```
 #[proc_macro_attribute]
 pub fn element(
@@ -274,9 +278,13 @@ pub fn element(
 /// name (supports `*` wildcards).
 ///
 /// ```ignore
-/// #[zyn::pipe(debug)]
-/// #[zyn::pipe(debug = "pretty")]       // requires `pretty` feature
-/// #[zyn::pipe("alias", debug)]
+/// #[zyn::pipe(debug)]                          // body only, raw
+/// #[zyn::pipe(debug(pretty))]                  // body only, pretty-printed (requires `pretty` feature)
+/// #[zyn::pipe(debug(full))]                    // full struct + impl, raw
+/// #[zyn::pipe(debug(pretty, full))]            // full struct + impl, pretty-printed
+/// #[zyn::pipe(debug(input = "hello"))]         // inject input value, raw
+/// #[zyn::pipe(debug(pretty, input = "hello"))] // inject input value, pretty-printed
+/// #[zyn::pipe("alias", debug)]                 // with custom name alias
 /// ```
 ///
 /// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.
@@ -332,9 +340,13 @@ pub fn pipe(
 /// (supports `*` wildcards).
 ///
 /// ```ignore
-/// #[zyn::derive("MyDerive", debug)]
-/// #[zyn::derive("MyDerive", debug = "pretty")]               // requires `pretty` feature
-/// #[zyn::derive("MyDerive", attributes(skip), debug)]
+/// #[zyn::derive("MyDerive", debug)]                                  // body only, raw
+/// #[zyn::derive("MyDerive", debug(pretty))]                          // body only, pretty-printed
+/// #[zyn::derive("MyDerive", debug(full))]                            // full struct + impl, raw
+/// #[zyn::derive("MyDerive", debug(pretty, full))]                    // full struct + impl, pretty-printed
+/// #[zyn::derive("MyDerive", debug(ident = "Foo"))]                   // inject prop, raw
+/// #[zyn::derive("MyDerive", debug(pretty, ident = "Foo"))]           // inject prop, pretty-printed
+/// #[zyn::derive("MyDerive", attributes(skip), debug)]                // with helper attributes
 /// ```
 ///
 /// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.
@@ -390,8 +402,10 @@ pub fn derive(
 /// (supports `*` wildcards).
 ///
 /// ```ignore
-/// #[zyn::attribute(debug)]
-/// #[zyn::attribute(debug = "pretty")]  // requires `pretty` feature
+/// #[zyn::attribute(debug)]                     // body only, raw
+/// #[zyn::attribute(debug(pretty))]             // body only, pretty-printed (requires `pretty` feature)
+/// #[zyn::attribute(debug(full))]               // full struct + impl, raw
+/// #[zyn::attribute(debug(pretty, full))]       // full struct + impl, pretty-printed
 /// ```
 ///
 /// Without `ZYN_DEBUG`, the `debug` argument is inert — safe to leave in source.

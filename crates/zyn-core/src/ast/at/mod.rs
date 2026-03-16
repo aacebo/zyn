@@ -111,6 +111,15 @@ impl AtNode {
             Self::Element(v) => v.span(),
         }
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        match self {
+            Self::If(v) => v.to_display_stream(injections),
+            Self::For(v) => v.to_display_stream(injections),
+            Self::Match(v) => v.to_display_stream(injections),
+            Self::Element(v) => v.to_display_stream(injections),
+        }
+    }
 }
 
 impl From<IfNode> for AtNode {

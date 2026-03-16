@@ -175,11 +175,13 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
     };
 
     if let Some(ref config) = args.debug {
-        let ident = derive_name.to_string();
-
-        if crate::common::debug::is_enabled(&ident) {
-            crate::common::debug::emit(config, &format!("zyn::derive ─── {ident}"), &output);
-        }
+        crate::common::debug::emit_debug(
+            config,
+            "zyn::derive",
+            &derive_name.to_string(),
+            &output,
+            body,
+        );
     }
 
     output

@@ -17,7 +17,7 @@ Zyn re-exports `syn`, `quote`, and `proc-macro2` — you don't need to add them 
 |---------|---------|-------------|
 | `derive` | yes | Proc macros (`zyn!`, `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`), extractors (`Extract<T>`, `Attr<T>`, `Fields`, `Variants`, `Data<T>`), diagnostics (`error!`, `warn!`, `note!`, `help!`, `bail!`), and `#[derive(Attribute)]` |
 | `ext` | no | Extension traits (`AttrExt`, `MetaExt`, `FieldExt`, `FieldsExt`, `TypeExt`, `DataExt`, `ItemExt`, `VariantExt`) for working with `syn` AST types |
-| `pretty` | no | Pretty-printed debug output via `prettyplease` — use `debug = "pretty"` on any macro attribute |
+| `pretty` | no | Pretty-printed debug output via `prettyplease` — use `debug(pretty)` on any macro attribute |
 | `diagnostics` | no | Rich compiler diagnostics via `proc-macro2-diagnostics` — errors, warnings, notes, and help messages with proper spans |
 
 To enable optional features:

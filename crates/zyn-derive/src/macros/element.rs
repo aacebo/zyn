@@ -156,11 +156,13 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
     };
 
     if let Some(ref config) = args.debug {
-        let ident = struct_name.to_string();
-
-        if crate::common::debug::is_enabled(&ident) {
-            crate::common::debug::emit(config, &format!("zyn::element ─── {ident}"), &output);
-        }
+        crate::common::debug::emit_debug(
+            config,
+            "zyn::element",
+            &struct_name.to_string(),
+            &output,
+            body,
+        );
     }
 
     output

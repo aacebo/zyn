@@ -28,6 +28,14 @@ impl GroupNode {
     pub fn span(&self) -> Span {
         self.span
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        use quote::ToTokens;
+        let inner = self.body.to_display_stream(injections);
+        let mut ts = TokenStream::new();
+        proc_macro2::Group::new(self.delimiter, inner).to_tokens(&mut ts);
+        ts
+    }
 }
 
 impl Parse for GroupNode {

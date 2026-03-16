@@ -31,6 +31,42 @@ impl InterpNode {
     pub fn span(&self) -> Span {
         self.span
     }
+
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let key = self.expr.to_string();
+
+        if let Some((_, val)) = injections.iter().find(|(k, _)| *k == key) {
+            if self.pipes.is_empty() {
+                return val.clone();
+            }
+
+            let mut s = val.to_string();
+
+            for pipe in &self.pipes {
+                s = pipe.apply_display(s);
+            }
+
+            return syn::parse_str::<TokenStream>(&s).unwrap_or_else(|_| val.clone());
+        }
+
+        // fallback: render as {{ expr }} or {{ expr | pipe }} placeholder
+        let expr = &self.expr;
+
+        if self.pipes.is_empty() {
+            quote::quote! { {{ #expr }} }
+        } else {
+            let pipe_tokens: TokenStream = self
+                .pipes
+                .iter()
+                .flat_map(|p| {
+                    let name = &p.name;
+                    std::iter::once(quote::quote! { | #name })
+                })
+                .collect();
+
+            quote::quote! { {{ #expr #pipe_tokens }} }
+        }
+    }
 }
 
 impl Parse for InterpNode {

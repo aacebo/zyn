@@ -40,6 +40,19 @@ impl ElementNode {
         self.span
     }
 
+    pub fn to_display_stream(&self, injections: &[(String, TokenStream)]) -> TokenStream {
+        let name = pascal!(self.name => token_stream);
+        let prop_names: Vec<&syn::Ident> = self.props.iter().map(|(n, _)| n).collect();
+        let prop_values: Vec<&TokenStream> = self.props.iter().map(|(_, v)| v).collect();
+
+        if let Some(children) = &self.children {
+            let children_display = children.to_display_stream(injections);
+            quote! { #name { #(#prop_names: #prop_values,)* children: { #children_display } } }
+        } else {
+            quote! { #name { #(#prop_names: #prop_values,)* } }
+        }
+    }
+
     pub fn parse_with_ident(input: ParseStream, first_ident: syn::Ident) -> syn::Result<Self> {
         let span = first_ident.span();
 

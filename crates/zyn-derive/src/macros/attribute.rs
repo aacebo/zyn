@@ -128,11 +128,13 @@ fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
     };
 
     if let Some(ref config) = args.debug {
-        let ident = fn_name.to_string();
-
-        if crate::common::debug::is_enabled(&ident) {
-            crate::common::debug::emit(config, &format!("zyn::attribute ─── {ident}"), &output);
-        }
+        crate::common::debug::emit_debug(
+            config,
+            "zyn::attribute",
+            &fn_name.to_string(),
+            &output,
+            body,
+        );
     }
 
     output
