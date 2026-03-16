@@ -19,7 +19,7 @@ pub fn emit(
     let cleaned = strip_noise(&expanded);
 
     let text = match config.format {
-        DebugFormat::Raw => cleaned.to_string(),
+        DebugFormat::Raw => normalize_placeholders(cleaned.to_string()),
         #[cfg(feature = "pretty")]
         DebugFormat::Pretty => {
             use zyn_core::debug::DebugExt;
@@ -31,6 +31,44 @@ pub fn emit(
         .span(proc_macro2::Span::call_site())
         .build()
         .emit_as_item_tokens();
+}
+
+pub fn emit_debug(
+    config: &DebugConfig,
+    label: &str,
+    name: &str,
+    output: &TokenStream,
+    body: &syn::Block,
+) {
+    if !super::pattern::is_enabled(name) {
+        return;
+    }
+
+    let tokens = if config.full {
+        output.clone()
+    } else {
+        let stmts = &body.stmts;
+        zyn_core::quote::quote! { #(#stmts)* }
+    };
+
+    let coerced: Vec<(String, TokenStream)> = config
+        .injections
+        .iter()
+        .filter_map(|(key, expr)| {
+            if let syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(s),
+                ..
+            }) = expr
+            {
+                let ts: TokenStream = syn::parse_str(&s.value()).ok()?;
+                Some((key.clone(), ts))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    emit(config, &format!("{label} ─── {name}"), &tokens, &coerced);
 }
 
 fn expand_macros(tokens: &TokenStream, injections: &[(String, TokenStream)]) -> TokenStream {
@@ -251,6 +289,23 @@ fn is_noise_attr(group: &proc_macro2::Group) -> bool {
 
     let s = group.stream().to_string();
     s.starts_with("doc =") || s.starts_with("allow")
+}
+
+/// Normalize `TokenStream::to_string()` spacing for human-readable debug output.
+///
+/// `proc_macro2` emits spaces between every token pair. This collapses the most
+/// common cases: placeholder braces, generics, references, and macro invocations.
+fn normalize_placeholders(s: String) -> String {
+    // Placeholder braces: `{ { expr } }` → `{{ expr }}`
+    let s = s.replace("{ {", "{{ ");
+    let s = s.replace("} }", " }}");
+    // Generics: `Vec < u8 >` → `Vec<u8>`
+    let s = s.replace(" < ", "<");
+    let s = s.replace(" >", ">");
+    // References: `& self`, `& str`, `& mut` → `&self`, `&str`, `&mut`
+    let s = s.replace("& ", "&");
+    // Macro calls: `todo! ()` → `todo!()`
+    s.replace("! (", "!(")
 }
 
 fn skip_macro_rules(iter: &mut std::iter::Peekable<proc_macro2::token_stream::IntoIter>) -> bool {

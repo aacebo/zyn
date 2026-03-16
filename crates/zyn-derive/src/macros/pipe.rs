@@ -123,38 +123,13 @@ fn expand_pipe(item: ItemFn, args: PipeArgs) -> TokenStream {
     };
 
     if let Some(ref config) = args.debug {
-        let ident = struct_name.to_string();
-
-        if crate::common::debug::is_enabled(&ident) {
-            let tokens = if config.full {
-                output.clone()
-            } else {
-                let stmts = &body.stmts;
-                zyn_core::quote::quote! { #(#stmts)* }
-            };
-            let coerced: Vec<(String, TokenStream)> = config
-                .injections
-                .iter()
-                .filter_map(|(key, expr)| {
-                    if let zyn_core::syn::Expr::Lit(zyn_core::syn::ExprLit {
-                        lit: zyn_core::syn::Lit::Str(s),
-                        ..
-                    }) = expr
-                    {
-                        let ts: TokenStream = zyn_core::syn::parse_str(&s.value()).ok()?;
-                        Some((key.clone(), ts))
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            crate::common::debug::emit(
-                config,
-                &format!("zyn::pipe ─── {ident}"),
-                &tokens,
-                &coerced,
-            );
-        }
+        crate::common::debug::emit_debug(
+            config,
+            "zyn::pipe",
+            &struct_name.to_string(),
+            &output,
+            &body,
+        );
     }
 
     output

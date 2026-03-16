@@ -135,7 +135,7 @@ ZYN_DEBUG="Greeting" cargo build
 ```text
 note: zyn::element ─── Greeting
 
-      fn name () { }
+      fn {{ name }}() {}
   --> src/lib.rs:1:1
 ```
 
@@ -183,7 +183,7 @@ ZYN_DEBUG="Greeting" cargo build
 ```text
 note: zyn::element ─── Greeting
 
-      fn name() {}
+      fn {{ name }}() {}
   --> src/lib.rs:1:1
 ```
 
@@ -216,9 +216,7 @@ fn greeting(name: syn::Ident) -> zyn::TokenStream {
 ```text
 note: zyn::element ─── Greeting
 
-      struct Greeting { pub name : syn :: Ident , } impl :: zyn :: Render
-      for Greeting { fn render (& self , input : & :: zyn :: Input) -> :: zyn ::
-      Output { ... } }
+      struct Greeting { pub name : syn :: Ident , } impl ::zyn::Render for Greeting { fn render(&self, input : &::zyn::Input) -> ::zyn::Output { ... } }
   --> src/lib.rs:1:1
 ```
 
@@ -281,13 +279,37 @@ fn field_getter(
 }
 ```
 
-Running with `ZYN_DEBUG="FieldGetter" cargo build` produces:
+Running with `ZYN_DEBUG="FieldGetter" cargo build` (no injection — props show as placeholders):
 
 ```text
 note: zyn::element ─── FieldGetter
 
-      pub fn get_name(&self) -> &ty {
-          &self.name
+      pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
+          &self.{{ name }}
+      }
+```
+
+With static injection to see realistic output:
+
+```rust
+#[zyn::element(debug(pretty, name = "title", ty = "String"))]
+fn field_getter(
+    name: syn::Ident,
+    ty: syn::Type,
+) -> zyn::TokenStream {
+    zyn::zyn!(
+        pub fn {{ name | ident:"get_{}" }}(&self) -> &{{ ty }} {
+            &self.{{ name }}
+        }
+    )
+}
+```
+
+```text
+note: zyn::element ─── FieldGetter
+
+      pub fn get_title(&self) -> &String {
+          &self.title
       }
 ```
 

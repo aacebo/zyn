@@ -4,5 +4,4 @@ mod pattern;
 
 pub use config::DebugConfig;
 pub use config::parse_debug_arg;
-pub use emit::emit;
-pub use pattern::is_enabled;
+pub use emit::emit_debug;

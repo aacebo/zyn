@@ -14,7 +14,7 @@
 //!   indented Rust code. Enable with:
 //!
 //!   ```toml
-//!   zyn = { version = "0.3", features = ["pretty"] }
+//!   zyn = { version = "0.4", features = ["pretty"] }
 //!   ```
 //!
 //! # Usage
@@ -33,16 +33,22 @@
 //!
 //! # Macro integration
 //!
-//! In attribute macros, add `debug` or `debug = "pretty"` to emit the generated
+//! In attribute macros, add `debug` (or with options) to emit the generated
 //! code as a compiler `note` diagnostic. Requires `ZYN_DEBUG` to be set:
 //!
 //! ```ignore
-//! #[zyn::element(debug)]
+//! #[zyn::element(debug)]                        // body only, raw
+//! #[zyn::element(debug(pretty))]                // body only, pretty-printed
+//! #[zyn::element(debug(full))]                  // full struct + impl, raw
+//! #[zyn::element(debug(pretty, full))]          // full struct + impl, pretty-printed
+//! #[zyn::element(debug(name = "Foo"))]          // inject prop value, raw
+//! #[zyn::element(debug(pretty, name = "Foo"))]  // inject prop value, pretty-printed
 //! fn greeting(name: syn::Ident) -> zyn::TokenStream { ... }
 //!
 //! // ZYN_DEBUG="*" cargo build
 //! // → note: zyn::element ─── Greeting
-//! //         struct Greeting { pub name : syn :: Ident , } impl ...
+//! //
+//! //         fn {{ name }}() {}
 //! ```
 
 #[cfg(feature = "pretty")]
@@ -93,7 +99,7 @@ impl DebugTokens<'_> {
     /// Requires the `pretty` feature:
     ///
     /// ```toml
-    /// zyn = { version = "0.3", features = ["pretty"] }
+    /// zyn = { version = "0.4", features = ["pretty"] }
     /// ```
     #[cfg(feature = "pretty")]
     pub fn pretty(&self) -> String {

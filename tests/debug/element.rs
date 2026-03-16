@@ -110,6 +110,11 @@ mod inject {
         zyn::zyn!(pub fn {{ name }}(&self) -> {{ ty }} { todo!() })
     }
 
+    #[zyn::element(debug(name = "HelloWorld"))]
+    fn greeting_inject_piped(name: zyn::syn::Ident) -> zyn::TokenStream {
+        zyn::zyn!(fn {{ name | snake }}() {})
+    }
+
     #[test]
     fn element_with_ident_injection() {
         let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
@@ -129,6 +134,16 @@ mod inject {
             fn value(&self) -> Vec<u8> {
                 todo!()
             }
+        );
+        zyn::assert_tokens!(result, expected);
+    }
+
+    #[test]
+    fn element_with_piped_ident_injection() {
+        let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
+        let result = zyn::zyn!(@greeting_inject_piped(name = zyn::format_ident!("HelloWorld")));
+        let expected = zyn::quote::quote!(
+            fn hello_world() {}
         );
         zyn::assert_tokens!(result, expected);
     }

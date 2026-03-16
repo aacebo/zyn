@@ -328,11 +328,11 @@ ZYN_DEBUG="*" cargo build
 ```text
 note: zyn::element ─── Greeting
 
-      fn name () { }
+      fn {{ name }}() {}
   --> src/lib.rs:1:1
 ```
 
-With the `pretty` feature, use `debug(pretty)` for formatted output:
+Without injection, props show as `{{ name }}` placeholders. With the `pretty` feature, use `debug(pretty)` for formatted output:
 
 ```rust
 #[zyn::element(debug(pretty))]
@@ -344,7 +344,7 @@ fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
 ```text
 note: zyn::element ─── Greeting
 
-      fn name() {}
+      fn {{ name }}() {}
   --> src/lib.rs:1:1
 ```
 
@@ -359,7 +359,7 @@ fn setter(name: zyn::syn::Ident, ty: zyn::syn::Type) -> zyn::TokenStream {
 }
 ```
 
-Output: `fn Foo (value : String) -> Self { self }`. Without injection, props show as `{{ name }}`, `{{ ty }}`.
+Output: `fn Foo(value : String) -> Self { self }`. Without injection, props show as `{{ name }}`, `{{ ty }}`.
 
 All macros support `debug`: `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`.
 

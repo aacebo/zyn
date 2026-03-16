@@ -11,7 +11,9 @@ use syn::parse::Parse;
 use syn::parse::ParseStream;
 
 use crate::Expand;
+use crate::Pipe;
 use crate::pascal;
+use crate::pipes;
 
 /// A single pipe stage in a `{{ expr | pipe }}` interpolation.
 ///
@@ -34,6 +36,47 @@ pub struct PipeNode {
 impl PipeNode {
     pub fn span(&self) -> Span {
         self.span
+    }
+
+    /// Apply this pipe to `input` at proc-macro time, returning the transformed string.
+    /// Used for debug display with static injection. Custom pipes pass through unchanged.
+    pub fn apply_display(&self, input: String) -> String {
+        let name = self.name.to_string();
+
+        let arg = |i: usize| -> String {
+            self.args
+                .get(i)
+                .map(|a| a.to_string().trim_matches('"').to_string())
+                .unwrap_or_default()
+        };
+
+        match name.as_str() {
+            "upper" => pipes::Upper.pipe(input).to_string(),
+            "lower" => pipes::Lower.pipe(input).to_string(),
+            "snake" => pipes::Snake.pipe(input).to_string(),
+            "camel" => pipes::Camel.pipe(input).to_string(),
+            "pascal" => pipes::Pascal.pipe(input).to_string(),
+            "kebab" => pipes::Kebab.pipe(input).value(),
+            "screaming" => pipes::Screaming.pipe(input).to_string(),
+            "str" => pipes::Str.pipe(input).value(),
+            "plural" => pipes::Plural.pipe(input).to_string(),
+            "singular" => pipes::Singular.pipe(input).to_string(),
+            "ident" | "fmt" => arg(0).replace("{}", &input),
+            "trim" => {
+                let start = arg(0);
+                let end = if self.args.len() > 1 {
+                    arg(1)
+                } else {
+                    start.clone()
+                };
+                input
+                    .trim_start_matches(|c: char| start.contains(c))
+                    .trim_end_matches(|c: char| end.contains(c))
+                    .to_string()
+            }
+            // Custom pipes are not available at proc-macro time — pass through unchanged
+            _ => input,
+        }
     }
 }
 
