@@ -14,7 +14,7 @@
 //!   indented Rust code. Enable with:
 //!
 //!   ```toml
-//!   zyn = { version = "0.4", features = ["pretty"] }
+//!   zyn = { features = ["pretty"] }
 //!   ```
 //!
 //! # Usage
@@ -99,7 +99,7 @@ impl DebugTokens<'_> {
     /// Requires the `pretty` feature:
     ///
     /// ```toml
-    /// zyn = { version = "0.4", features = ["pretty"] }
+    /// zyn = { features = ["pretty"] }
     /// ```
     #[cfg(feature = "pretty")]
     pub fn pretty(&self) -> String {

@@ -299,7 +299,7 @@
 //!
 //! ## Debugging
 //!
-//! Add `debug` (or `debug = "pretty"`) to any zyn attribute macro and set `ZYN_DEBUG` to
+//! Add `debug` (or `debug(pretty)`) to any zyn attribute macro and set `ZYN_DEBUG` to
 //! inspect generated code at compile time:
 //!
 //! ```ignore
@@ -321,10 +321,10 @@
 //!       proc_macro2 :: TokenStream { ... } }
 //! ```
 //!
-//! With the `pretty` feature, use `debug = "pretty"` for formatted output:
+//! With the `pretty` feature, use `debug(pretty)` for formatted output:
 //!
 //! ```ignore
-//! #[zyn::element(debug = "pretty")]
+//! #[zyn::element(debug(pretty))]
 //! fn greeting(name: zyn::syn::Ident) -> zyn::TokenStream {
 //!     zyn::zyn!(fn {{ name }}() {})
 //! }
@@ -402,11 +402,11 @@
 //! zyn = { features = ["pretty"] }
 //! ```
 //!
-//! Enable debug output per-element with the `debug` or `debug = "pretty"` argument,
+//! Enable debug output per-element with the `debug` or `debug(pretty)` argument,
 //! then set `ZYN_DEBUG="*"` at build time:
 //!
 //! ```ignore
-//! #[zyn::element(debug = "pretty")]
+//! #[zyn::element(debug(pretty))]
 //! fn my_element(name: zyn::syn::Ident) -> zyn::TokenStream {
 //!     zyn::zyn!(struct {{ name }} {})
 //! }

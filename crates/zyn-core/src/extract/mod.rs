@@ -13,14 +13,14 @@
 //!
 //! # Examples
 //!
-//! Extracting fields and an ident in an element (extractors are detected by type
-//! name — no attribute needed):
+//! Extracting fields and an ident in an element (extractors are marked with
+//! `#[zyn(input)]`):
 //!
 //! ```ignore
 //! #[zyn::element]
 //! fn my_impl(
-//!     ident: zyn::Extract<zyn::syn::Ident>,
-//!     fields: zyn::Fields<zyn::syn::FieldsNamed>,
+//!     #[zyn(input)] ident: zyn::Extract<zyn::syn::Ident>,
+//!     #[zyn(input)] fields: zyn::Fields<zyn::syn::FieldsNamed>,
 //! ) -> zyn::TokenStream {
 //!     zyn::zyn! {
 //!         impl {{ ident }} {
