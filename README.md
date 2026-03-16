@@ -361,6 +361,8 @@ fn setter(name: zyn::syn::Ident, ty: zyn::syn::Type) -> zyn::TokenStream {
 
 Output: `fn Foo(value : String) -> Self { self }`. Without injection, props show as `{{ name }}`, `{{ ty }}`.
 
+![Static injection — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-10.png)
+
 All macros support `debug`: `#[zyn::element]`, `#[zyn::pipe]`, `#[zyn::derive]`, `#[zyn::attribute]`.
 
 `ZYN_DEBUG` accepts comma-separated `*`-wildcard patterns matched against the generated PascalCase type name:
@@ -415,6 +417,8 @@ zyn = { features = ["pretty"] }
 ```
 
 ![Pretty debug output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-5.png)
+
+![Pretty full output](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-9.png)
 
 ### diagnostics
 

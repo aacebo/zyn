@@ -111,6 +111,16 @@ note: zyn::element ─── Setter
   --> src/lib.rs:1:1
 ```
 
+> [!NOTE]
+> Injected prop resolved at proc-macro time — the output shows the real value instead of a placeholder.
+
+![Static injection — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-10.png)
+
+> [!NOTE]
+> Injection with a pipe transform applied — `name = "HelloWorld"` piped through `snake` produces `hello_world`.
+
+![Static injection with pipe — inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-7.png)
+
 ### Uninjected props
 
 Any prop without a matching injection key renders as `{{ prop_name }}`. This is intentional — it makes unresolved placeholders visually distinct from real tokens.
@@ -220,6 +230,11 @@ note: zyn::element ─── Greeting
   --> src/lib.rs:1:1
 ```
 
+> [!NOTE]
+> `debug(full)` shows the entire generated struct and `impl` block as a raw inline diagnostic.
+
+![Full output — raw inline diagnostic](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-8.png)
+
 Combine with `pretty` for formatted full output:
 
 ```rust
@@ -228,6 +243,11 @@ fn greeting(name: syn::Ident) -> zyn::TokenStream {
     zyn::zyn!(fn {{ name }}() {})
 }
 ```
+
+> [!NOTE]
+> `debug(pretty, full)` formats the full struct + impl with `prettyplease` for readable, indented output.
+
+![Full output — pretty-printed](https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/screenshots/screenshot-9.png)
 
 ## ZYN_DEBUG environment variable
 
