@@ -128,7 +128,7 @@ fn expand_pipe(item: ItemFn, args: PipeArgs) -> TokenStream {
             "zyn::pipe",
             &struct_name.to_string(),
             &output,
-            &body,
+            body,
         );
     }
 

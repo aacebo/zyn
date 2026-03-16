@@ -115,6 +115,11 @@ mod inject {
         zyn::zyn!(fn {{ name | snake }}() {})
     }
 
+    #[zyn::element(debug(name = "HelloWorld"))]
+    fn greeting_inject_chained(name: zyn::syn::Ident) -> zyn::TokenStream {
+        zyn::zyn!(fn {{ name | snake | upper }}() {})
+    }
+
     #[test]
     fn element_with_ident_injection() {
         let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
@@ -144,6 +149,17 @@ mod inject {
         let result = zyn::zyn!(@greeting_inject_piped(name = zyn::format_ident!("HelloWorld")));
         let expected = zyn::quote::quote!(
             fn hello_world() {}
+        );
+        zyn::assert_tokens!(result, expected);
+    }
+
+    #[test]
+    fn element_with_chained_pipe_injection() {
+        let input: zyn::Input = zyn::syn::parse_str("struct Foo;").unwrap();
+        // "HelloWorld" | snake → "hello_world" | upper → "HELLO_WORLD"
+        let result = zyn::zyn!(@greeting_inject_chained(name = zyn::format_ident!("HelloWorld")));
+        let expected = zyn::quote::quote!(
+            fn HELLO_WORLD() {}
         );
         zyn::assert_tokens!(result, expected);
     }

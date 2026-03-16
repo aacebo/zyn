@@ -133,7 +133,7 @@ fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
             "zyn::attribute",
             &fn_name.to_string(),
             &output,
-            &body,
+            body,
         );
     }
 

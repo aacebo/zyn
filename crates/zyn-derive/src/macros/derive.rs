@@ -180,7 +180,7 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
             "zyn::derive",
             &derive_name.to_string(),
             &output,
-            &body,
+            body,
         );
     }
 

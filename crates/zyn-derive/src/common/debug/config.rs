@@ -62,19 +62,21 @@ pub fn parse_debug_arg(input: ParseStream) -> syn::Result<Option<DebugConfig>> {
         // peek ahead: `ident =` (not `pretty` or `full`) → injection pair
         if content.peek(syn::Ident) {
             let fork = content.fork();
-            if let Ok(key) = fork.parse::<syn::Ident>() {
-                if fork.peek(syn::Token![=]) && key != "pretty" && key != "full" {
-                    let key: syn::Ident = content.parse()?;
-                    content.parse::<syn::Token![=]>()?;
-                    let expr: syn::Expr = content.parse()?;
-                    injections.push((key.to_string(), expr));
+            if let Ok(key) = fork.parse::<syn::Ident>()
+                && fork.peek(syn::Token![=])
+                && key != "pretty"
+                && key != "full"
+            {
+                let key: syn::Ident = content.parse()?;
+                content.parse::<syn::Token![=]>()?;
+                let expr: syn::Expr = content.parse()?;
+                injections.push((key.to_string(), expr));
 
-                    if content.peek(syn::Token![,]) {
-                        content.parse::<syn::Token![,]>()?;
-                    }
-
-                    continue;
+                if content.peek(syn::Token![,]) {
+                    content.parse::<syn::Token![,]>()?;
                 }
+
+                continue;
             }
         }
 

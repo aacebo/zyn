@@ -104,4 +104,25 @@ mod full {
         let expected = quote!(HELLO_FULL);
         zyn::assert_tokens!(result, expected);
     }
+
+    #[cfg(feature = "pretty")]
+    mod pretty {
+        use zyn::quote::quote;
+
+        #[zyn::pipe(debug(pretty, full))]
+        fn shout_full_pretty(input: String) -> zyn::syn::Ident {
+            zyn::syn::Ident::new(
+                &format!("{}_FULL_PRETTY", input.to_uppercase()),
+                zyn::Span::call_site(),
+            )
+        }
+
+        #[test]
+        fn pipe_with_full_pretty() {
+            let name = zyn::format_ident!("hello");
+            let result = zyn::zyn!({ { name | shout_full_pretty } });
+            let expected = quote!(HELLO_FULL_PRETTY);
+            zyn::assert_tokens!(result, expected);
+        }
+    }
 }

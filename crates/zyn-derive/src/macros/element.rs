@@ -161,7 +161,7 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
             "zyn::element",
             &struct_name.to_string(),
             &output,
-            &body,
+            body,
         );
     }
 
