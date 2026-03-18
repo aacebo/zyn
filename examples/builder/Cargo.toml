@@ -12,7 +12,7 @@ doctest = false
 proc-macro = true
 
 [dependencies]
-zyn = { path = "../..", version = "0.5.3", features = ["ext", "diagnostics"] }
+zyn = { path = "../..", version = "0.5.4", features = ["ext", "diagnostics"] }
 
 [dev-dependencies]
-zyn = { path = "../..", version = "0.5.3", features = ["ext", "pretty", "diagnostics"] }
+zyn = { path = "../..", version = "0.5.4", features = ["ext", "pretty", "diagnostics"] }

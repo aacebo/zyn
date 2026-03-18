@@ -12,4 +12,4 @@ doctest = false
 proc-macro = true
 
 [dependencies]
-zyn = { path = "../..", version = "0.5.3", features = ["ext"] }
+zyn = { path = "../..", version = "0.5.4", features = ["ext"] }

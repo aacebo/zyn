@@ -4,7 +4,7 @@ members = [".", "crates/*", "examples/*"]
 default-members = [".", "crates/*"]
 
 [workspace.package]
-version = "0.5.3"
+version = "0.5.4"
 edition = "2024"
 license = "MIT"
 readme = "README.md"
@@ -15,8 +15,8 @@ keywords = ["macro", "framework", "proc", "rust"]
 categories = ["development-tools::procedural-macro-helpers", "rust-patterns", "no-std"]
 
 [workspace.dependencies]
-zyn-core = { path = "./crates/zyn-core", version = "=0.5.3" }
-zyn-derive = { path = "./crates/zyn-derive", version = "=0.5.3" }
+zyn-core = { path = "./crates/zyn-core", version = "=0.5.4" }
+zyn-derive = { path = "./crates/zyn-derive", version = "=0.5.4" }
 
 # ----------- Package ----------- #
 
