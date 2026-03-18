@@ -40,6 +40,11 @@ pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
 fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
     let fn_name = &item.sig.ident;
     let body = &item.block;
+    let docs: Vec<_> = item
+        .attrs
+        .iter()
+        .filter(|a| a.path().is_ident("doc"))
+        .collect();
 
     if matches!(item.sig.output, ReturnType::Default) {
         return syn::Error::new(
@@ -99,6 +104,7 @@ fn expand_attribute(item: ItemFn, args: AttributeArgs) -> TokenStream {
         crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
     let output = quote! {
+        #(#docs)*
         #[proc_macro_attribute]
         #[allow(unreachable_code)]
         pub fn #fn_name(

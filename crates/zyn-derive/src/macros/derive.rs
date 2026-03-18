@@ -88,6 +88,11 @@ pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
 fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
     let fn_name = &item.sig.ident;
     let body = &item.block;
+    let docs: Vec<_> = item
+        .attrs
+        .iter()
+        .filter(|a| a.path().is_ident("doc"))
+        .collect();
 
     if matches!(item.sig.output, ReturnType::Default) {
         return syn::Error::new(
@@ -150,6 +155,7 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
         crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
     let output = quote! {
+        #(#docs)*
         #derive_attr
         #[allow(unreachable_code)]
         pub fn #fn_name(__zyn_input: proc_macro::TokenStream) -> proc_macro::TokenStream {

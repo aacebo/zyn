@@ -1,3 +1,4 @@
+mod doc;
 mod extract;
 mod namespaced;
 #[cfg(feature = "pretty")]

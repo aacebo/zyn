@@ -59,6 +59,11 @@ pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
 fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
+    let docs: Vec<_> = item
+        .attrs
+        .iter()
+        .filter(|a| a.path().is_ident("doc"))
+        .collect();
     let (impl_generics, ty_generics, where_clause) = &item.sig.generics.split_for_impl();
 
     if matches!(item.sig.output, ReturnType::Default) {
@@ -122,9 +127,10 @@ fn expand_element(item: ItemFn, args: ElementArgs) -> TokenStream {
         .collect();
 
     let struct_def = if prop_names.is_empty() {
-        quote! { #vis struct #struct_name; }
+        quote! { #(#docs)* #vis struct #struct_name; }
     } else {
         quote! {
+            #(#docs)*
             #vis struct #struct_name #impl_generics #where_clause {
                 #(pub #prop_names: #prop_types,)*
             }

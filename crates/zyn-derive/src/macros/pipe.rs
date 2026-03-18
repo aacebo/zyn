@@ -59,6 +59,11 @@ pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
 fn expand_pipe(item: ItemFn, args: PipeArgs) -> TokenStream {
     let vis = &item.vis;
     let body = &item.block;
+    let docs: Vec<_> = item
+        .attrs
+        .iter()
+        .filter(|a| a.path().is_ident("doc"))
+        .collect();
 
     if matches!(item.sig.output, ReturnType::Default) {
         return zyn_core::syn::Error::new(
@@ -109,7 +114,7 @@ fn expand_pipe(item: ItemFn, args: PipeArgs) -> TokenStream {
     });
 
     let output = quote! {
-        #vis struct #struct_name;
+        #(#docs)* #vis struct #struct_name;
 
         impl ::zyn::Pipe for #struct_name {
             type Input = #input_type;

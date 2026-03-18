@@ -1,6 +1,7 @@
 mod builtin;
 mod camel;
 mod custom;
+mod doc;
 mod fmt_pipe;
 mod ident_pipe;
 mod kebab;
