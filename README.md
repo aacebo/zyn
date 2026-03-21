@@ -1,20 +1,10 @@
 <img src="https://raw.githubusercontent.com/aacebo/zyn/refs/heads/main/assets/banner.svg" style="border-radius:10px">
 
-<a href="https://aacebo.github.io/zyn" target="_blank">
-    <img src="https://img.shields.io/badge/📖 Getting Started-blue" />
-</a>
-<a href="https://docs.rs/zyn" target="_blank">
-    <img src="https://img.shields.io/docsrs/zyn" alt="docs.rs" />
-</a>
-<a href="https://crates.io/crates/zyn" target="_blank">
-    <img src="https://img.shields.io/crates/v/zyn" alt="crates.io" />
-</a>
-<a href="https://bencher.dev/perf/zyn/plots" target="_blank">
-  <img src="https://img.shields.io/badge/bencher.dev-passing-brightgreen" alt="bencher.dev" />
-</a>
-<a href="https://crates.io/crates/zyn" target="_blank">
-    <img alt="Crates.io Size" src="https://img.shields.io/crates/size/zyn">
-</a>
+[![Getting Started](https://img.shields.io/badge/📖%20Getting%20Started-blue)](https://aacebo.github.io/zyn)
+[![docs.rs](https://img.shields.io/docsrs/zyn)](https://docs.rs/zyn)
+[![crates.io](https://img.shields.io/crates/v/zyn)](https://crates.io/crates/zyn)
+[![bencher.dev](https://img.shields.io/badge/bencher.dev-passing-brightgreen)](https://bencher.dev/perf/zyn/plots)
+[![Crates.io Size](https://img.shields.io/crates/size/zyn)](https://crates.io/crates/zyn)
 
 A proc macro framework with templates, composable elements, and built-in diagnostics.
 
