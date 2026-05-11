@@ -1,5 +1,66 @@
 use zyn::quote::quote;
 
+// ── Reference parameter tests ─────────────────────────────────────────────────
+
+#[zyn::element]
+fn ref_ident_element(#[zyn(input)] ident: &zyn::syn::Ident) -> zyn::TokenStream {
+    zyn::zyn!(
+        const NAME: &str = { { ident | str } };
+    )
+}
+
+#[test]
+fn ref_ident() {
+    let input: zyn::Input = zyn::parse!("struct MyStruct;").unwrap();
+    let output = zyn::zyn!(@ref_ident_element());
+    let expected = quote!(
+        const NAME: &str = "MyStruct";
+    );
+    zyn::assert_tokens!(output, expected);
+}
+
+#[zyn::element]
+fn ref_generics_element(#[zyn(input)] generics: &zyn::syn::Generics) -> zyn::TokenStream {
+    let count = generics.params.len();
+    zyn::zyn!(
+        const COUNT: usize = { { count } };
+    )
+}
+
+#[test]
+fn ref_generics() {
+    let input: zyn::Input = zyn::parse!("struct Foo<A, B, C>;").unwrap();
+    let output = zyn::zyn!(@ref_generics_element());
+    let expected = quote!(
+        const COUNT: usize = 3usize;
+    );
+    zyn::assert_tokens!(output, expected);
+}
+
+#[zyn::element]
+fn ref_ident_and_generics_element(
+    #[zyn(input)] ident: &zyn::syn::Ident,
+    #[zyn(input)] generics: &zyn::syn::Generics,
+) -> zyn::TokenStream {
+    let name_str = ident.to_string();
+    let param_count = generics.params.len();
+    zyn::zyn!(
+        const NAME: &str = { { name_str | str } };
+        const PARAMS: usize = { { param_count } };
+    )
+}
+
+#[test]
+fn ref_ident_and_generics() {
+    let input: zyn::Input = zyn::parse!("struct Point<X, Y>;").unwrap();
+    let output = zyn::zyn!(@ref_ident_and_generics_element());
+    let expected = quote!(
+        const NAME: &str = "Point";
+        const PARAMS: usize = 2usize;
+    );
+    zyn::assert_tokens!(output, expected);
+}
+
 #[derive(zyn::Attribute)]
 #[zyn("my_attr")]
 struct TestAttr {

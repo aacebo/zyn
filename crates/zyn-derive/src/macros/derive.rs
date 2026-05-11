@@ -150,7 +150,7 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
     }
 
     let diagnostic_macros = crate::common::diagnostics::macros();
-    let input_expr = quote! { &::zyn::Input::from(input.clone()) };
+    let input_expr = quote! { &input };
     let extractor_bindings =
         crate::common::extractors::bindings(&extractor_names, &extractor_types, &input_expr);
 
@@ -159,7 +159,7 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
         #derive_attr
         #[allow(unreachable_code)]
         pub fn #fn_name(__zyn_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-            let input = ::zyn::parse_input!(__zyn_input as ::zyn::syn::DeriveInput);
+            let input: ::zyn::Input = ::zyn::parse_input!(__zyn_input as ::zyn::syn::DeriveInput).into();
 
             let __zyn_result: ::zyn::Output = (|| {
                 let mut diagnostics = ::zyn::mark::new();
@@ -169,7 +169,6 @@ fn expand_derive(item: ItemFn, args: DeriveArgs) -> TokenStream {
                 #(#extractor_bindings)*
 
                 let __body = #body;
-
                 ::zyn::Output::new()
                     .tokens(__body)
                     .diagnostic(diagnostics)

@@ -42,7 +42,10 @@
 //! struct MyExtractor(String);
 //!
 //! impl FromInput for MyExtractor {
-//!     fn from_input(input: &Input) -> Result<Self> {
+//!     fn from_input<'i>(input: &'i Input) -> Result<Self>
+//!     where
+//!         Self: 'i,
+//!     {
 //!         Ok(MyExtractor(input.ident().to_string()))
 //!     }
 //! }
@@ -72,24 +75,29 @@ pub use variants::*;
 /// (derive or item). Built-in impls exist for `Ident`, `Generics`, and
 /// `Visibility`. The `#[element]` macro uses this trait to auto-resolve
 /// extractor parameters.
-pub trait FromInput: Sized {
-    fn from_input(input: &Input) -> crate::Result<Self>;
+///
+/// The lifetime `'i` ties `Self` to the input reference, enabling both
+/// owned impls (`impl<'i> FromInput<'i> for syn::Ident`) and borrowed impls
+/// (`impl<'i> FromInput<'i> for &'i syn::Ident`). Owned types satisfy any
+/// `'i` because they are `'static`.
+pub trait FromInput<'i>: Sized {
+    fn from_input(input: &'i Input) -> crate::Result<Self>;
 }
 
 /// Generic extractor wrapper — delegates to `T::from_input`.
 ///
 /// Use this in element parameters to extract any `FromInput` type
 /// without giving it a more specific semantic role like `Attr` or `Fields`.
-pub struct Extract<T: FromInput>(T);
+pub struct Extract<T>(T);
 
-impl<T: FromInput> Extract<T> {
+impl<T> Extract<T> {
     /// Consumes the wrapper and returns the inner value.
     pub fn inner(self) -> T {
         self.0
     }
 }
 
-impl<T: FromInput> std::ops::Deref for Extract<T> {
+impl<T> std::ops::Deref for Extract<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -97,33 +105,54 @@ impl<T: FromInput> std::ops::Deref for Extract<T> {
     }
 }
 
-impl<T: FromInput> std::ops::DerefMut for Extract<T> {
+impl<T> std::ops::DerefMut for Extract<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<T: FromInput> FromInput for Extract<T> {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i, T> FromInput<'i> for Extract<T>
+where
+    T: FromInput<'i>,
+{
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         T::from_input(input).map(Extract)
     }
 }
 
-impl FromInput for proc_macro2::Ident {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for proc_macro2::Ident {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         Ok(input.ident().clone())
     }
 }
 
-impl FromInput for syn::Generics {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for &'i proc_macro2::Ident {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
+        Ok(input.ident())
+    }
+}
+
+impl<'i> FromInput<'i> for syn::Generics {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         Ok(input.generics().clone())
     }
 }
 
-impl FromInput for syn::Visibility {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for &'i syn::Generics {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
+        Ok(input.generics())
+    }
+}
+
+impl<'i> FromInput<'i> for syn::Visibility {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         Ok(input.vis().clone())
+    }
+}
+
+impl<'i> FromInput<'i> for &'i syn::Visibility {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
+        Ok(input.vis())
     }
 }
 

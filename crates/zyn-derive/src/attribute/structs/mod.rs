@@ -32,8 +32,7 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         Some(emit::from_input(
             name,
             &struct_meta,
-            &impl_generics,
-            &ty_generics,
+            &input.generics,
             where_clause,
         ))
     } else {

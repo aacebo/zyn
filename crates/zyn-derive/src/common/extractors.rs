@@ -12,7 +12,7 @@ pub fn bindings(
         .zip(types.iter())
         .map(|(name, ty)| {
             quote! {
-                let #name = match <#ty as ::zyn::FromInput>::from_input(#input_expr) {
+                let #name = match <#ty as ::zyn::FromInput<'_>>::from_input(#input_expr) {
                     ::std::result::Result::Ok(v) => v,
                     ::std::result::Result::Err(e) => {
                         diagnostics = diagnostics.add(e);
