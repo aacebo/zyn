@@ -29,6 +29,22 @@ impl Args {
             .any(|arg| arg.name().is_some_and(|n| n == name))
     }
 
+    /// Returns `true` if a positive flag (not negated) with the given name exists.
+    ///
+    /// Unlike [`has`](Self::has), this returns `false` for negated flags (`-name`).
+    pub fn has_flag(&self, name: &str) -> bool {
+        self.0
+            .iter()
+            .any(|arg| matches!(arg, Arg::Flag(n) if n == name))
+    }
+
+    /// Returns `true` if a negated flag (`-name`) with the given name exists.
+    pub fn has_neg(&self, name: &str) -> bool {
+        self.0
+            .iter()
+            .any(|arg| matches!(arg, Arg::Neg(n) if n == name))
+    }
+
     /// Returns the first argument with the given name.
     pub fn get(&self, name: &str) -> Option<&Arg> {
         self.0
@@ -207,6 +223,39 @@ mod tests {
         fn has_missing() {
             let args: Args = syn::parse_str("skip").unwrap();
             assert!(!args.has("rename"));
+        }
+
+        #[test]
+        fn has_flag_positive() {
+            let args: Args = syn::parse_str("debug").unwrap();
+            assert!(args.has_flag("debug"));
+            assert!(args.has("debug"));
+        }
+
+        #[test]
+        fn has_flag_negated() {
+            let args: Args = syn::parse_str("-debug").unwrap();
+            assert!(!args.has_flag("debug"));
+            assert!(args.has("debug"));
+        }
+
+        #[test]
+        fn has_flag_mixed() {
+            let args: Args = syn::parse_str("debug, -clone").unwrap();
+            assert!(args.has_flag("debug"));
+            assert!(!args.has_flag("clone"));
+        }
+
+        #[test]
+        fn has_neg_positive() {
+            let args: Args = syn::parse_str("debug").unwrap();
+            assert!(!args.has_neg("debug"));
+        }
+
+        #[test]
+        fn has_neg_negated() {
+            let args: Args = syn::parse_str("-debug").unwrap();
+            assert!(args.has_neg("debug"));
         }
 
         #[test]

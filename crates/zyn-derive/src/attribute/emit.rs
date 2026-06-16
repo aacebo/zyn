@@ -57,7 +57,47 @@ pub fn from_args(
                 known_keys.push(key.clone());
 
                 if f.is_bool() {
-                    struct_inits.push(quote! { #ident: args.has(#key) });
+                    match &f.default {
+                        FieldDefault::None | FieldDefault::Unit => {
+                            // No default or Default::default() → off unless flagged
+                            struct_inits.push(quote! { #ident: args.has_flag(#key) });
+                        }
+                        FieldDefault::Expr(expr) => {
+                            let bool_lit =
+                                syn::parse2::<syn::Expr>(expr.clone())
+                                    .ok()
+                                    .and_then(|e| match e {
+                                        syn::Expr::Lit(syn::ExprLit {
+                                            lit: syn::Lit::Bool(b),
+                                            ..
+                                        }) => Some(b.value),
+                                        _ => None,
+                                    });
+
+                            match bool_lit {
+                                Some(true) => {
+                                    // default = true → on unless -name
+                                    struct_inits.push(quote! { #ident: !args.has_neg(#key) });
+                                }
+                                Some(false) => {
+                                    // default = false → same as no default
+                                    struct_inits.push(quote! { #ident: args.has_flag(#key) });
+                                }
+                                None => {
+                                    // Non-literal expression (e.g. a function call)
+                                    struct_inits.push(quote! {
+                                        #ident: match args.get(#key) {
+                                            ::std::option::Option::Some(arg) => {
+                                                <bool as ::zyn::FromArg>::from_arg(arg)
+                                                    .unwrap_or_else(|_| #expr)
+                                            }
+                                            ::std::option::Option::None => #expr,
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
                     continue;
                 }
 
