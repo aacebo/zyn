@@ -15,16 +15,16 @@ use super::FromInput;
 ///     // cfg.my_field — accessed via Deref
 /// }
 /// ```
-pub struct Attr<T: FromInput>(T);
+pub struct Attr<T>(T);
 
-impl<T: FromInput> Attr<T> {
+impl<T> Attr<T> {
     /// Consumes the wrapper and returns the inner value.
     pub fn inner(self) -> T {
         self.0
     }
 }
 
-impl<T: FromInput> std::ops::Deref for Attr<T> {
+impl<T> std::ops::Deref for Attr<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -32,14 +32,17 @@ impl<T: FromInput> std::ops::Deref for Attr<T> {
     }
 }
 
-impl<T: FromInput> std::ops::DerefMut for Attr<T> {
+impl<T> std::ops::DerefMut for Attr<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<T: FromInput> FromInput for Attr<T> {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i, T> FromInput<'i> for Attr<T>
+where
+    T: FromInput<'i>,
+{
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         T::from_input(input).map(Attr)
     }
 }

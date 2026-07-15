@@ -40,8 +40,8 @@ impl std::ops::DerefMut for Variants {
     }
 }
 
-impl FromInput for Variants {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for Variants {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(Variants(e.variants.clone())),

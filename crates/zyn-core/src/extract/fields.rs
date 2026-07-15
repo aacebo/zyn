@@ -76,8 +76,8 @@ impl<T: FromFields> std::ops::DerefMut for Fields<T> {
     }
 }
 
-impl<T: FromFields> FromInput for Fields<T> {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i, T: FromFields> FromInput<'i> for Fields<T> {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         let raw = match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Struct(s) => s.fields.clone(),

@@ -2,8 +2,8 @@ use super::Input;
 use crate::extract::FromInput;
 use crate::mark;
 
-impl FromInput for syn::DeriveInput {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for syn::DeriveInput {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => Ok(d.clone()),
             _ => Err(mark::error("expected derive input")
@@ -13,8 +13,8 @@ impl FromInput for syn::DeriveInput {
     }
 }
 
-impl FromInput for syn::DataStruct {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for syn::DataStruct {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Struct(s) => Ok(s.clone()),
@@ -27,8 +27,8 @@ impl FromInput for syn::DataStruct {
     }
 }
 
-impl FromInput for syn::DataEnum {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for syn::DataEnum {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Enum(e) => Ok(e.clone()),
@@ -41,8 +41,8 @@ impl FromInput for syn::DataEnum {
     }
 }
 
-impl FromInput for syn::DataUnion {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i> FromInput<'i> for syn::DataUnion {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => match &d.data {
                 syn::Data::Union(u) => Ok(u.clone()),

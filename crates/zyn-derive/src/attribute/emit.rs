@@ -1,3 +1,4 @@
+use zyn_core::proc_macro2;
 use zyn_core::proc_macro2::TokenStream;
 use zyn_core::quote::quote;
 use zyn_core::syn;
@@ -223,11 +224,22 @@ pub fn from_arg(
 pub fn from_input(
     name: &syn::Ident,
     meta: &StructMeta,
-    impl_generics: &syn::ImplGenerics<'_>,
-    ty_generics: &syn::TypeGenerics<'_>,
+    generics: &syn::Generics,
     where_clause: Option<&syn::WhereClause>,
 ) -> TokenStream {
     let attr_name = meta.attr_name.as_deref().unwrap();
+    let (_, ty_generics, _) = generics.split_for_impl();
+    let mut extended = generics.clone();
+
+    extended.params.insert(
+        0,
+        syn::GenericParam::Lifetime(syn::LifetimeParam::new(syn::Lifetime::new(
+            "'__i",
+            proc_macro2::Span::call_site(),
+        ))),
+    );
+
+    let (impl_generics, _, _) = extended.split_for_impl();
 
     let unique_check = if meta.unique {
         let msg = format!("only one #[{attr_name}(...)] allowed");
@@ -264,8 +276,8 @@ pub fn from_input(
     };
 
     quote! {
-        impl #impl_generics ::zyn::FromInput for #name #ty_generics #where_clause {
-            fn from_input(input: &::zyn::Input) -> ::zyn::Result<Self> {
+        impl #impl_generics ::zyn::FromInput<'__i> for #name #ty_generics #where_clause {
+            fn from_input(input: &'__i ::zyn::Input) -> ::zyn::Result<Self> {
                 let matches: ::std::vec::Vec<_> = input.attrs().iter()
                     .filter(|a| a.path().is_ident(#attr_name))
                     .collect();
@@ -286,7 +298,6 @@ pub fn about(
     where_clause: Option<&syn::WhereClause>,
 ) -> TokenStream {
     let attr_name = meta.attr_name.as_deref().unwrap();
-
     let header = match &meta.about {
         Some(about) => format!("#[{attr_name}(...)]: {about}"),
         None => format!("#[{attr_name}(...)]"),

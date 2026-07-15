@@ -96,8 +96,8 @@ impl<T: FromData> std::ops::DerefMut for Data<T> {
     }
 }
 
-impl<T: FromData> FromInput for Data<T> {
-    fn from_input(input: &Input) -> crate::Result<Self> {
+impl<'i, T: FromData> FromInput<'i> for Data<T> {
+    fn from_input(input: &'i Input) -> crate::Result<Self> {
         match input {
             Input::Derive(d) => T::from_data(d.data.clone()).map(Data),
             _ => Err(mark::error("Data extractor requires derive input")
