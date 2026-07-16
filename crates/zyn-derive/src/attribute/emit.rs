@@ -88,8 +88,13 @@ pub fn from_args(
                                     struct_inits.push(quote! {
                                         #ident: match args.get(#key) {
                                             ::std::option::Option::Some(arg) => {
-                                                <bool as ::zyn::FromArg>::from_arg(arg)
-                                                    .unwrap_or_else(|_| #expr)
+                                                match <bool as ::zyn::FromArg>::from_arg(arg) {
+                                                    ::std::result::Result::Ok(v) => v,
+                                                    ::std::result::Result::Err(e) => {
+                                                        __diags = __diags.add(e);
+                                                        #expr
+                                                    }
+                                                }
                                             }
                                             ::std::option::Option::None => #expr,
                                         }

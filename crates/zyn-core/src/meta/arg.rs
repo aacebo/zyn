@@ -222,7 +222,7 @@ impl ToTokens for Arg {
         match self {
             Self::Flag(name) => name.to_tokens(tokens),
             Self::Neg(name) => {
-                tokens.append(proc_macro2::Punct::new('-', proc_macro2::Spacing::Alone));
+                tokens.append(proc_macro2::Punct::new('-', proc_macro2::Spacing::Joint));
                 name.to_tokens(tokens);
             }
             Self::Expr(name, expr) => {
@@ -307,7 +307,7 @@ mod tests {
         fn neg() {
             let arg: Arg = syn::parse_str("-debug").unwrap();
             let output = arg.to_token_stream().to_string();
-            assert_eq!(output, "- debug");
+            assert_eq!(output, "-debug");
         }
 
         #[test]
