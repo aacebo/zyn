@@ -31,14 +31,14 @@ impl Args {
 
     /// Returns `true` if a positive flag (not negated) with the given name exists.
     ///
-    /// Unlike [`has`](Self::has), this returns `false` for negated flags (`-name`).
+    /// Unlike [`has`](Self::has), this returns `false` for negated flags (`!name`).
     pub fn has_flag(&self, name: &str) -> bool {
         self.0
             .iter()
             .any(|arg| matches!(arg, Arg::Flag(n) if n == name))
     }
 
-    /// Returns `true` if a negated flag (`-name`) with the given name exists.
+    /// Returns `true` if a negated flag (`!name`) with the given name exists.
     pub fn has_neg(&self, name: &str) -> bool {
         self.0
             .iter()
@@ -234,14 +234,14 @@ mod tests {
 
         #[test]
         fn has_flag_negated() {
-            let args: Args = syn::parse_str("-debug").unwrap();
+            let args: Args = syn::parse_str("!debug").unwrap();
             assert!(!args.has_flag("debug"));
             assert!(args.has("debug"));
         }
 
         #[test]
         fn has_flag_mixed() {
-            let args: Args = syn::parse_str("debug, -clone").unwrap();
+            let args: Args = syn::parse_str("debug, !clone").unwrap();
             assert!(args.has_flag("debug"));
             assert!(!args.has_flag("clone"));
         }
@@ -254,7 +254,7 @@ mod tests {
 
         #[test]
         fn has_neg_negated() {
-            let args: Args = syn::parse_str("-debug").unwrap();
+            let args: Args = syn::parse_str("!debug").unwrap();
             assert!(args.has_neg("debug"));
         }
 

@@ -296,11 +296,11 @@ fn bool_default_true_when_absent() {
 
 #[test]
 fn bool_neg_disables_default_true() {
-    let args: Args = zyn::parse!("-debug, -clone").unwrap();
+    let args: Args = zyn::parse!("!debug, !clone").unwrap();
     let v = Features::from_args(&args).unwrap();
 
-    assert!(!v.debug, "-debug should disable default-true field");
-    assert!(!v.clone, "-clone on default bool stays false");
+    assert!(!v.debug, "!debug should disable default-true field");
+    assert!(!v.clone, "!clone on default bool stays false");
 }
 
 #[test]
@@ -315,10 +315,10 @@ fn bool_flag_enables_plain() {
 
 #[test]
 fn bool_mixed_flags() {
-    let args: Args = zyn::parse!("display, -debug").unwrap();
+    let args: Args = zyn::parse!("display, !debug").unwrap();
     let v = Features::from_args(&args).unwrap();
 
-    assert!(!v.debug, "-debug should be false");
+    assert!(!v.debug, "!debug should be false");
     assert!(!v.clone, "clone default stays false");
     assert!(v.display, "display explicitly enabled");
 }
@@ -343,7 +343,7 @@ fn bool_default_false_same_as_no_default() {
     assert!(v.enabled);
 
     // neg → false
-    let args: Args = zyn::parse!("-enabled").unwrap();
+    let args: Args = zyn::parse!("!enabled").unwrap();
     let v = BoolDefaultFalse::from_args(&args).unwrap();
     assert!(!v.enabled);
 }

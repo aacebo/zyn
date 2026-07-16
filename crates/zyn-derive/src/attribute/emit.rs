@@ -76,7 +76,7 @@ pub fn from_args(
 
                             match bool_lit {
                                 Some(true) => {
-                                    // default = true → on unless -name
+                                    // default = true → on unless !name
                                     struct_inits.push(quote! { #ident: !args.has_neg(#key) });
                                 }
                                 Some(false) => {

@@ -13,7 +13,7 @@ use super::Args;
 
 /// A single parsed attribute argument.
 ///
-/// Represents one of five forms: a bare flag (`skip`), a negated flag (`-debug`),
+/// Represents one of five forms: a bare flag (`skip`), a negated flag (`!debug`),
 /// a key-value expression (`rename = "foo"`), a nested list (`serde(flatten)`),
 /// or a standalone literal (`"hello"`).
 #[derive(Clone)]
@@ -42,7 +42,7 @@ impl Arg {
         matches!(self, Self::Flag(_))
     }
 
-    /// Returns `true` if this is a negated flag (e.g. `-debug`).
+    /// Returns `true` if this is a negated flag (e.g. `!debug`).
     pub fn is_neg(&self) -> bool {
         matches!(self, Self::Neg(_))
     }
@@ -194,8 +194,8 @@ impl Parse for Arg {
             return Ok(Self::Lit(input.parse()?));
         }
 
-        if input.peek(Token![-]) {
-            input.parse::<Token![-]>()?;
+        if input.peek(Token![!]) {
+            input.parse::<Token![!]>()?;
             let name: Ident = input.parse()?;
             return Ok(Self::Neg(name));
         }
@@ -222,7 +222,7 @@ impl ToTokens for Arg {
         match self {
             Self::Flag(name) => name.to_tokens(tokens),
             Self::Neg(name) => {
-                tokens.append(proc_macro2::Punct::new('-', proc_macro2::Spacing::Joint));
+                tokens.append(proc_macro2::Punct::new('!', proc_macro2::Spacing::Joint));
                 name.to_tokens(tokens);
             }
             Self::Expr(name, expr) => {
@@ -259,7 +259,7 @@ mod tests {
 
         #[test]
         fn neg() {
-            let arg: Arg = syn::parse_str("-debug").unwrap();
+            let arg: Arg = syn::parse_str("!debug").unwrap();
             assert!(arg.is_neg());
             assert_eq!(arg.name().unwrap(), "debug");
         }
@@ -305,9 +305,9 @@ mod tests {
 
         #[test]
         fn neg() {
-            let arg: Arg = syn::parse_str("-debug").unwrap();
+            let arg: Arg = syn::parse_str("!debug").unwrap();
             let output = arg.to_token_stream().to_string();
-            assert_eq!(output, "-debug");
+            assert_eq!(output, "!debug");
         }
 
         #[test]
@@ -364,7 +364,7 @@ mod tests {
 
         #[test]
         fn as_neg_returns_ident() {
-            let arg: Arg = syn::parse_str("-debug").unwrap();
+            let arg: Arg = syn::parse_str("!debug").unwrap();
             assert_eq!(arg.as_neg().to_string(), "debug");
         }
 

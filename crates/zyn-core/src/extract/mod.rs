@@ -328,7 +328,7 @@ mod tests {
 
         #[test]
         fn from_neg() {
-            let arg: Arg = syn::parse_str("-debug").unwrap();
+            let arg: Arg = syn::parse_str("!debug").unwrap();
             assert!(!bool::from_arg(&arg).unwrap());
         }
 
