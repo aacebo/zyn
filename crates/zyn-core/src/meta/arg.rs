@@ -13,11 +13,13 @@ use super::Args;
 
 /// A single parsed attribute argument.
 ///
-/// Represents one of four forms: a bare flag (`skip`), a key-value expression
-/// (`rename = "foo"`), a nested list (`serde(flatten)`), or a standalone literal (`"hello"`).
+/// Represents one of five forms: a bare flag (`skip`), a negated flag (`!debug`),
+/// a key-value expression (`rename = "foo"`), a nested list (`serde(flatten)`),
+/// or a standalone literal (`"hello"`).
 #[derive(Clone)]
 pub enum Arg {
     Flag(Ident),
+    Neg(Ident),
     Expr(Ident, Expr),
     List(Ident, Args),
     Lit(Lit),
@@ -28,6 +30,7 @@ impl Arg {
     pub fn name(&self) -> Option<&Ident> {
         match self {
             Self::Flag(name) => Some(name),
+            Self::Neg(name) => Some(name),
             Self::Expr(name, _) => Some(name),
             Self::List(name, _) => Some(name),
             Self::Lit(_) => None,
@@ -37,6 +40,11 @@ impl Arg {
     /// Returns `true` if this is a bare flag (e.g. `skip`).
     pub fn is_flag(&self) -> bool {
         matches!(self, Self::Flag(_))
+    }
+
+    /// Returns `true` if this is a negated flag (e.g. `!debug`).
+    pub fn is_neg(&self) -> bool {
+        matches!(self, Self::Neg(_))
     }
 
     /// Returns `true` if this is a key-value expression (e.g. `rename = "foo"`).
@@ -83,6 +91,14 @@ impl Arg {
         match self {
             Self::Flag(i) => i,
             _ => panic!("called `Arg::as_flag()` on a non-Flag variant"),
+        }
+    }
+
+    /// Returns the negated flag identifier. Panics if not a `Neg` variant.
+    pub fn as_neg(&self) -> &Ident {
+        match self {
+            Self::Neg(i) => i,
+            _ => panic!("called `Arg::as_neg()` on a non-Neg variant"),
         }
     }
 
@@ -178,6 +194,12 @@ impl Parse for Arg {
             return Ok(Self::Lit(input.parse()?));
         }
 
+        if input.peek(Token![!]) {
+            input.parse::<Token![!]>()?;
+            let name: Ident = input.parse()?;
+            return Ok(Self::Neg(name));
+        }
+
         let name: Ident = input.parse()?;
 
         if input.peek(Token![=]) {
@@ -199,6 +221,10 @@ impl ToTokens for Arg {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
             Self::Flag(name) => name.to_tokens(tokens),
+            Self::Neg(name) => {
+                tokens.append(proc_macro2::Punct::new('!', proc_macro2::Spacing::Joint));
+                name.to_tokens(tokens);
+            }
             Self::Expr(name, expr) => {
                 name.to_tokens(tokens);
                 tokens.append(proc_macro2::Punct::new('=', proc_macro2::Spacing::Alone));
@@ -229,6 +255,13 @@ mod tests {
             let arg: Arg = syn::parse_str("skip").unwrap();
             assert!(arg.is_flag());
             assert_eq!(arg.name().unwrap(), "skip");
+        }
+
+        #[test]
+        fn neg() {
+            let arg: Arg = syn::parse_str("!debug").unwrap();
+            assert!(arg.is_neg());
+            assert_eq!(arg.name().unwrap(), "debug");
         }
 
         #[test]
@@ -268,6 +301,13 @@ mod tests {
             let arg: Arg = syn::parse_str("skip").unwrap();
             let output = arg.to_token_stream().to_string();
             assert_eq!(output, "skip");
+        }
+
+        #[test]
+        fn neg() {
+            let arg: Arg = syn::parse_str("!debug").unwrap();
+            let output = arg.to_token_stream().to_string();
+            assert_eq!(output, "!debug");
         }
 
         #[test]
@@ -320,6 +360,19 @@ mod tests {
         fn as_flag_returns_ident() {
             let arg: Arg = syn::parse_str("skip").unwrap();
             assert_eq!(arg.as_flag().to_string(), "skip");
+        }
+
+        #[test]
+        fn as_neg_returns_ident() {
+            let arg: Arg = syn::parse_str("!debug").unwrap();
+            assert_eq!(arg.as_neg().to_string(), "debug");
+        }
+
+        #[test]
+        #[should_panic(expected = "non-Neg")]
+        fn as_neg_panics_on_flag() {
+            let arg: Arg = syn::parse_str("skip").unwrap();
+            arg.as_neg();
         }
 
         #[test]

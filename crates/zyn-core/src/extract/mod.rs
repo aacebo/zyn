@@ -170,6 +170,7 @@ impl FromArg for bool {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
             Arg::Flag(_) => Ok(true),
+            Arg::Neg(_) => Ok(false),
             _ => Err(mark::error("expected flag for bool")
                 .span(arg.span())
                 .build()),
@@ -236,7 +237,7 @@ impl FromArg for char {
 impl FromArg for syn::Ident {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
-            Arg::Flag(i) => Ok(i.clone()),
+            Arg::Flag(i) | Arg::Neg(i) => Ok(i.clone()),
             _ => Err(mark::error("expected identifier").span(arg.span()).build()),
         }
     }
@@ -245,7 +246,7 @@ impl FromArg for syn::Ident {
 impl FromArg for syn::Path {
     fn from_arg(arg: &Arg) -> crate::Result<Self> {
         match arg {
-            Arg::Flag(i) => Ok(syn::Path::from(i.clone())),
+            Arg::Flag(i) | Arg::Neg(i) => Ok(syn::Path::from(i.clone())),
             _ => Err(mark::error("expected identifier for path")
                 .span(arg.span())
                 .build()),
@@ -323,6 +324,12 @@ mod tests {
         fn from_flag() {
             let arg: Arg = syn::parse_str("skip").unwrap();
             assert!(bool::from_arg(&arg).unwrap());
+        }
+
+        #[test]
+        fn from_neg() {
+            let arg: Arg = syn::parse_str("!debug").unwrap();
+            assert!(!bool::from_arg(&arg).unwrap());
         }
 
         #[test]

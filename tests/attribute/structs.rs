@@ -266,3 +266,84 @@ fn unknown_key_with_valid_fields_still_errors() {
     assert!(combined.contains("unknown argument `bogus`"));
     assert_eq!(err.len(), 1);
 }
+
+// -- bool + default + Neg tests --
+
+#[derive(zyn::Attribute)]
+#[zyn("feat")]
+struct Features {
+    // default on: enabled unless explicitly negated
+    #[zyn(default = true)]
+    debug: bool,
+    #[zyn(default)]
+    clone: bool,
+    // default off: enabled only when explicitly flagged
+    display: bool,
+}
+
+#[test]
+fn bool_default_true_when_absent() {
+    let args: Args = zyn::parse!("").unwrap();
+    let v = Features::from_args(&args).unwrap();
+
+    assert!(v.debug, "default = true should make bool true when absent");
+    assert!(
+        !v.clone,
+        "#[zyn(default)] on bool is Default::default() = false"
+    );
+    assert!(!v.display, "plain bool should be false when absent");
+}
+
+#[test]
+fn bool_neg_disables_default_true() {
+    let args: Args = zyn::parse!("!debug, !clone").unwrap();
+    let v = Features::from_args(&args).unwrap();
+
+    assert!(!v.debug, "!debug should disable default-true field");
+    assert!(!v.clone, "!clone on default bool stays false");
+}
+
+#[test]
+fn bool_flag_enables_plain() {
+    let args: Args = zyn::parse!("display").unwrap();
+    let v = Features::from_args(&args).unwrap();
+
+    assert!(v.debug, "default = true stays true when not negated");
+    assert!(!v.clone, "#[zyn(default)] bool stays false without flag");
+    assert!(v.display, "explicit flag enables plain bool");
+}
+
+#[test]
+fn bool_mixed_flags() {
+    let args: Args = zyn::parse!("display, !debug").unwrap();
+    let v = Features::from_args(&args).unwrap();
+
+    assert!(!v.debug, "!debug should be false");
+    assert!(!v.clone, "clone default stays false");
+    assert!(v.display, "display explicitly enabled");
+}
+
+#[derive(zyn::Attribute)]
+#[zyn("bool_default_false")]
+struct BoolDefaultFalse {
+    #[zyn(default = false)]
+    enabled: bool,
+}
+
+#[test]
+fn bool_default_false_same_as_no_default() {
+    // absent → false
+    let args: Args = zyn::parse!("").unwrap();
+    let v = BoolDefaultFalse::from_args(&args).unwrap();
+    assert!(!v.enabled);
+
+    // flag → true
+    let args: Args = zyn::parse!("enabled").unwrap();
+    let v = BoolDefaultFalse::from_args(&args).unwrap();
+    assert!(v.enabled);
+
+    // neg → false
+    let args: Args = zyn::parse!("!enabled").unwrap();
+    let v = BoolDefaultFalse::from_args(&args).unwrap();
+    assert!(!v.enabled);
+}
