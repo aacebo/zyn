@@ -8,6 +8,15 @@
 
 A proc macro framework with templates, composable elements, and built-in diagnostics.
 
+> [!IMPORTANT]
+> **Zyn is being superseded by [Moxy](https://github.com/aacebo/moxy).**
+> Moxy takes the ideas behind Zyn further by owning the token, AST, parsing,
+> templating, formatting, and diagnostics stack. Some Zyn features are not yet
+> available in Moxy, but are planned to be added soon.
+>
+> Read [Moxy is replacing Zyn](https://github.com/aacebo/zyn/discussions/31)
+> for more about the project and the rationale behind the change.
+
 [🗺️ Roadmap](./ROADMAP.md)
 
 ```sh
@@ -466,6 +475,7 @@ Benchmarks confirm the zero-overhead claim: the full pipeline (parse, extract, c
 
 ## Discussions
 
+- [Moxy is replacing Zyn](https://github.com/aacebo/zyn/discussions/31)
 - [Diagnostics API](https://github.com/aacebo/zyn/discussions/7)
 - [Extractor API](https://github.com/aacebo/zyn/discussions/8)
 
